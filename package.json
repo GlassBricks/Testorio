@@ -1,0 +1,41 @@
+{
+  "name": "testorio",
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^16.10.3",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "cpy": "^8.1.2",
+    "del": "^6.0.0",
+    "del-cli": "^4.0.1",
+    "eslint": "^7.32.0",
+    "eslint-config-esnext": "^4.1.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-recommended": "^4.1.0",
+    "eslint-import-resolver-typescript": "^2.5.0",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "eslint-plugin-import": "^2.24.2",
+    "eslint-plugin-prettier": "^4.0.0",
+    "lua-types": "^2.11.0",
+    "prettier": "^2.4.1",
+    "prettier-plugin-jsdoc": "^0.3.24",
+    "ts-node": "^10.2.1",
+    "typed-factorio": "^0.7.2",
+    "typescript": "^4.4.3",
+    "typescript-to-lua": "^1.0.1",
+    "typescript-tstl-plugin": "^0.3.2",
+    "luassert-tstl": "^0.2.0"
+  },
+  "scripts": {
+    "build": "tstl",
+    "build:full": "yarn run copy-luassert && yarn run build",
+    "copy-luassert": "TS_NODE_PROJECT=\"./scripts/tsconfig.json\" node --loader ts-node/esm ./scripts/copy-luassert.ts",
+    "watch": "tstl --watch",
+    "lint": "eslint **/*.{ts,tsx}",
+    "lint:fix": "eslint **/*{ts,tsx} --fix",
+    "clean": "del \"src/**/*.lua\" \"!src/say.lua\" \"!src/luassert/**\"",
+    "clean:full": "del \"src/**/*.{lua,js}\""
+  }
+}

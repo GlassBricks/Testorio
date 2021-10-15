@@ -1,0 +1,14 @@
+{
+  "name": "testorio",
+  "version": "0.1.0",
+  "title": "Mod testing framework for factorio.",
+  "author": "GlassBricks",
+  "factorio_version": "1.1",
+  "dependencies": [],
+  "package": {
+    "scripts": {
+      "prepackage": "yarn run clean:full && yarn run build:full"
+    },
+    "git_publish_branch": "main"
+  }
+}

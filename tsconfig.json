@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "none",
+    "moduleResolution": "node",
+    "lib": [
+      "esnext"
+    ],
+    "types": [
+      "typed-factorio/runtime"
+    ],
+    "plugins": [
+      {
+        "name": "typescript-tstl-plugin"
+      }
+    ],
+    "strict": true,
+    "experimentalDecorators": true,
+    "rootDir": "./src",
+    "outDir": "./src"
+  },
+  "tstl": {
+    "luaTarget": "5.2",
+    "sourceMapTraceback": true,
+    "noImplicitSelf": true
+  },
+  "include": [
+    "./src/**/*"
+  ],
+  "exclude": []
+}
