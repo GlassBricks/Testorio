@@ -56,7 +56,7 @@ function runTestAsync<T extends Test | DescribeBlock = Test>(
   const runner = createRunner(mockTestState)
   _setTestState(originalTestState)
   async()
-  on_tick(() => {
+  onTick(() => {
     _setTestState(mockTestState)
     runner.tick()
     ran = true
@@ -478,7 +478,7 @@ describe("async tests", () => {
       let failedToTimeOut = false
       test("left to timeout", () => {
         async(30)
-        on_tick((t) => {
+        onTick((t) => {
           tick = t
           if (tick > 40) {
             failedToTimeOut = true
@@ -541,7 +541,7 @@ describe("on_tick", () => {
   test("simple", () => {
     test("an async", () => {
       async()
-      on_tick((tick) => {
+      onTick((tick) => {
         actions.push(tick)
         if (tick === 2) {
           done()
@@ -555,7 +555,7 @@ describe("on_tick", () => {
 
   it("can only be used in an async test", () => {
     test("some thing", () => {
-      on_tick(() => {
+      onTick(() => {
         // noop
       })
     })
@@ -565,7 +565,7 @@ describe("on_tick", () => {
   it("only runs on the next tick", () => {
     test("an async", () => {
       async()
-      on_tick((tick) => {
+      onTick((tick) => {
         actions.push(tick)
       })
       done()
@@ -578,7 +578,7 @@ describe("on_tick", () => {
   it("stops test on error", () => {
     test("an async", () => {
       async()
-      on_tick(() => {
+      onTick(() => {
         actions.push("tick")
         error("uh oh")
       })
@@ -592,10 +592,10 @@ describe("on_tick", () => {
   it("runs in order registered", () => {
     test("an async", () => {
       async()
-      on_tick(() => {
+      onTick(() => {
         actions.push(1)
       })
-      on_tick((tick) => {
+      onTick((tick) => {
         actions.push(2)
         if (tick === 2) {
           done()
@@ -610,10 +610,10 @@ describe("on_tick", () => {
   it("runs even if done", () => {
     test("an async", () => {
       async()
-      on_tick(() => {
+      onTick(() => {
         done()
       })
-      on_tick((tick) => {
+      onTick((tick) => {
         actions.push(tick)
       })
     })
@@ -625,13 +625,13 @@ describe("on_tick", () => {
   it("can deregister themselves", () => {
     test("an async", () => {
       async()
-      on_tick((tick) => {
+      onTick((tick) => {
         actions.push(tick)
         if (tick === 2) {
           return false
         }
       })
-      on_tick((tick) => {
+      onTick((tick) => {
         if (tick === 3) done()
       })
     })
@@ -643,9 +643,9 @@ describe("on_tick", () => {
   it("can be added at a later time and not immediately run", () => {
     test("an async", () => {
       async()
-      on_tick((t) => {
+      onTick((t) => {
         if (t === 2) {
-          on_tick((t) => {
+          onTick((t) => {
             actions.push(t)
             if (t === 4) {
               done()
@@ -665,10 +665,10 @@ describe("after_ticks", () => {
     let tick: number
     test("an async", () => {
       async()
-      on_tick((t) => {
+      onTick((t) => {
         tick = t
       })
-      after_ticks(5, () => {
+      afterTicks(5, () => {
         done()
       })
     })
@@ -682,11 +682,11 @@ describe("after_ticks", () => {
     let tick: number
     test("an async", () => {
       async()
-      on_tick((t) => {
+      onTick((t) => {
         tick = t
       })
-      after_ticks(2, () => {
-        after_ticks(2, () => {
+      afterTicks(2, () => {
+        afterTicks(2, () => {
           done()
         })
       })
@@ -700,7 +700,7 @@ describe("after_ticks", () => {
   it("only accepts valid arguments", () => {
     test("Some test", () => {
       async()
-      after_ticks(-1, () => {
+      afterTicks(-1, () => {
         // noop
       })
     })
@@ -724,13 +724,13 @@ describe("multi-part tests", () => {
   test("async", () => {
     test("some test", () => {
       async()
-      after_ticks(2, () => {
+      afterTicks(2, () => {
         actions.push(1)
         done()
       })
     }).next(() => {
       async()
-      after_ticks(2, () => {
+      afterTicks(2, () => {
         actions.push(2)
         done()
       })
@@ -743,13 +743,13 @@ describe("multi-part tests", () => {
   it("clears on_tick between parts", () => {
     test("some test", () => {
       async()
-      on_tick((tick) => {
+      onTick((tick) => {
         actions.push(tick)
       })
-      after_ticks(2, done)
+      afterTicks(2, done)
     }).next(() => {
       async()
-      after_ticks(3, () => {
+      afterTicks(3, () => {
         actions.push("done")
         done()
       })
@@ -775,7 +775,7 @@ describe("ticks between tests", () => {
     let tick1 = 0
     let tick2 = 0
     let tick3 = 0
-    ticks_between_tests(2)
+    ticksBetweenTests(2)
     test("1", () => {
       tick1 = game.tick
     })
@@ -799,7 +799,7 @@ describe("ticks between tests", () => {
     let tick3 = 0
     let tick4 = 0
     let tick5 = 0
-    ticks_between_tests(2)
+    ticksBetweenTests(2)
     describe("nested", () => {
       test("1", () => {
         tick1 = game.tick
@@ -809,7 +809,7 @@ describe("ticks between tests", () => {
         tick2 = game.tick
       })
 
-      ticks_between_tests(3)
+      ticksBetweenTests(3)
 
       test("3", () => {
         tick3 = game.tick
@@ -820,7 +820,7 @@ describe("ticks between tests", () => {
       tick4 = game.tick
     })
 
-    ticks_between_tests(0)
+    ticksBetweenTests(0)
     test("5", () => {
       tick5 = game.tick
     })
@@ -835,7 +835,7 @@ describe("ticks between tests", () => {
 
   it("does not accept negative value", () => {
     assert.error(() => {
-      ticks_between_tests(-1)
+      ticksBetweenTests(-1)
     })
   })
 })

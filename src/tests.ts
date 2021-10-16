@@ -1,3 +1,6 @@
+import HookFn = Testorio.HookFn
+import TestFn = Testorio.TestFn
+
 export interface Source {
   readonly file?: string
   readonly line?: number
@@ -8,7 +11,6 @@ export function formatSource(source: Source): string {
   return `${source.file}:${source.line ?? 1}`
 }
 
-export type TestFn = () => void
 export type TestMode = undefined | "skip" | "only" | "todo"
 
 export interface Test {
@@ -62,9 +64,8 @@ export function addTest(
   return test
 }
 
-export type HookFn = () => void
-
 export type HookType = `${"before" | "after"}${"Each" | "All"}`
+
 export interface Hook {
   func: HookFn
   type: HookType

@@ -1,24 +1,9 @@
 // eslint-disable-next-line import/no-unresolved
 import "luassert"
 import { createRunner, TestRunner } from "./runner"
-import { getTestState, resetTestState, setup } from "./setup"
+import { getTestState, resetTestState, globals } from "./setup"
 
-declare global {
-  const describe: typeof setup.describe
-  const test: typeof setup.test
-  const it: typeof setup.it
-  const beforeAll: typeof setup.beforeAll
-  const afterAll: typeof setup.afterAll
-  const beforeEach: typeof setup.beforeEach
-  const afterEach: typeof setup.afterEach
-
-  const async: typeof setup.async
-  const done: typeof setup.done
-  const on_tick: typeof setup.on_tick
-  const after_ticks: typeof setup.after_ticks
-  const ticks_between_tests: typeof setup.ticks_between_tests
-}
-Object.assign(globalThis, setup)
+Object.assign(globalThis, globals)
 
 export = function init(...files: string[]): void {
   // setup

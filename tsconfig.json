@@ -25,7 +25,7 @@
     "noImplicitSelf": true
   },
   "include": [
-    "./src/**/*"
+    "./src/**/*",
   ],
   "exclude": []
 }

@@ -4,14 +4,20 @@ import {
   addTest,
   createRootDescribeBlock,
   DescribeBlock,
-  HookFn,
   HookType,
   OnTickFn,
   Source,
   Test,
-  TestFn,
   TestMode,
 } from "./tests"
+import TestFn = Testorio.TestFn
+import TestBuilder = Testorio.TestBuilder
+import TestCreatorBase = Testorio.TestCreatorBase
+import DescribeCreatorBase = Testorio.DescribeCreatorBase
+import HookFn = Testorio.HookFn
+import Lifecycle = Testorio.Lifecycle
+import TestCreator = Testorio.TestCreator
+import DescribeCreator = Testorio.DescribeCreator
 
 export interface TestState {
   readonly rootBlock: DescribeBlock
@@ -34,18 +40,19 @@ export interface TestRun {
   onTickFuncs: LuaTable<OnTickFn, true>
 }
 
-const testStateSymbol = Symbol("test state")
+declare global {
+  let TESTORIO_TEST_STATE: TestState
+}
 
 export function getTestState(): TestState {
-  const testState = (_G as any)[testStateSymbol] as TestState | undefined
-  if (!testState) {
+  if (!TESTORIO_TEST_STATE) {
     error("Tests are not configured to be run")
   }
-  return testState
+  return TESTORIO_TEST_STATE
 }
 
 export function _setTestState(state: TestState): void {
-  ;(_G as any)[testStateSymbol] = state
+  TESTORIO_TEST_STATE = state
 }
 
 export function resetTestState(): void {
@@ -95,47 +102,6 @@ function addHook(type: HookType, func: HookFn): void {
   })
 }
 
-/** @noSelf */
-interface TestCreatorBase {
-  (name: string, func: TestFn): TestBuilder
-
-  each<V extends any[]>(
-    values: V[],
-    name: string,
-    func: (...values: V) => void,
-  ): TestBuilder<typeof func>
-  each<T>(
-    values: T[],
-    name: string,
-    func: (value: T) => void,
-  ): TestBuilder<typeof func>
-}
-
-/** @noSelf */
-interface TestCreator extends TestCreatorBase {
-  skip: TestCreatorBase
-  only: TestCreatorBase
-  todo(name: string): void
-}
-
-/** @noSelf */
-interface DescribeCreatorBase {
-  (name: string, func: TestFn): void
-
-  each<V extends any[]>(
-    values: V[],
-    name: string,
-    func: (...values: V) => void,
-  ): void
-  each<T>(values: T[], name: string, func: (value: T) => void): void
-}
-
-/** @noSelf */
-interface DescribeCreator extends DescribeCreatorBase {
-  skip: DescribeCreatorBase
-  only: DescribeCreatorBase
-}
-
 function createTest(
   name: string,
   func: TestFn,
@@ -171,14 +137,6 @@ function addNext(test: Test, func: TestFn, funcForSource: Function = func) {
   })
 }
 
-/** @noSelf */
-export interface TestBuilder<F extends (...args: any) => void = TestFn> {
-  next(func: F): TestBuilder<F>
-  after_ticks(ticks: number, func: F): TestBuilder<F>
-  after_script_reload(func: F): TestBuilder<F>
-  after_mod_reload(func: F): TestBuilder<F>
-}
-
 function createTestBuilder<F extends () => void>(nextFn: (func: F) => void) {
   function reloadFunc(reload: () => void) {
     return (func: F) =>
@@ -200,7 +158,7 @@ function createTestBuilder<F extends () => void>(nextFn: (func: F) => void) {
       result
         .next((() => {
           async()
-          after_ticks(ticks, done)
+          afterTicks(ticks, done)
         }) as F)
         .next(func)
       return result
@@ -361,43 +319,55 @@ function createDescribeEach(mode: TestMode): DescribeCreatorBase {
 
 const DEFAULT_TIMEOUT = 60 * 60
 
-export namespace setup {
-  export const test = createTestEach(undefined) as TestCreator
-  test.skip = createTestEach("skip")
-  test.only = createTestEach("only")
-  test.todo = (name: string) => {
-    createTest(
-      name,
-      () => {
-        //noop
-      },
-      "todo",
-    )
-  }
+export const test = createTestEach(undefined) as TestCreator
+test.skip = createTestEach("skip")
+test.only = createTestEach("only")
+test.todo = (name: string) => {
+  createTest(
+    name,
+    () => {
+      //noop
+    },
+    "todo",
+  )
+}
 
-  export const it = test
+export const it = test
 
-  export const describe = createDescribeEach(undefined) as DescribeCreator
-  describe.skip = createDescribeEach("skip")
-  describe.only = createDescribeEach("only")
+export const describe = createDescribeEach(undefined) as DescribeCreator
+describe.skip = createDescribeEach("skip")
+describe.only = createDescribeEach("only")
 
-  export function beforeAll(func: HookFn): void {
+export const globals: Pick<
+  typeof globalThis,
+  "async" | "done" | "onTick" | "afterTicks" | "ticksBetweenTests"
+> &
+  Record<HookType, Lifecycle> & {
+    test: TestCreator
+    it: TestCreator
+    describe: DescribeCreator
+  } = {
+  test,
+  it: test,
+  describe,
+
+  beforeAll(func) {
     addHook("beforeAll", func)
-  }
+  },
 
-  export function afterAll(func: HookFn): void {
+  afterAll(func) {
     addHook("afterAll", func)
-  }
+  },
 
-  export function beforeEach(func: HookFn): void {
+  beforeEach(func) {
     addHook("beforeEach", func)
-  }
+  },
 
-  export function afterEach(func: HookFn): void {
+  afterEach(func) {
     addHook("afterEach", func)
-  }
+  },
 
-  export function async(timeout: number = DEFAULT_TIMEOUT): void {
+  async(timeout: number = DEFAULT_TIMEOUT): void {
     const testRun = getCurrentTestRun()
     if (testRun.async) {
       error("test is already async")
@@ -407,9 +377,9 @@ export namespace setup {
     }
     testRun.timeout = timeout
     testRun.async = true
-  }
+  },
 
-  export function done(): void {
+  done() {
     const testRun = getCurrentTestRun()
 
     if (!testRun.async) {
@@ -419,34 +389,33 @@ export namespace setup {
       error(`async test is already marked as done`)
     }
     testRun.asyncDone = true
-  }
+  },
 
-  export function on_tick(func: OnTickFn): void {
+  onTick(func) {
     const testRun = getCurrentTestRun()
     if (!testRun.async) {
       error("on_tick can only be used in async tests")
     }
     testRun.onTickFuncs.set(func, true)
-  }
+  },
 
-  export function after_ticks(ticks: number, func: TestFn): void {
+  afterTicks(ticks, func) {
     const testRun = getCurrentTestRun()
     const finishTick = game.ticks_played - testRun.tickStarted + ticks
     if (ticks < 1) {
       error("after_ticks amount must be positive")
     }
-    on_tick((tick) => {
+    onTick((tick) => {
       if (tick >= finishTick) {
         func()
         return false
       }
     })
-  }
-
-  export function ticks_between_tests(ticks: number): void {
+  },
+  ticksBetweenTests(ticks: number): void {
     if (ticks < 0) {
       error("ticks between tests must be 0 or greater")
     }
     getCurrentBlock().ticksBetweenTests = ticks
-  }
+  },
 }

@@ -1,4 +1,3 @@
-import { PRecord } from "factoriod/src/utilTypes"
 import type { TestState } from "./setup"
 import { DescribeBlock, Test } from "./tests"
 
@@ -21,7 +20,7 @@ export function prepareResume(testState: TestState): void {
 
 // maybe this should just like... not be there?
 
-const mutableTestState: PRecord<keyof Test, true> = {
+const mutableTestState: Partial<Record<keyof Test, true>> = {
   result: true,
   errors: true,
 }
