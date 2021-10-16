@@ -13,8 +13,6 @@ async function copyLuassert() {
   const src = path.join(repo, "src")
   const destination = path.join(outDir, "luassert")
 
-  console.log(repo, destination)
-
   await Promise.all([
     (async () => {
       await del(["**/*", "!**/*.ts"], {
