@@ -5,7 +5,7 @@ import * as path from "path"
 import { fileURLToPath } from "url"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const repositories = path.resolve(__dirname, "../..")
+const repositories = path.resolve(__dirname, "..")
 const outDir = path.resolve(__dirname, "../src")
 
 async function copyLuassert() {
