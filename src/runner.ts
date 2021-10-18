@@ -5,6 +5,7 @@ import reportRunResult from "./report"
 import { getTestState, resetTestState, TestRun, TestState } from "./setup"
 import { DescribeBlock, formatSource, Hook, OnTickFn, Test } from "./tests"
 import { assertNever } from "./util"
+import TestFn = Testorio.TestFn
 
 interface EnterDescribe {
   type: "enterDescribe"
@@ -48,9 +49,12 @@ type Task =
 
 export interface TestRunner {
   tick(): void
+
   reportResult(): void
+
   isDone(): boolean
 }
+
 let thisFileName = debug.getinfo(1)!.short_src
 assert(thisFileName.endsWith(".lua"))
 thisFileName = "\t" + thisFileName.substr(0, thisFileName.length - 4)
@@ -255,15 +259,20 @@ export function createRunner(state: TestState): TestRunner {
     const isSkipped = isSkippedTest(test)
 
     if (!isSkipped) {
-      function collectHooks(block: DescribeBlock, hooks: Hook[]) {
-        hooks.push(...block.hooks.filter((x) => x.type === "afterEach"))
+      function collectHooks(block: DescribeBlock, hooks: TestFn[]) {
+        hooks.push(
+          ...block.hooks
+            .filter((x) => x.type === "afterEach")
+            .map((x) => x.func),
+        )
         if (block.parent) collectHooks(block.parent, hooks)
         return hooks
       }
 
-      const afterEach = collectHooks(test.parent, [])
+      const afterEach = collectHooks(test.parent, [...test.afterTest])
+
       for (const hook of afterEach) {
-        const [success, error] = xpcall(hook.func, getErrorWithStacktrace)
+        const [success, error] = xpcall(hook, getErrorWithStacktrace)
         if (!success) {
           test.errors.push(error as string)
         }

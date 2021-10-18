@@ -27,6 +27,7 @@ export interface Test {
     func: TestFn
     source: Source
   }[]
+  readonly afterTest: TestFn[]
   readonly errors: string[]
 
   mode: TestMode
@@ -56,6 +57,7 @@ export function addTest(
         source,
       },
     ],
+    afterTest: [],
     errors: [],
     mode,
     ticksBefore: parent.ticksBetweenTests,
@@ -64,7 +66,7 @@ export function addTest(
   return test
 }
 
-export type HookType = `${"before" | "after"}${"Each" | "All"}`
+export type HookType = `${"before" | "after"}${"Each" | "All"}` | "afterTest"
 
 export interface Hook {
   func: HookFn

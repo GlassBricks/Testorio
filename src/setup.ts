@@ -367,6 +367,10 @@ export const globals: Pick<
     addHook("afterEach", func)
   },
 
+  afterTest(func): void {
+    getCurrentTestRun().test.afterTest.push(func)
+  },
+
   async(timeout: number = DEFAULT_TIMEOUT): void {
     const testRun = getCurrentTestRun()
     if (testRun.async) {

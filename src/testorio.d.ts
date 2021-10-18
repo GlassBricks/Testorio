@@ -7,6 +7,7 @@ declare const beforeAll: Testorio.Lifecycle
 declare const afterAll: Testorio.Lifecycle
 declare const beforeEach: Testorio.Lifecycle
 declare const afterEach: Testorio.Lifecycle
+declare const afterTest: Testorio.Lifecycle
 declare function async(timeout?: number): void
 declare function done(): void
 declare function onTick(func: (tick: number) => void): void

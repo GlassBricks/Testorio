@@ -175,12 +175,28 @@ describe("hooks", () => {
     assert.are_same(["beforeEach", "test", "afterEach"], actions)
   })
 
+  test("finally", () => {
+    test("", () => {
+      actions.push("test")
+      afterTest(() => {
+        actions.push("afterTest")
+      })
+    })
+    runTestSync()
+    assert.same(["test", "afterTest"], actions)
+  })
+
   test("nested", () => {
     beforeAll(() => actions.push("1 - beforeAll"))
     afterAll(() => actions.push("1 - afterAll"))
     beforeEach(() => actions.push("1 - beforeEach"))
     afterEach(() => actions.push("1 - afterEach"))
-    test("test1", () => actions.push("1 - test"))
+    test("test1", () => {
+      actions.push("1 - test")
+      afterTest(() => {
+        actions.push("1 - afterTest")
+      })
+    })
     describe("Scoped / Nested scope", () => {
       beforeAll(() => actions.push("2 - beforeAll"))
       afterAll(() => actions.push("2 - afterAll"))
@@ -194,6 +210,7 @@ describe("hooks", () => {
         "1 - beforeAll",
         "1 - beforeEach",
         "1 - test",
+        "1 - afterTest",
         "1 - afterEach",
         "2 - beforeAll",
         "1 - beforeEach",

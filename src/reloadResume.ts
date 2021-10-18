@@ -41,6 +41,10 @@ function compareAndFindTest(
     if (seen.get(b) === a) return true
     seen.set(b, a)
     for (const [k, v] of pairs(a)) {
+      if (a.type === "test" && k in mutableTestState) {
+        a[k] = b[k]
+        continue
+      }
       if (!compare(v, b[k])) {
         return false
       }
