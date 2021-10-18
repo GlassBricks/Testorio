@@ -138,14 +138,12 @@ function addNext(test: Test, func: TestFn, funcForSource: Function = func) {
 }
 
 function createTestBuilder<F extends () => void>(nextFn: (func: F) => void) {
-  function reloadFunc(reload: () => void, name: string) {
+  function reloadFunc(reload: () => void, what: string) {
     return (func: F) =>
       result
         .next((() => {
           async(1)
-          game.print(
-            `Reloading ${name} for test:\n${getCurrentTestRun().test.path}`,
-          )
+          game.print(`${getCurrentTestRun().test.path}:\nReloading ${what}`)
           onTick(() => {
             prepareResume(getTestState())
             reload()
