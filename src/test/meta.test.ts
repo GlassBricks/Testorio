@@ -1,13 +1,13 @@
-import * as Log from "../Log"
-import { LogLevel } from "../Log"
-import { createRunner } from "../runner"
+import * as Log from "../tests/Log"
+import { LogLevel } from "../tests/Log"
+import { createRunner } from "../tests/runner"
 import {
   _setTestState,
   getTestState,
   resetTestState,
   TestState,
-} from "../setup"
-import { DescribeBlock, Test } from "../tests"
+} from "../tests/setup"
+import { DescribeBlock, Test } from "../tests/tests"
 
 // simulated test environment
 let actions: unknown[] = []

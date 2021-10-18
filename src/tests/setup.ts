@@ -138,13 +138,18 @@ function addNext(test: Test, func: TestFn, funcForSource: Function = func) {
 }
 
 function createTestBuilder<F extends () => void>(nextFn: (func: F) => void) {
-  function reloadFunc(reload: () => void) {
+  function reloadFunc(reload: () => void, name: string) {
     return (func: F) =>
       result
         .next((() => {
-          prepareResume(getTestState())
           async(1)
-          reload()
+          game.print(
+            `Reloading ${name} for test:\n${getCurrentTestRun().test.path}`,
+          )
+          onTick(() => {
+            prepareResume(getTestState())
+            reload()
+          })
         }) as F)
         .next(func)
   }
@@ -163,8 +168,8 @@ function createTestBuilder<F extends () => void>(nextFn: (func: F) => void) {
         .next(func)
       return result
     },
-    after_script_reload: reloadFunc(() => game.reload_script()),
-    after_mod_reload: reloadFunc(() => game.reload_mods()),
+    after_script_reload: reloadFunc(() => game.reload_script(), "script"),
+    after_mod_reload: reloadFunc(() => game.reload_mods(), "mods"),
   }
   return result
 }
@@ -405,7 +410,7 @@ export const globals: Pick<
 
   afterTicks(ticks, func) {
     const testRun = getCurrentTestRun()
-    const finishTick = game.ticks_played - testRun.tickStarted + ticks
+    const finishTick = game.tick - testRun.tickStarted + ticks
     if (ticks < 1) {
       error("after_ticks amount must be positive")
     }

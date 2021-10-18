@@ -1,7 +1,8 @@
 {
   "name": "testorio",
   "version": "0.1.0",
-  "title": "Mod testing framework for factorio.",
+  "title": "Testorio",
+  "description": "Mod testing framework for factorio.",
   "author": "GlassBricks",
   "factorio_version": "1.1",
   "dependencies": [],

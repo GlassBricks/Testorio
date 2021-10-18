@@ -2,7 +2,7 @@ import * as Log from "./Log"
 import { LogLevel } from "./Log"
 import { TestState } from "./setup"
 import { DescribeBlock, Test } from "./tests"
-import { assertNever } from "./util"
+import { assertNever } from "../util"
 
 interface TestResult {
   test: Test

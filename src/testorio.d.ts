@@ -1,5 +1,3 @@
-/** @noSelfInFile */
-
 declare const test: Testorio.TestCreator
 declare const it: Testorio.TestCreator
 declare const describe: Testorio.DescribeCreator
@@ -14,7 +12,6 @@ declare function onTick(func: (tick: number) => void): void
 declare function afterTicks(ticks: number, func: Testorio.TestFn): void
 declare function ticksBetweenTests(ticks: number): void
 
-/** @noSelfInFile */
 declare namespace Testorio {
   type TestFn = () => void
   type HookFn = TestFn

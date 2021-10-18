@@ -4,7 +4,7 @@ import { tryResume } from "./reloadResume"
 import reportRunResult from "./report"
 import { getTestState, resetTestState, TestRun, TestState } from "./setup"
 import { DescribeBlock, formatSource, Hook, OnTickFn, Test } from "./tests"
-import { assertNever } from "./util"
+import { assertNever } from "../util"
 import TestFn = Testorio.TestFn
 
 interface EnterDescribe {
@@ -359,7 +359,7 @@ export function createRunner(state: TestState): TestRunner {
     nextTask = undefined
     resetTestState()
     state = getTestState()
-    state.suppressedErrors.push(message)
+    state.suppressedErrors.push(message + ".")
   } else if (resume.result === "resumed") {
     nextTask = {
       type: "runTestPart",

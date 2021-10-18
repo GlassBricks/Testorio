@@ -13,13 +13,14 @@ export enum LogLevel {
   Error,
   None,
 }
+
 const colors: readonly Color[] = [
   [153, 204, 51],
   [173, 216, 230],
   [1, 1, 1],
   [255, 204, 50],
   [255, 100, 100],
-] as const
+]
 const categories = ["stdout", "stdout", "stdout", "console", "stderr"] as const
 
 let currentLevel: LogLevel = __DebugAdapter ? LogLevel.Debug : LogLevel.Info

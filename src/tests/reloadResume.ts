@@ -1,5 +1,6 @@
 import type { TestState } from "./setup"
 import { DescribeBlock, Test } from "./tests"
+import { ReloadedForTest } from "../constants"
 
 declare const global: {
   __testResume?: {
@@ -16,6 +17,7 @@ export function prepareResume(testState: TestState): void {
     test: currentRun.test,
     partIndex: currentRun.partIndex + 1,
   }
+  settings.global[ReloadedForTest] = { value: true }
 }
 
 // maybe this should just like... not be there?
