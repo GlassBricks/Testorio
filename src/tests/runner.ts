@@ -3,9 +3,10 @@ import { LogLevel } from "./Log"
 import { tryResume } from "./reloadResume"
 import reportRunResult from "./report"
 import { getTestState, resetTestState, TestRun, TestState } from "./setup"
-import { DescribeBlock, formatSource, Hook, OnTickFn, Test } from "./tests"
+import { DescribeBlock, formatSource, Hook, Test } from "./tests"
 import { assertNever } from "../util"
 import TestFn = Testorio.TestFn
+import OnTickFn = Testorio.OnTickFn
 
 interface EnterDescribe {
   type: "enterDescribe"

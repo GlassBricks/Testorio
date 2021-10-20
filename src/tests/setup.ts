@@ -5,7 +5,6 @@ import {
   createRootDescribeBlock,
   DescribeBlock,
   HookType,
-  OnTickFn,
   Source,
   Test,
   TestMode,
@@ -15,9 +14,9 @@ import TestBuilder = Testorio.TestBuilder
 import TestCreatorBase = Testorio.TestCreatorBase
 import DescribeCreatorBase = Testorio.DescribeCreatorBase
 import HookFn = Testorio.HookFn
-import Lifecycle = Testorio.Lifecycle
 import TestCreator = Testorio.TestCreator
 import DescribeCreator = Testorio.DescribeCreator
+import OnTickFn = Testorio.OnTickFn
 
 export interface TestState {
   readonly rootBlock: DescribeBlock
@@ -144,7 +143,7 @@ function createTestBuilder<F extends () => void>(nextFn: (func: F) => void) {
         .next((() => {
           async(1)
           game.print(`${getCurrentTestRun().test.path}:\nReloading ${what}`)
-          onTick(() => {
+          on_tick(() => {
             prepareResume(getTestState())
             reload()
           })
@@ -161,7 +160,7 @@ function createTestBuilder<F extends () => void>(nextFn: (func: F) => void) {
       result
         .next((() => {
           async()
-          afterTicks(ticks, done)
+          after_ticks(ticks, done)
         }) as F)
         .next(func)
       return result
@@ -336,20 +335,25 @@ test.todo = (name: string) => {
 }
 
 export const it = test
-
 export const describe = createDescribeEach(undefined) as DescribeCreator
 describe.skip = createDescribeEach("skip")
 describe.only = createDescribeEach("only")
+type Globals =
+  | HookType
+  | "async"
+  | "done"
+  | "on_tick"
+  | "after_ticks"
+  | "ticks_between_tests"
+  | "test"
+  | "it"
+  | "describe"
 
-export const globals: Pick<
-  typeof globalThis,
-  "async" | "done" | "onTick" | "afterTicks" | "ticksBetweenTests"
-> &
-  Record<HookType, Lifecycle> & {
-    test: TestCreator
-    it: TestCreator
-    describe: DescribeCreator
-  } = {
+type GlobalsObj = {
+  [P in Globals]: typeof globalThis[P]
+}
+
+export const globals: GlobalsObj = {
   test,
   it: test,
   describe,
@@ -398,7 +402,7 @@ export const globals: Pick<
     testRun.asyncDone = true
   },
 
-  onTick(func) {
+  on_tick(func) {
     const testRun = getCurrentTestRun()
     if (!testRun.async) {
       error("on_tick can only be used in async tests")
@@ -406,20 +410,20 @@ export const globals: Pick<
     testRun.onTickFuncs.set(func, true)
   },
 
-  afterTicks(ticks, func) {
+  after_ticks(ticks, func) {
     const testRun = getCurrentTestRun()
     const finishTick = game.tick - testRun.tickStarted + ticks
     if (ticks < 1) {
       error("after_ticks amount must be positive")
     }
-    onTick((tick) => {
+    on_tick((tick) => {
       if (tick >= finishTick) {
         func()
         return false
       }
     })
   },
-  ticksBetweenTests(ticks: number): void {
+  ticks_between_tests(ticks: number): void {
     if (ticks < 0) {
       error("ticks between tests must be 0 or greater")
     }

@@ -129,5 +129,3 @@ export function createRootDescribeBlock(): DescribeBlock {
     ticksBetweenTests: 0,
   }
 }
-
-export type OnTickFn = (tick: number) => void | false

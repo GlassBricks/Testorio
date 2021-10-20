@@ -11,7 +11,7 @@ test("inWorld", () => {
     chest.get_inventory(defines.inventory.chest)!.get_item_count("iron-plate"),
   )
   async()
-  afterTicks(150, () => {
+  after_ticks(150, () => {
     assert.equal(
       5,
       chest

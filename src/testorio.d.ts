@@ -1,20 +1,23 @@
-declare const test: Testorio.TestCreator
-declare const it: Testorio.TestCreator
-declare const describe: Testorio.DescribeCreator
-declare const beforeAll: Testorio.Lifecycle
-declare const afterAll: Testorio.Lifecycle
-declare const beforeEach: Testorio.Lifecycle
-declare const afterEach: Testorio.Lifecycle
-declare const afterTest: Testorio.Lifecycle
+// eslint-disable-next-line eslint-comments/disable-enable-pair
+/* eslint-disable no-var */
+declare var test: Testorio.TestCreator
+declare var it: Testorio.TestCreator
+declare var describe: Testorio.DescribeCreator
+declare var beforeAll: Testorio.Lifecycle
+declare var afterAll: Testorio.Lifecycle
+declare var beforeEach: Testorio.Lifecycle
+declare var afterEach: Testorio.Lifecycle
+declare var afterTest: Testorio.Lifecycle
 declare function async(timeout?: number): void
 declare function done(): void
-declare function onTick(func: (tick: number) => void): void
-declare function afterTicks(ticks: number, func: Testorio.TestFn): void
-declare function ticksBetweenTests(ticks: number): void
+declare function on_tick(func: Testorio.OnTickFn): void
+declare function after_ticks(ticks: number, func: Testorio.TestFn): void
+declare function ticks_between_tests(ticks: number): void
 
 declare namespace Testorio {
   type TestFn = () => void
   type HookFn = TestFn
+  type OnTickFn = (tick: number) => void | boolean
 
   /** @noSelf */
   interface TestCreatorBase {

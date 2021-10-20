@@ -1,4 +1,4 @@
-export function enableAll(
+export function enable_all(
   surface: LuaSurface,
   area: BoundingBox | string,
 ): void {
@@ -10,7 +10,7 @@ export function enableAll(
   }
 }
 
-export function disableAll(
+export function disable_all(
   surface: LuaSurface,
   area: BoundingBox | string,
 ): void {
@@ -20,16 +20,6 @@ export function disableAll(
   for (const entity of surface.find_entities(area)) {
     entity.active = false
   }
-}
-
-export function enableEntitiesForTest(
-  surface: LuaSurface,
-  area: BoundingBox | string,
-): void {
-  enableAll(surface, area)
-  afterTest(() => {
-    disableAll(surface, area)
-  })
 }
 
 export function testArea(
@@ -42,6 +32,9 @@ export function testArea(
     typeof areaId === "string" || typeof areaId === "number"
       ? surface.get_script_area(areaId).area
       : areaId
-  enableEntitiesForTest(surface, area)
+  enable_all(surface, area)
+  afterTest(() => {
+    disable_all(surface, area)
+  })
   return $multi(surface, area)
 }
