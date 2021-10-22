@@ -44,20 +44,27 @@ function loadTests(...files: string[]) {
 
 function runTests() {
   let runner: TestRunner | undefined
+  function prepareRun() {
+    if (game.is_multiplayer()) {
+      error("Tests cannot be in run in multiplayer")
+    }
+    game.speed = 1000
+    game.autosave_enabled = false
+    game.disable_replay()
+  }
+  function finishRun() {
+    game.speed = 1
+    revertOnTick()
+  }
   const revertOnTick = addOnEvent(defines.events.on_tick, () => {
     if (!runner) {
       runner = createRunner(getTestState())
-      game.speed = 1000
-      game.autosave_enabled = false
-      game.disable_replay()
+      prepareRun()
     }
     runner.tick()
     if (runner.isDone()) {
       runner.reportResult()
-
-      game.speed = 1
-      game.tick_paused = true
-      revertOnTick()
+      finishRun()
     }
   })
 }
