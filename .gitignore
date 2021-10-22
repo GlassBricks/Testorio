@@ -123,3 +123,4 @@ dist
 .vscode/lua
 
 src/**/*.lua
+!src/**/*.def.lua

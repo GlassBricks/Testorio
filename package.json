@@ -35,7 +35,7 @@
     "watch": "tstl --watch",
     "lint": "eslint **/*.{ts,tsx}",
     "lint:fix": "eslint **/*{ts,tsx} --fix",
-    "clean": "del \"src/**/*.lua\" \"!src/say.lua\" \"!src/luassert/**\"",
-    "clean:full": "del \"src/**/*.{lua,js}\""
+    "clean": "del \"src/**/*.lua\" \"!src/say.lua\" \"!src/luassert/**\" \"!src/**/*.def.lua\"",
+    "clean:full": "del \"src/**/*.{lua,js}\" \"!src/**/*.def.lua\" "
   }
 }
