@@ -1,4 +1,4 @@
-import { prepareResume } from "./reloadResume"
+import { prepareReload } from "./load"
 import {
   addDescribeBlock,
   addTest,
@@ -9,6 +9,7 @@ import {
   Test,
   TestMode,
 } from "./tests"
+import { ProtoNames, ReloadState } from "../constants"
 import TestFn = Testorio.TestFn
 import TestBuilder = Testorio.TestBuilder
 import TestCreatorBase = Testorio.TestCreatorBase
@@ -18,8 +19,9 @@ import TestCreator = Testorio.TestCreator
 import DescribeCreator = Testorio.DescribeCreator
 import OnTickFn = Testorio.OnTickFn
 
+/** @noSelf */
 export interface TestState {
-  readonly rootBlock: DescribeBlock
+  rootBlock: DescribeBlock
   // setup
   currentBlock?: DescribeBlock
   hasFocusedTests: boolean
@@ -27,6 +29,11 @@ export interface TestState {
   // run
   currentTestRun?: TestRun
   suppressedErrors: string[]
+
+  // state that is persistent across game reload
+  // here as a function so is mock-able in meta test
+  getReloadState(): ReloadState
+  setReloadState(state: ReloadState): void
 }
 
 export interface TestRun {
@@ -40,9 +47,10 @@ export interface TestRun {
 }
 
 declare global {
-  let TESTORIO_TEST_STATE: TestState
+  let TESTORIO_TEST_STATE: TestState | undefined
 }
 
+// stored in settings so can be accessed even when global table is not yet loaded
 export function getTestState(): TestState {
   if (!TESTORIO_TEST_STATE) {
     error("Tests are not configured to be run")
@@ -50,6 +58,7 @@ export function getTestState(): TestState {
   return TESTORIO_TEST_STATE
 }
 
+// internal, export for meta-test only
 export function _setTestState(state: TestState): void {
   TESTORIO_TEST_STATE = state
 }
@@ -61,7 +70,21 @@ export function resetTestState(): void {
     currentBlock: rootBlock,
     hasFocusedTests: false,
     suppressedErrors: [],
+    getReloadState() {
+      return settings.global[ProtoNames.ReloadState].value as ReloadState
+    },
+    setReloadState(state) {
+      settings.global[ProtoNames.ReloadState] = { value: state }
+    },
   })
+}
+
+export function makeLoadError(state: TestState, error: string): void {
+  state.setReloadState(ReloadState.LoadError)
+  state.rootBlock = createRootDescribeBlock()
+  state.currentBlock = undefined
+  state.currentTestRun = undefined
+  state.suppressedErrors = [error]
 }
 
 function getCallerSource(upStack: number = 1): Source {
@@ -142,9 +165,11 @@ function createTestBuilder<F extends () => void>(nextFn: (func: F) => void) {
       result
         .next((() => {
           async(1)
-          game.print(`${getCurrentTestRun().test.path}:\nReloading ${what}`)
+          game.print(
+            `${getCurrentTestRun().test.path}:\nReloading ${what} for test`,
+          )
           on_tick(() => {
-            prepareResume(getTestState())
+            prepareReload(getTestState())
             reload()
           })
         }) as F)
@@ -338,6 +363,7 @@ export const it = test
 export const describe = createDescribeEach(undefined) as DescribeCreator
 describe.skip = createDescribeEach("skip")
 describe.only = createDescribeEach("only")
+
 type Globals =
   | HookType
   | "async"

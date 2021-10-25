@@ -1,10 +1,11 @@
 import * as Log from "./Log"
 import { LogLevel } from "./Log"
-import { tryResume } from "./reloadResume"
+import { onLoad } from "./load"
 import reportRunResult from "./report"
-import { getTestState, resetTestState, TestRun, TestState } from "./setup"
+import { makeLoadError, TestRun, TestState } from "./stateAndSetup"
 import { DescribeBlock, formatSource, Hook, Test } from "./tests"
 import { assertNever } from "../util"
+import { ReloadState } from "../constants"
 import TestFn = Testorio.TestFn
 import OnTickFn = Testorio.OnTickFn
 
@@ -348,24 +349,36 @@ export function createRunner(state: TestState): TestRunner {
   let ticksToWait = 0
 
   let nextTask: Task | undefined
-  const resume = tryResume(state)
-  if (!resume) {
+
+  function testLoadError(message: string) {
+    makeLoadError(state, message)
+  }
+
+  const resume = onLoad(state)
+  if (resume.result === "init") {
     nextTask = {
       type: "enterDescribe",
       block: state.rootBlock,
     }
-  } else if (resume.result === "configuration changed") {
-    const message = `Test configuration changed after reloading: ${resume.test.path}. Aborting test run`
-    Log.logWithSource(LogLevel.Error, message, resume.test.source)
-    nextTask = undefined
-    resetTestState()
-    state = getTestState()
-    state.suppressedErrors.push(message + ".")
+    state.setReloadState(ReloadState.Running)
   } else if (resume.result === "resumed") {
     nextTask = {
       type: "runTestPart",
       testRun: newTestRun(resume.test, resume.partIndex),
     }
+    state.setReloadState(ReloadState.Running)
+  } else if (resume.result === "config changed after reload") {
+    testLoadError(
+      `Test configuration changed after reloading: ${resume.test.path}. Aborting test run.`,
+    )
+  } else if (resume.result === "unexpected reload") {
+    testLoadError(
+      "World was unexpectedly reloaded while tests were running. " +
+        "This will cause tests to break. " +
+        "Reload/re-create the test scenario to restart test runs",
+    )
+  } else {
+    assertNever(resume)
   }
 
   return {
@@ -377,6 +390,7 @@ export function createRunner(state: TestState): TestRunner {
       while (nextTask) {
         nextTask = runTask(nextTask)
         if (!nextTask) {
+          state.setReloadState(ReloadState.Completed)
           return
         }
         const waitTicks = (nextTask as WaitForTestPart).waitTicks
@@ -389,7 +403,7 @@ export function createRunner(state: TestState): TestRunner {
     reportResult() {
       reportRunResult(state)
     },
-    isDone(): boolean {
+    isDone() {
       return nextTask === undefined
     },
   }

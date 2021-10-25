@@ -1,5 +1,5 @@
 import { Data } from "typed-factorio/settings/types"
-import { ReloadedForTest, ScenarioTestMod } from "./constants"
+import { ProtoNames, ReloadState } from "./constants"
 
 declare const data: Data
 
@@ -7,16 +7,17 @@ data.extend([
   {
     type: "string-setting",
     setting_type: "runtime-global",
-    name: ScenarioTestMod,
+    name: ProtoNames.LoadTestsFor,
     hidden: true,
     default_value: "",
     allow_blank: true,
   },
   {
-    type: "bool-setting",
+    type: "string-setting",
     setting_type: "runtime-global",
-    name: ReloadedForTest,
+    name: ProtoNames.ReloadState,
     hidden: true,
-    default_value: false,
+    allowed_values: Object.values(ReloadState),
+    default_value: ReloadState.Uninitialized,
   },
 ])

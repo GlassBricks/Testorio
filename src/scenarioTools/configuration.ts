@@ -1,4 +1,4 @@
-import { ScenarioTestMod } from "../constants"
+import { ProtoNames } from "../constants"
 
 commands.add_command(
   "make-test-scenario",
@@ -16,7 +16,7 @@ commands.add_command(
       print(["testorio:invalid-mod-name-specified"])
       return
     }
-    settings.global[ScenarioTestMod] = {
+    settings.global[ProtoNames.LoadTestsFor] = {
       value: modName,
     }
     if (modName === "-") {

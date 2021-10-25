@@ -1,6 +1,7 @@
-import type { TestState } from "./setup"
+import type { TestState } from "./stateAndSetup"
 import { DescribeBlock, Test } from "./tests"
-import { ReloadedForTest } from "../constants"
+import { ReloadState } from "../constants"
+import { assertNever } from "../util"
 
 declare const global: {
   __testResume?: {
@@ -10,17 +11,17 @@ declare const global: {
   }
 }
 
-export function prepareResume(testState: TestState): void {
+export function prepareReload(testState: TestState): void {
   const currentRun = testState.currentTestRun!
   global.__testResume = {
     oldConfiguration: testState.rootBlock,
     test: currentRun.test,
     partIndex: currentRun.partIndex + 1,
   }
-  settings.global[ReloadedForTest] = { value: true }
+  testState.setReloadState(ReloadState.ToReload)
 }
 
-// maybe this should just like... not be there?
+// -- Reload recovery --
 
 const mutableTestState: Partial<Record<keyof Test, true>> = {
   result: true,
@@ -69,34 +70,59 @@ function compareAndFindTest(
   return undefined
 }
 
-export function tryResume(testState: TestState):
+export function onLoad(testState: TestState):
+  | {
+      result: "init"
+    }
   | {
       result: "resumed"
       test: Test
       partIndex: number
     }
   | {
+      result: "config changed after reload"
       test: Test
-      result: "configuration changed"
     }
-  | undefined {
-  const testResume = global.__testResume
-  if (!testResume) return undefined
-  global.__testResume = undefined
+  | {
+      result: "unexpected reload"
+    } {
+  const reloadState = testState.getReloadState()
+  switch (reloadState) {
+    case ReloadState.Loaded:
+      return { result: "init" }
+    case ReloadState.ToReload: {
+      const testResume =
+        global.__testResume ??
+        error("__testResume not set while reloadState is 'ToReload'")
 
-  const current = testState.rootBlock
-  const stored = testResume.oldConfiguration
-  const test = compareAndFindTest(current, stored, testResume.test)
-  if (!test) {
-    return {
-      result: "configuration changed",
-      test: testResume.test,
+      global.__testResume = undefined
+      const current = testState.rootBlock
+      const stored = testResume.oldConfiguration
+      const test = compareAndFindTest(current, stored, testResume.test)
+      if (!test) {
+        return {
+          result: "config changed after reload",
+          test: testResume.test,
+        }
+      }
+
+      return {
+        result: "resumed",
+        test,
+        partIndex: testResume.partIndex,
+      }
     }
-  }
-
-  return {
-    result: "resumed",
-    test,
-    partIndex: testResume.partIndex,
+    case ReloadState.Running:
+      return { result: "unexpected reload" }
+    case ReloadState.Uninitialized:
+    case ReloadState.Completed:
+    case ReloadState.LoadError: {
+      return error(
+        "Unexpected reload state when test runner loaded: " + reloadState,
+      )
+    }
+    default:
+      assertNever(reloadState)
+      break
   }
 }

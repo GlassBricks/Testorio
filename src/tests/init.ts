@@ -1,45 +1,50 @@
 import "../luassert"
 import { createRunner, TestRunner } from "./runner"
-import { getTestState, globals, resetTestState } from "./setup"
-import { ReloadedForTest, ScenarioTestMod } from "../constants"
+import {
+  getTestState,
+  globals,
+  resetTestState,
+  TestState,
+} from "./stateAndSetup"
+import { ReloadState } from "../constants"
 
-let initialized = false
 export = function init(...files: string[]): void {
-  if (initialized) {
-    error("Duplicate call to test init")
-  }
-  initialized = true
-  if (script.mod_name !== settings.global[ScenarioTestMod].value) {
-    return
-  }
-  loadTests(...files)
-  if (settings.global[ReloadedForTest].value) {
-    runTests()
-  } else {
-    // only run when NOT in map editor
-    addOnEvent(defines.events.on_game_created_from_scenario, runTests)
+  const testState = loadTests(...files)
+  const reloadState = testState.getReloadState()
+
+  switch (reloadState) {
+    case ReloadState.Uninitialized:
+    case ReloadState.Loaded: {
+      testState.setReloadState(ReloadState.Loaded)
+      // only run when NOT in map editor
+      addOnEvent(defines.events.on_game_created_from_scenario, runTests)
+      break
+    }
+    case ReloadState.Running:
+    case ReloadState.ToReload:
+      runTests()
+      break
+    case ReloadState.Completed:
+      break
   }
 }
 
-function loadTests(...files: string[]) {
+function loadTests(...files: string[]): TestState {
   Object.assign(globalThis, globals)
   resetTestState()
   const modName = `__${script.mod_name}__`
 
-  let i = 0
-  if (!files[0]) i++
-  while (true) {
-    let file = files[i]
-    if (!file) break
+  for (let file of files) {
     if (file.includes("/") && !file.startsWith(modName)) {
       file = `${modName}/${file}`
     }
     describe(file, () => {
       require(file)
     })
-    i++
   }
-  getTestState().currentBlock = undefined
+  const state = getTestState()
+  state.currentBlock = undefined
+  return state
 }
 
 function runTests() {

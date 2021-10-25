@@ -6,46 +6,57 @@ import {
   getTestState,
   resetTestState,
   TestState,
-} from "../tests/setup"
+} from "../tests/stateAndSetup"
 import { DescribeBlock, Test } from "../tests/tests"
+import { ReloadState } from "../constants"
 
 // simulated test environment
 let actions: unknown[] = []
-let ran = false
 let mockTestState: TestState
 let originalTestState: TestState
 let oldLogLevel: LogLevel
 
 beforeEach(() => {
   actions = []
-  ran = false
   originalTestState = getTestState()
   oldLogLevel = Log.getLevel()
   resetTestState()
   mockTestState = getTestState()
+
+  let reloadState = ReloadState.Uninitialized
+  mockTestState.getReloadState = () => reloadState
+  mockTestState.setReloadState = (state) => {
+    reloadState = state
+  }
+
   Log.setLevel(LogLevel.None)
 })
 
 afterEach(() => {
   _setTestState(originalTestState)
   Log.setLevel(oldLogLevel)
-  if (!ran && mockTestState.rootBlock.children.length > 0) {
+  const reloadState = mockTestState.getReloadState()
+  if (
+    mockTestState.rootBlock.children.length > 0 &&
+    (reloadState === ReloadState.Loaded ||
+      reloadState === ReloadState.Uninitialized)
+  ) {
     error("Simulated test defined but not run")
   }
 })
 
 function getFirst<T extends Test | DescribeBlock = Test>(): T {
-  return getTestState().rootBlock.children[0] as T
+  return mockTestState.rootBlock.children[0] as T
 }
 
 function runTestSync<T extends Test | DescribeBlock = Test>(): T {
-  if (!ran) {
+  if (mockTestState.getReloadState() === ReloadState.Uninitialized) {
+    mockTestState.setReloadState(ReloadState.Loaded)
     const runner = createRunner(mockTestState)
     runner.tick()
     if (!runner.isDone()) {
       error("Tests not completed in one tick")
     }
-    ran = true
   }
   return getFirst()
 }
@@ -53,13 +64,16 @@ function runTestSync<T extends Test | DescribeBlock = Test>(): T {
 function runTestAsync<T extends Test | DescribeBlock = Test>(
   callback: (item: T) => void,
 ): void {
+  if (mockTestState.getReloadState() !== ReloadState.Uninitialized) {
+    error("duplicate call to runTestAsync/cannot re-run mock test async")
+  }
+  mockTestState.setReloadState(ReloadState.Loaded)
   const runner = createRunner(mockTestState)
   _setTestState(originalTestState)
   async()
   on_tick(() => {
     _setTestState(mockTestState)
     runner.tick()
-    ran = true
     if (runner.isDone()) {
       callback(getFirst())
       _setTestState(originalTestState)
@@ -600,9 +614,9 @@ describe("on_tick", () => {
         error("uh oh")
       })
     })
-    runTestAsync(() => {
+    runTestAsync((item) => {
       assert.same(["tick"], actions)
-      assert.equals(1, getFirst().errors.length)
+      assert.equals(1, item.errors.length)
     })
   })
 
@@ -907,4 +921,50 @@ describe.each(["test", "describe"], "%s.each", (funcName) => {
     const item = runTestSync()
     assert.equals('{prop = "value"}', item.name)
   })
+})
+
+describe("reload state", () => {
+  function reloadAndTick(): void {
+    if (mockTestState.getReloadState() === ReloadState.Uninitialized) {
+      mockTestState.setReloadState(ReloadState.Loaded)
+    }
+    const runner = createRunner(mockTestState)
+    runner.tick()
+  }
+
+  // would also check for uninitialized, but that requires too deep a level of meta
+
+  test("Reload state lifecycle", () => {
+    assert.equal(ReloadState.Uninitialized, mockTestState.getReloadState())
+    test("", () => {
+      // empty
+    })
+    mockTestState.setReloadState(ReloadState.Loaded)
+    const runner = createRunner(mockTestState)
+    assert.equal(ReloadState.Running, mockTestState.getReloadState())
+    runner.tick()
+    assert.equal(ReloadState.Completed, mockTestState.getReloadState())
+  })
+
+  test("Cannot reload while testing", () => {
+    test("Test 1", () => {
+      async()
+    })
+    reloadAndTick()
+    assert.same(mockTestState.suppressedErrors, [])
+    reloadAndTick()
+    assert.not_same(mockTestState.suppressedErrors, [])
+    assert.equal(ReloadState.LoadError, mockTestState.getReloadState())
+  })
+
+  test.each(
+    [ReloadState.Uninitialized, ReloadState.Completed, ReloadState.LoadError],
+    "should not run with state %s",
+    (state) => {
+      mockTestState.setReloadState(state)
+      assert.error(() => {
+        createRunner(mockTestState)
+      })
+    },
+  )
 })

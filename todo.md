@@ -1,1 +1,4 @@
 - Test configuration
+- store and re-report results
+- config GUI
+- progress GUI

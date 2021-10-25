@@ -1,14 +1,14 @@
-import { EnablerTool } from "../constants"
+import { ProtoNames } from "../constants"
 
 script.on_event(defines.events.on_player_selected_area, (data) => {
-  if (data.item !== EnablerTool) return
+  if (data.item !== ProtoNames.EnablerTool) return
   for (const entity of data.entities) {
     entity.active = true
   }
 })
 
 script.on_event(defines.events.on_player_alt_selected_area, (data) => {
-  if (data.item !== EnablerTool) return
+  if (data.item !== ProtoNames.EnablerTool) return
   for (const entity of data.entities) {
     entity.active = false
   }
