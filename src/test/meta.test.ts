@@ -6,7 +6,7 @@ import {
   getTestState,
   resetTestState,
   TestState,
-} from "../tests/stateAndSetup"
+} from "../tests/state"
 import { DescribeBlock, Test } from "../tests/tests"
 import { ReloadState } from "../constants"
 

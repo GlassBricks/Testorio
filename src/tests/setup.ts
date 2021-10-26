@@ -1,91 +1,21 @@
-import { prepareReload } from "./load"
 import {
   addDescribeBlock,
   addTest,
-  createRootDescribeBlock,
   DescribeBlock,
   HookType,
   Source,
   Test,
   TestMode,
 } from "./tests"
-import { ProtoNames, ReloadState } from "../constants"
+import { prepareReload } from "./resume"
+import { getCurrentBlock, getCurrentTestRun, getTestState } from "./state"
+import HookFn = Testorio.HookFn
 import TestFn = Testorio.TestFn
 import TestBuilder = Testorio.TestBuilder
 import TestCreatorBase = Testorio.TestCreatorBase
 import DescribeCreatorBase = Testorio.DescribeCreatorBase
-import HookFn = Testorio.HookFn
 import TestCreator = Testorio.TestCreator
 import DescribeCreator = Testorio.DescribeCreator
-import OnTickFn = Testorio.OnTickFn
-
-/** @noSelf */
-export interface TestState {
-  rootBlock: DescribeBlock
-  // setup
-  currentBlock?: DescribeBlock
-  hasFocusedTests: boolean
-
-  // run
-  currentTestRun?: TestRun
-  suppressedErrors: string[]
-
-  // state that is persistent across game reload
-  // here as a function so is mock-able in meta test
-  getReloadState(): ReloadState
-  setReloadState(state: ReloadState): void
-}
-
-export interface TestRun {
-  test: Test
-  partIndex: number
-  async: boolean
-  timeout: number
-  asyncDone: boolean
-  tickStarted: number
-  onTickFuncs: LuaTable<OnTickFn, true>
-}
-
-declare global {
-  let TESTORIO_TEST_STATE: TestState | undefined
-}
-
-// stored in settings so can be accessed even when global table is not yet loaded
-export function getTestState(): TestState {
-  if (!TESTORIO_TEST_STATE) {
-    error("Tests are not configured to be run")
-  }
-  return TESTORIO_TEST_STATE
-}
-
-// internal, export for meta-test only
-export function _setTestState(state: TestState): void {
-  TESTORIO_TEST_STATE = state
-}
-
-export function resetTestState(): void {
-  const rootBlock = createRootDescribeBlock()
-  _setTestState({
-    rootBlock,
-    currentBlock: rootBlock,
-    hasFocusedTests: false,
-    suppressedErrors: [],
-    getReloadState() {
-      return settings.global[ProtoNames.ReloadState].value as ReloadState
-    },
-    setReloadState(state) {
-      settings.global[ProtoNames.ReloadState] = { value: state }
-    },
-  })
-}
-
-export function makeLoadError(state: TestState, error: string): void {
-  state.setReloadState(ReloadState.LoadError)
-  state.rootBlock = createRootDescribeBlock()
-  state.currentBlock = undefined
-  state.currentTestRun = undefined
-  state.suppressedErrors = [error]
-}
 
 function getCallerSource(upStack: number = 1): Source {
   const info = debug.getinfo(upStack + 2, "Sl") || {}
@@ -94,23 +24,6 @@ function getCallerSource(upStack: number = 1): Source {
     line: info.currentline,
   }
 }
-
-export function getCurrentBlock(): DescribeBlock {
-  const block = getTestState().currentBlock
-  if (!block) {
-    error("Tests and hooks cannot be added/configured at this time")
-  }
-  return block
-}
-
-export function getCurrentTestRun(): TestRun {
-  const run = getTestState().currentTestRun
-  if (!run) {
-    error("This can only be used during a test", 3)
-  }
-  return run
-}
-
 function addHook(type: HookType, func: HookFn): void {
   const state = getTestState()
   if (state.currentTestRun) {
@@ -123,7 +36,6 @@ function addHook(type: HookType, func: HookFn): void {
     func,
   })
 }
-
 function createTest(
   name: string,
   func: TestFn,
@@ -145,7 +57,6 @@ function createTest(
   }
   return addTest(currentBlock, name, getCallerSource(upStack + 1), func, mode)
 }
-
 // eslint-disable-next-line @typescript-eslint/ban-types
 function addNext(test: Test, func: TestFn, funcForSource: Function = func) {
   const info = debug.getinfo(funcForSource, "Sl")
@@ -158,7 +69,6 @@ function addNext(test: Test, func: TestFn, funcForSource: Function = func) {
     source,
   })
 }
-
 function createTestBuilder<F extends () => void>(nextFn: (func: F) => void) {
   function reloadFunc(reload: () => void, what: string) {
     return (func: F) =>
@@ -195,7 +105,6 @@ function createTestBuilder<F extends () => void>(nextFn: (func: F) => void) {
   }
   return result
 }
-
 function propagateFocus(block: DescribeBlock) {
   if (
     block.mode === "only" &&
@@ -210,7 +119,6 @@ function propagateFocus(block: DescribeBlock) {
     }
   }
 }
-
 function createDescribe(
   name: string,
   block: TestFn,
@@ -241,7 +149,6 @@ function createDescribe(
   propagateFocus(describeBlock)
   return describeBlock
 }
-
 function setCall<T extends object, F extends (...args: any) => any>(
   obj: T,
   func: F,
@@ -252,7 +159,6 @@ function setCall<T extends object, F extends (...args: any) => any>(
     },
   })
 }
-
 function createEachItems(
   values: unknown[][],
   name: string,
@@ -276,7 +182,6 @@ function createEachItems(
     }
   })
 }
-
 function createTestEach(mode: TestMode): TestCreatorBase {
   const eachFn: TestCreatorBase["each"] = (
     values: unknown[][],
@@ -317,7 +222,6 @@ function createTestEach(mode: TestMode): TestCreatorBase {
     },
   )
 }
-
 function createDescribeEach(mode: TestMode): DescribeCreatorBase {
   const eachFn: DescribeCreatorBase["each"] = (
     values: unknown[][],
@@ -343,9 +247,7 @@ function createDescribeEach(mode: TestMode): DescribeCreatorBase {
     (name, func) => createDescribe(name, func, mode),
   )
 }
-
 const DEFAULT_TIMEOUT = 60 * 60
-
 export const test = createTestEach(undefined) as TestCreator
 test.skip = createTestEach("skip")
 test.only = createTestEach("only")
@@ -358,12 +260,10 @@ test.todo = (name: string) => {
     "todo",
   )
 }
-
 export const it = test
 export const describe = createDescribeEach(undefined) as DescribeCreator
 describe.skip = createDescribeEach("skip")
 describe.only = createDescribeEach("only")
-
 type Globals =
   | HookType
   | "async"
@@ -374,11 +274,9 @@ type Globals =
   | "test"
   | "it"
   | "describe"
-
 type GlobalsObj = {
   [P in Globals]: typeof globalThis[P]
 }
-
 export const globals: GlobalsObj = {
   test,
   it: test,

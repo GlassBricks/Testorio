@@ -1,12 +1,12 @@
 import { Data } from "typed-factorio/data/types"
-import { Colors, ProtoNames } from "./constants"
+import { Colors, Prototypes } from "./constants"
 
 declare const data: Data
 
 data.extend([
   {
     type: "selection-tool",
-    name: ProtoNames.EnablerTool,
+    name: Prototypes.EnablerTool,
     subgoup: "tool",
     order: "z[testorio]-[enabler-tool]",
     icon: "__testorio__/graphics/enabler-tool.png",
@@ -25,9 +25,9 @@ data.extend([
   },
   {
     type: "shortcut",
-    name: ProtoNames.EnablerTool,
+    name: Prototypes.EnablerTool,
     action: "spawn-item",
-    item_to_spawn: ProtoNames.EnablerTool,
+    item_to_spawn: Prototypes.EnablerTool,
     order: "m[testorio]-[enabler-tool]",
     icon: {
       filename: "__testorio__/graphics/enabler-tool-button.png",

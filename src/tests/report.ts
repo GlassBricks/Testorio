@@ -1,6 +1,6 @@
 import * as Log from "./Log"
 import { LogLevel } from "./Log"
-import { TestState } from "./stateAndSetup"
+import { TestState } from "./state"
 import { DescribeBlock, Test } from "./tests"
 import { assertNever } from "../util"
 

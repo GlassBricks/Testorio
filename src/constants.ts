@@ -1,12 +1,14 @@
-export enum ProtoNames {
+export const enum Settings {
   LoadTestsFor = "testorio:test-mod",
-  AutoRunMode = "testorio:autorun-mode",
   ReloadState = "testorio:reload-state",
+}
+
+export const enum Prototypes {
   EnablerTool = "testorio:enabler-tool",
 }
 
 // test state that is persistent across game reload. Stored in global.settings
-export enum ReloadState {
+export const enum ReloadState {
   Uninitialized = "Uninitialized",
   Loaded = "Loaded",
   Running = "Running",
@@ -14,6 +16,15 @@ export enum ReloadState {
   LoadError = "LoadError",
   Completed = "Completed",
 }
+
+export const ReloadStateValues: ReloadState[] = [
+  ReloadState.Uninitialized,
+  ReloadState.Loaded,
+  ReloadState.Running,
+  ReloadState.ToReload,
+  ReloadState.LoadError,
+  ReloadState.Completed,
+]
 
 export namespace Colors {
   export const red: Color = { r: 244, g: 85, b: 85 }

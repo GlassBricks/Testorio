@@ -1,4 +1,4 @@
-import { getTestState } from "../tests/stateAndSetup"
+import { getTestState } from "../tests/state"
 import { ReloadState } from "../constants"
 
 declare const global: {

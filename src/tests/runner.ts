@@ -1,8 +1,8 @@
 import * as Log from "./Log"
 import { LogLevel } from "./Log"
-import { onLoad } from "./load"
+import { resumeAfterReload } from "./resume"
 import reportRunResult from "./report"
-import { makeLoadError, TestRun, TestState } from "./stateAndSetup"
+import { makeLoadError, TestRun, TestState } from "./state"
 import { DescribeBlock, formatSource, Hook, Test } from "./tests"
 import { assertNever } from "../util"
 import { ReloadState } from "../constants"
@@ -60,6 +60,61 @@ export interface TestRunner {
 let thisFileName = debug.getinfo(1)!.short_src
 assert(thisFileName.endsWith(".lua"))
 thisFileName = "\t" + thisFileName.substr(0, thisFileName.length - 4)
+
+const enum LoadResult {
+  FirstLoad,
+  ResumeAfterReload,
+  ConfigChangedAfterReload,
+  UnexpectedReload,
+}
+
+function onLoad(testState: TestState):
+  | {
+      result: LoadResult.FirstLoad
+    }
+  | {
+      result: LoadResult.ResumeAfterReload
+      test: Test
+      partIndex: number
+    }
+  | {
+      result: LoadResult.ConfigChangedAfterReload
+      test: Test
+    }
+  | {
+      result: LoadResult.UnexpectedReload
+    } {
+  const reloadState = testState.getReloadState()
+  switch (reloadState) {
+    case ReloadState.Loaded:
+      return { result: LoadResult.FirstLoad }
+    case ReloadState.ToReload: {
+      const { test, partIndex } = resumeAfterReload(testState.rootBlock)
+      return partIndex
+        ? {
+            result: LoadResult.ResumeAfterReload,
+            test,
+            partIndex,
+          }
+        : {
+            result: LoadResult.ConfigChangedAfterReload,
+            test,
+          }
+    }
+    case ReloadState.Running:
+      return { result: LoadResult.UnexpectedReload }
+    case ReloadState.Uninitialized:
+    case ReloadState.Completed:
+    case ReloadState.LoadError: {
+      return error(
+        "Unexpected reload state when test runner loaded: " + reloadState,
+      )
+    }
+    default:
+      assertNever(reloadState)
+      break
+  }
+}
 
 export function createRunner(state: TestState): TestRunner {
   function isSkippedTest(test: Test) {
@@ -355,23 +410,23 @@ export function createRunner(state: TestState): TestRunner {
   }
 
   const resume = onLoad(state)
-  if (resume.result === "init") {
+  if (resume.result === LoadResult.FirstLoad) {
     nextTask = {
       type: "enterDescribe",
       block: state.rootBlock,
     }
     state.setReloadState(ReloadState.Running)
-  } else if (resume.result === "resumed") {
+  } else if (resume.result === LoadResult.ResumeAfterReload) {
     nextTask = {
       type: "runTestPart",
       testRun: newTestRun(resume.test, resume.partIndex),
     }
     state.setReloadState(ReloadState.Running)
-  } else if (resume.result === "config changed after reload") {
+  } else if (resume.result === LoadResult.ConfigChangedAfterReload) {
     testLoadError(
       `Test configuration changed after reloading: ${resume.test.path}. Aborting test run.`,
     )
-  } else if (resume.result === "unexpected reload") {
+  } else if (resume.result === LoadResult.UnexpectedReload) {
     testLoadError(
       "World was unexpectedly reloaded while tests were running. " +
         "This will cause tests to break. " +

@@ -1,9 +1,9 @@
 import { Source } from "./tests"
 
-const modNameHack = "__debugadapter__/json"
-const json: typeof import("__debugadapter__/json") = __DebugAdapter
-  ? require(modNameHack)
-  : undefined
+const debugAdapterEnabled = script.active_mods.debugadapter
+
+const json: typeof import("__debugadapter__/json") | undefined =
+  debugAdapterEnabled && require("__debugadapter__/json")
 
 export enum LogLevel {
   Trace = 1,
@@ -23,7 +23,9 @@ const colors: readonly Color[] = [
 ]
 const categories = ["stdout", "stdout", "stdout", "console", "stderr"] as const
 
-let currentLevel: LogLevel = __DebugAdapter ? LogLevel.Debug : LogLevel.Info
+let currentLevel: LogLevel = debugAdapterEnabled
+  ? LogLevel.Debug
+  : LogLevel.Info
 
 export function getLevel(): LogLevel {
   return currentLevel
@@ -39,7 +41,7 @@ export function logWithSource(
   source: Source,
 ): void {
   if (level < currentLevel) return
-  if (!__DebugAdapter) {
+  if (!debugAdapterEnabled) {
     _G.log(message)
   } else {
     let file = source?.file

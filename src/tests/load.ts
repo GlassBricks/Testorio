@@ -1,128 +1,104 @@
-import type { TestState } from "./stateAndSetup"
-import { DescribeBlock, Test } from "./tests"
+import "../luassert"
+import { createRunner, TestRunner } from "./runner"
+import { getTestState, resetTestState, TestState } from "./state"
 import { ReloadState } from "../constants"
-import { assertNever } from "../util"
+import { globals } from "./setup"
 
-declare const global: {
-  __testResume?: {
-    oldConfiguration: DescribeBlock
-    test: Test
-    partIndex: number
-  }
-}
-
-export function prepareReload(testState: TestState): void {
-  const currentRun = testState.currentTestRun!
-  global.__testResume = {
-    oldConfiguration: testState.rootBlock,
-    test: currentRun.test,
-    partIndex: currentRun.partIndex + 1,
-  }
-  testState.setReloadState(ReloadState.ToReload)
-}
-
-// -- Reload recovery --
-
-const mutableTestState: Partial<Record<keyof Test, true>> = {
-  result: true,
-  errors: true,
-}
-
-function compareAndFindTest(
-  current: unknown,
-  stored: unknown,
-  storedTest: Test,
-): Test | undefined {
-  const seen = new LuaTable<AnyNotNil, AnyNotNil>()
-
-  function compare(a: any, b: any): boolean {
-    // ignore functions
-    if (typeof a === "function") return true
-    if (typeof a !== "object" || typeof b !== "object") {
-      return a === b
-    }
-    if (seen.get(b) === a) return true
-    seen.set(b, a)
-    for (const [k, v] of pairs(a)) {
-      if (a.type === "test" && k in mutableTestState) {
-        a[k] = b[k]
-        continue
-      }
-      if (!compare(v, b[k])) {
-        return false
-      }
-    }
-    for (const [k, v] of pairs(b)) {
-      if (a[k] === undefined) {
-        if (a.type === "test" && k in mutableTestState) {
-          a[k] = v
-        } else {
-          return false
-        }
-      }
-    }
-    return true
-  }
-
-  if (compare(current, stored)) {
-    return seen.get(storedTest) as Test
-  }
-  return undefined
-}
-
-export function onLoad(testState: TestState):
-  | {
-      result: "init"
-    }
-  | {
-      result: "resumed"
-      test: Test
-      partIndex: number
-    }
-  | {
-      result: "config changed after reload"
-      test: Test
-    }
-  | {
-      result: "unexpected reload"
-    } {
+export = function load(...files: string[]): void {
+  const testState = loadTests(...files)
   const reloadState = testState.getReloadState()
+
   switch (reloadState) {
-    case ReloadState.Loaded:
-      return { result: "init" }
-    case ReloadState.ToReload: {
-      const testResume =
-        global.__testResume ??
-        error("__testResume not set while reloadState is 'ToReload'")
-
-      global.__testResume = undefined
-      const current = testState.rootBlock
-      const stored = testResume.oldConfiguration
-      const test = compareAndFindTest(current, stored, testResume.test)
-      if (!test) {
-        return {
-          result: "config changed after reload",
-          test: testResume.test,
-        }
-      }
-
-      return {
-        result: "resumed",
-        test,
-        partIndex: testResume.partIndex,
-      }
+    case ReloadState.Uninitialized:
+    case ReloadState.Loaded: {
+      testState.setReloadState(ReloadState.Loaded)
+      // only run when NOT in map editor
+      addOnEvent(defines.events.on_game_created_from_scenario, runTests)
+      break
     }
     case ReloadState.Running:
-      return { result: "unexpected reload" }
-    case ReloadState.Uninitialized:
-    case ReloadState.Completed:
-    case ReloadState.LoadError: {
-      return error(
-        "Unexpected reload state when test runner loaded: " + reloadState,
-      )
-    }
-    default:
-      assertNever(reloadState)
+    case ReloadState.ToReload:
+      runTests()
       break
+    case ReloadState.Completed:
+      break
+  }
+}
+
+function loadTests(...files: string[]): TestState {
+  Object.assign(globalThis, globals)
+  resetTestState()
+  const modName = `__${script.mod_name}__`
+
+  for (let file of files) {
+    if (file.includes("/") && !file.startsWith(modName)) {
+      file = `${modName}/${file}`
+    }
+    describe(file, () => {
+      require(file)
+    })
+  }
+  const state = getTestState()
+  state.currentBlock = undefined
+  return state
+}
+
+function runTests() {
+  let runner: TestRunner | undefined
+  function prepareRun() {
+    if (game.is_multiplayer()) {
+      error("Tests cannot be in run in multiplayer")
+    }
+    game.speed = 1000
+    game.autosave_enabled = false
+    game.disable_replay()
+  }
+  function finishRun() {
+    game.speed = 1
+    revertOnTick()
+  }
+  const revertOnTick = addOnEvent(defines.events.on_tick, () => {
+    if (!runner) {
+      runner = createRunner(getTestState())
+      prepareRun()
+    }
+    runner.tick()
+    if (runner.isDone()) {
+      runner.reportResult()
+      finishRun()
+    }
+  })
+}
+
+const patchedEvents: Record<defines.Events, [handler?: (data: any) => void]> =
+  {}
+let scriptPatched = false
+const oldOnEvent = script.on_event
+
+type Revert = () => void
+
+function addOnEvent(event: defines.Events, func: () => void): Revert {
+  const handler = (patchedEvents[event] = [script.get_event_handler(event)])
+
+  oldOnEvent(event, (data) => {
+    handler[0]?.(data)
+    func()
+  })
+
+  if (!scriptPatched) {
+    scriptPatched = true
+
+    script.on_event = (event: any, func: any) => {
+      if (event in patchedEvents) {
+        handler[0] = func
+      } else {
+        oldOnEvent(event, func)
+      }
+    }
+  }
+
+  return () => {
+    delete patchedEvents[event]
+    oldOnEvent(event, handler[0])
   }
 }

@@ -1,4 +1,4 @@
-import { testArea } from "../scenarioTools/areas"
+import { testArea } from "../testUtil/areas"
 
 test("inWorld", () => {
   const [surface, area] = testArea(1, "Test1")
