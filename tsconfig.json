@@ -3,12 +3,8 @@
     "target": "esnext",
     "module": "none",
     "moduleResolution": "node",
-    "lib": [
-      "esnext"
-    ],
-    "types": [
-      "typed-factorio/runtime"
-    ],
+    "lib": ["esnext"],
+    "types": ["typed-factorio/runtime"],
     "plugins": [
       {
         "name": "typescript-tstl-plugin"
@@ -25,7 +21,7 @@
     "noImplicitSelf": true
   },
   "include": [
-    "./src/**/*",
+    "./src/**/*", "./node_modules/typed-factorio/runtime/index.d.ts"
   ],
   "exclude": []
 }
