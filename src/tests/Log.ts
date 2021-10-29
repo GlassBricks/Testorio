@@ -2,8 +2,8 @@ import { Source } from "./tests"
 
 const debugAdapterEnabled = script.active_mods.debugadapter
 
-const json: typeof import("__debugadapter__/json") | undefined =
-  debugAdapterEnabled && require("__debugadapter__/json")
+const modNameHack = "__debugadapter__/json"
+const json: typeof import("__debugadapter__/json") | undefined = debugAdapterEnabled && require(modNameHack)
 
 export enum LogLevel {
   Trace = 1,
@@ -23,9 +23,7 @@ const colors: readonly Color[] = [
 ]
 const categories = ["stdout", "stdout", "stdout", "console", "stderr"] as const
 
-let currentLevel: LogLevel = debugAdapterEnabled
-  ? LogLevel.Debug
-  : LogLevel.Info
+let currentLevel: LogLevel = debugAdapterEnabled ? LogLevel.Debug : LogLevel.Info
 
 export function getLevel(): LogLevel {
   return currentLevel
@@ -35,11 +33,7 @@ export function setLevel(level: LogLevel): void {
   currentLevel = level
 }
 
-export function logWithSource(
-  level: LogLevel,
-  message: string,
-  source: Source,
-): void {
+export function logWithSource(level: LogLevel, message: string, source: Source): void {
   if (level < currentLevel) return
   if (!debugAdapterEnabled) {
     _G.log(message)
@@ -64,10 +58,7 @@ export function logWithSource(
 
 export function logDetectSource(level: LogLevel, message: string): void {
   if (level < currentLevel) return
-  const [, , file, line] = string.find(
-    message,
-    "(__[%a%-_]+__/.-%.%a+):([%d]*)",
-  )
+  const [, , file, line] = string.find(message, "(__[%a%-_]+__/.-%.%a+):([%d]*)")
   logWithSource(level, message, {
     file: file as string,
     line: tonumber(line),

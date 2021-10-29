@@ -1,4 +1,4 @@
-import { Settings } from "./constants"
+import { Remote, Settings } from "./constants"
 
 let initCalled = false
 export = function init(...files: string[]): void {
@@ -6,10 +6,10 @@ export = function init(...files: string[]): void {
     error("Duplicate call to test init")
   }
   initCalled = true
-  if (script.mod_name !== settings.global[Settings.LoadTestsFor].value) {
+  remote.add_interface(Remote.TestsAvailableFor + script.mod_name, {})
+  if (script.mod_name !== settings.global[Settings.TestMod].value) {
     return
   }
-  const modNameWorkaround = "tests/load"
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  ;(require(modNameWorkaround) as typeof import("./tests/load"))(...files)
+  ;(require("./tests/load") as typeof import("./tests/load")).load(...files)
 }

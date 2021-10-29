@@ -4,7 +4,7 @@
   "license": "MIT",
   "type": "module",
   "devDependencies": {
-    "@types/node": "^16.11.5",
+    "@types/node": "^16.11.6",
     "@typescript-eslint/eslint-plugin": "^5.2.0",
     "@typescript-eslint/parser": "^5.2.0",
     "cpy": "^8.1.2",
@@ -19,14 +19,14 @@
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-prettier": "^4.0.0",
     "lua-types": "^2.11.0",
+    "luassert-tstl": "^0.2.0",
     "prettier": "^2.4.1",
     "prettier-plugin-jsdoc": "^0.3.24",
     "ts-node": "^10.4.0",
-    "typed-factorio": "^0.8.1",
+    "typed-factorio": "^0.9.0",
     "typescript": "^4.4.4",
-    "typescript-to-lua": "^1.0.1",
-    "typescript-tstl-plugin": "^0.3.2",
-    "luassert-tstl": "^0.2.0"
+    "typescript-to-lua": "^1.1.0",
+    "typescript-tstl-plugin": "^0.3.2"
   },
   "scripts": {
     "build": "tstl",
@@ -35,7 +35,7 @@
     "watch": "tstl --watch",
     "lint": "eslint **/*.{ts,tsx}",
     "lint:fix": "eslint **/*{ts,tsx} --fix",
-    "clean": "del \"src/**/*.lua\" \"!src/say.lua\" \"!src/luassert/**\" \"!src/**/*.def.lua\"",
-    "clean:full": "del \"src/**/*.{lua,js}\" \"!src/**/*.def.lua\" "
+    "clean": "del \"src/**/*.lua\" \"!src/say.lua\" \"!src/luassert/**\" \"!src/**/*.def.lua\" \"!src/scenarios/**\"",
+    "clean:full": "del \"src/**/*.{lua,js}\" \"!src/**/*.def.lua\" \"!src/scenarios/**\""
   }
 }

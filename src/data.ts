@@ -1,5 +1,5 @@
 import { Data } from "typed-factorio/data/types"
-import { Colors, Prototypes } from "./constants"
+import { Colors, Graphics, Prototypes } from "./constants"
 
 declare const data: Data
 
@@ -9,7 +9,7 @@ data.extend([
     name: Prototypes.EnablerTool,
     subgoup: "tool",
     order: "z[testorio]-[enabler-tool]",
-    icon: "__testorio__/graphics/enabler-tool.png",
+    icon: Graphics.EnablerTool,
     icon_size: 32,
     flags: ["spawnable", "only-in-cursor"],
     stack_size: 1,
@@ -30,9 +30,16 @@ data.extend([
     item_to_spawn: Prototypes.EnablerTool,
     order: "m[testorio]-[enabler-tool]",
     icon: {
-      filename: "__testorio__/graphics/enabler-tool-button.png",
+      filename: Graphics.EnablerToolButton,
       flags: ["icon"],
       size: 32,
     },
+  },
+  {
+    type: "sprite",
+    name: Prototypes.TestTubeSprite,
+    filename: Graphics.TestTube,
+    priority: "extra-high-no-scale",
+    size: 48,
   },
 ])

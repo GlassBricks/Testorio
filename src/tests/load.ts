@@ -1,26 +1,28 @@
 import "../luassert"
 import { createRunner, TestRunner } from "./runner"
 import { getTestState, resetTestState, TestState } from "./state"
-import { ReloadState } from "../constants"
+import { Remote, TestStage } from "../constants"
 import { globals } from "./setup"
 
-export = function load(...files: string[]): void {
+export function load(...files: string[]): void {
   const testState = loadTests(...files)
-  const reloadState = testState.getReloadState()
+  const testStage = testState.getTestStage()
 
-  switch (reloadState) {
-    case ReloadState.Uninitialized:
-    case ReloadState.Loaded: {
-      testState.setReloadState(ReloadState.Loaded)
-      // only run when NOT in map editor
+  switch (testStage) {
+    case TestStage.NotRun: {
       addOnEvent(defines.events.on_game_created_from_scenario, runTests)
+      const modName = script.mod_name
+      remote.add_interface(Remote.TestRun, {
+        runTests,
+        modName: () => modName,
+      })
       break
     }
-    case ReloadState.Running:
-    case ReloadState.ToReload:
+    case TestStage.Running:
+    case TestStage.ToReload:
       runTests()
       break
-    case ReloadState.Completed:
+    case TestStage.Completed:
       break
   }
 }
@@ -51,12 +53,12 @@ function runTests() {
     }
     game.speed = 1000
     game.autosave_enabled = false
-    game.disable_replay()
   }
   function finishRun() {
     game.speed = 1
     revertOnTick()
   }
+  if (game) game.tick_paused = false
   const revertOnTick = addOnEvent(defines.events.on_tick, () => {
     if (!runner) {
       runner = createRunner(getTestState())
@@ -70,18 +72,17 @@ function runTests() {
   })
 }
 
-const patchedEvents: Record<defines.Events, [handler?: (data: any) => void]> =
-  {}
+const patchedHandlers: Record<defines.Events, [handler?: (data: any) => void]> = {}
 let scriptPatched = false
 const oldOnEvent = script.on_event
 
 type Revert = () => void
 
 function addOnEvent(event: defines.Events, func: () => void): Revert {
-  const handler = (patchedEvents[event] = [script.get_event_handler(event)])
+  patchedHandlers[event] = [script.get_event_handler(event)]
 
   oldOnEvent(event, (data) => {
-    handler[0]?.(data)
+    patchedHandlers[event][0]?.(data)
     func()
   })
 
@@ -89,7 +90,8 @@ function addOnEvent(event: defines.Events, func: () => void): Revert {
     scriptPatched = true
 
     script.on_event = (event: any, func: any) => {
-      if (event in patchedEvents) {
+      const handler = patchedHandlers[event]
+      if (handler) {
         handler[0] = func
       } else {
         oldOnEvent(event, func)
@@ -98,7 +100,8 @@ function addOnEvent(event: defines.Events, func: () => void): Revert {
   }
 
   return () => {
-    delete patchedEvents[event]
-    oldOnEvent(event, handler[0])
+    const handler = patchedHandlers[event][0]
+    delete patchedHandlers[event]
+    oldOnEvent(event, handler)
   }
 }

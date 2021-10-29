@@ -1,6 +1,6 @@
 import type { TestState } from "./state"
 import { DescribeBlock, Test } from "./tests"
-import { ReloadState } from "../constants"
+import { TestStage } from "../constants"
 
 declare const global: {
   __testResume?: {
@@ -17,7 +17,7 @@ export function prepareReload(testState: TestState): void {
     test: currentRun.test,
     partIndex: currentRun.partIndex + 1,
   }
-  testState.setReloadState(ReloadState.ToReload)
+  testState.setTestStage(TestStage.ToReload)
 }
 
 const mutableTestState: Partial<Record<keyof Test, true>> = {
@@ -25,11 +25,7 @@ const mutableTestState: Partial<Record<keyof Test, true>> = {
   errors: true,
 }
 
-function compareAndFindTest(
-  current: unknown,
-  stored: unknown,
-  storedTest: Test,
-): Test | undefined {
+function compareAndFindTest(current: unknown, stored: unknown, storedTest: Test): Test | undefined {
   const seen = new LuaTable<AnyNotNil, AnyNotNil>()
 
   function compare(a: any, b: any): boolean {
@@ -71,9 +67,7 @@ export function resumeAfterReload(loadedRootBlock: DescribeBlock): {
   test: Test
   partIndex: number | undefined
 } {
-  const testResume =
-    global.__testResume ??
-    error("__testResume not set while attempting to resume")
+  const testResume = global.__testResume ?? error("__testResume not set while attempting to resume")
 
   global.__testResume = undefined
   const stored = testResume.oldConfiguration

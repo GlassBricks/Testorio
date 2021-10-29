@@ -1,12 +1,4 @@
-import {
-  addDescribeBlock,
-  addTest,
-  DescribeBlock,
-  HookType,
-  Source,
-  Test,
-  TestMode,
-} from "./tests"
+import { addDescribeBlock, addTest, DescribeBlock, HookType, Source, Test, TestMode } from "./tests"
 import { prepareReload } from "./resume"
 import { getCurrentBlock, getCurrentTestRun, getTestState } from "./state"
 import HookFn = Testorio.HookFn
@@ -27,26 +19,17 @@ function getCallerSource(upStack: number = 1): Source {
 function addHook(type: HookType, func: HookFn): void {
   const state = getTestState()
   if (state.currentTestRun) {
-    error(
-      `Hook (${type}) cannot be nested inside test "${state.currentTestRun.test.path}"`,
-    )
+    error(`Hook (${type}) cannot be nested inside test "${state.currentTestRun.test.path}"`)
   }
   getCurrentBlock().hooks.push({
     type,
     func,
   })
 }
-function createTest(
-  name: string,
-  func: TestFn,
-  mode: TestMode,
-  upStack: number = 1,
-): Test {
+function createTest(name: string, func: TestFn, mode: TestMode, upStack: number = 1): Test {
   const state = getTestState()
   if (state.currentTestRun) {
-    error(
-      `Test "${name}" cannot be nested inside test "${state.currentTestRun.test.path}"`,
-    )
+    error(`Test "${name}" cannot be nested inside test "${state.currentTestRun.test.path}"`)
   }
   const currentBlock = getCurrentBlock()
   if (currentBlock.mode === "skip" && mode !== "todo") {
@@ -75,9 +58,7 @@ function createTestBuilder<F extends () => void>(nextFn: (func: F) => void) {
       result
         .next((() => {
           async(1)
-          game.print(
-            `${getCurrentTestRun().test.path}:\nReloading ${what} for test`,
-          )
+          game.print(`${getCurrentTestRun().test.path}:\nReloading ${what} for test`)
           on_tick(() => {
             prepareReload(getTestState())
             reload()
@@ -106,10 +87,7 @@ function createTestBuilder<F extends () => void>(nextFn: (func: F) => void) {
   return result
 }
 function propagateFocus(block: DescribeBlock) {
-  if (
-    block.mode === "only" &&
-    block.children.every((child) => child.mode !== "only")
-  ) {
+  if (block.mode === "only" && block.children.every((child) => child.mode !== "only")) {
     for (const child of block.children) {
       if (child.mode !== undefined) continue
       child.mode = "only"
@@ -119,17 +97,10 @@ function propagateFocus(block: DescribeBlock) {
     }
   }
 }
-function createDescribe(
-  name: string,
-  block: TestFn,
-  mode: TestMode,
-  upStack: number = 1,
-): DescribeBlock | undefined {
+function createDescribe(name: string, block: TestFn, mode: TestMode, upStack: number = 1): DescribeBlock | undefined {
   const state = getTestState()
   if (state.currentTestRun) {
-    error(
-      `Describe block "${name}" cannot be nested inside test "${state.currentTestRun.test.path}"`,
-    )
+    error(`Describe block "${name}" cannot be nested inside test "${state.currentTestRun.test.path}"`)
   }
 
   const source = getCallerSource(upStack + 1)
@@ -149,10 +120,7 @@ function createDescribe(
   propagateFocus(describeBlock)
   return describeBlock
 }
-function setCall<T extends object, F extends (...args: any) => any>(
-  obj: T,
-  func: F,
-): T & F {
+function setCall<T extends object, F extends (...args: any) => any>(obj: T, func: F): T & F {
   return setmetatable(obj, {
     __call(...args: any[]) {
       return func(...args)
@@ -171,9 +139,7 @@ function createEachItems(
     values = (values as unknown[]).map((v) => [v])
   }
   return values.map((row) => {
-    const rowValues = (row as unknown[]).map((v) =>
-      typeof v === "object" ? serpent.line(v) : v,
-    )
+    const rowValues = (row as unknown[]).map((v) => (typeof v === "object" ? serpent.line(v) : v))
     const itemName = string.format(name, ...rowValues)
 
     return {
@@ -183,11 +149,7 @@ function createEachItems(
   })
 }
 function createTestEach(mode: TestMode): TestCreatorBase {
-  const eachFn: TestCreatorBase["each"] = (
-    values: unknown[][],
-    name: string,
-    func: (...values: any[]) => void,
-  ) => {
+  const eachFn: TestCreatorBase["each"] = (values: unknown[][], name: string, func: (...values: any[]) => void) => {
     const items = createEachItems(values, name)
     const testBuilders = items.map(({ row, name }) => {
       const test = createTest(
@@ -223,11 +185,7 @@ function createTestEach(mode: TestMode): TestCreatorBase {
   )
 }
 function createDescribeEach(mode: TestMode): DescribeCreatorBase {
-  const eachFn: DescribeCreatorBase["each"] = (
-    values: unknown[][],
-    name: string,
-    func: (...values: any[]) => void,
-  ) => {
+  const eachFn: DescribeCreatorBase["each"] = (values: unknown[][], name: string, func: (...values: any[]) => void) => {
     const items = createEachItems(values, name)
     for (const { row, name } of items) {
       createDescribe(

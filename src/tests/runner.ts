@@ -5,7 +5,7 @@ import reportRunResult from "./report"
 import { makeLoadError, TestRun, TestState } from "./state"
 import { DescribeBlock, formatSource, Hook, Test } from "./tests"
 import { assertNever } from "../util"
-import { ReloadState } from "../constants"
+import { Remote, TestStage } from "../constants"
 import TestFn = Testorio.TestFn
 import OnTickFn = Testorio.OnTickFn
 
@@ -41,13 +41,7 @@ interface LeaveDescribe {
   block: DescribeBlock
 }
 
-type Task =
-  | EnterDescribe
-  | EnterTest
-  | RunTestPart
-  | WaitForTestPart
-  | LeaveTest
-  | LeaveDescribe
+type Task = EnterDescribe | EnterTest | RunTestPart | WaitForTestPart | LeaveTest | LeaveDescribe
 
 export interface TestRunner {
   tick(): void
@@ -65,7 +59,7 @@ const enum LoadResult {
   FirstLoad,
   ResumeAfterReload,
   ConfigChangedAfterReload,
-  UnexpectedReload,
+  AlreadyRunning,
 }
 
 function onLoad(testState: TestState):
@@ -82,13 +76,15 @@ function onLoad(testState: TestState):
       test: Test
     }
   | {
-      result: LoadResult.UnexpectedReload
+      result: LoadResult.AlreadyRunning
     } {
-  const reloadState = testState.getReloadState()
-  switch (reloadState) {
-    case ReloadState.Loaded:
-      return { result: LoadResult.FirstLoad }
-    case ReloadState.ToReload: {
+  const testStage = testState.getTestStage()
+  switch (testStage) {
+    case TestStage.NotRun:
+      return remote.interfaces[Remote.TestRun]
+        ? { result: LoadResult.FirstLoad }
+        : error("Test runner trying to be created when tests not loaded")
+    case TestStage.ToReload: {
       const { test, partIndex } = resumeAfterReload(testState.rootBlock)
       return partIndex
         ? {
@@ -101,34 +97,24 @@ function onLoad(testState: TestState):
             test,
           }
     }
-    case ReloadState.Running:
-      return { result: LoadResult.UnexpectedReload }
-    case ReloadState.Uninitialized:
-    case ReloadState.Completed:
-    case ReloadState.LoadError: {
-      return error(
-        "Unexpected reload state when test runner loaded: " + reloadState,
-      )
-    }
+    case TestStage.Running:
+      return { result: LoadResult.AlreadyRunning }
+    case TestStage.Completed:
+    case TestStage.LoadError:
+      return error("Unexpected reload state when test runner loaded: " + testStage)
     default:
-      assertNever(reloadState)
+      assertNever(testStage)
       break
   }
 }
 
 export function createRunner(state: TestState): TestRunner {
   function isSkippedTest(test: Test) {
-    return (
-      test.mode === "skip" ||
-      test.mode === "todo" ||
-      (state.hasFocusedTests && test.mode !== "only")
-    )
+    return test.mode === "skip" || test.mode === "todo" || (state.hasFocusedTests && test.mode !== "only")
   }
 
   function hasAnyTest(block: DescribeBlock): boolean {
-    return block.children.some((child) =>
-      child.type === "test" ? !isSkippedTest(child) : hasAnyTest(child),
-    )
+    return block.children.some((child) => (child.type === "test" ? !isSkippedTest(child) : hasAnyTest(child)))
   }
 
   function addErrorToAllTests(block: DescribeBlock, error: string): void {
@@ -142,18 +128,12 @@ export function createRunner(state: TestState): TestRunner {
   }
 
   function getErrorWithStacktrace(error: unknown): string {
-    const stacktrace =
-      error instanceof Error
-        ? error.toString()
-        : debug.traceback(tostring(error), 3)
+    const stacktrace = error instanceof Error ? error.toString() : debug.traceback(tostring(error), 3)
     // level: 1 = here, 2 = getErrorWithStackTrace(), 3 = error location
 
     const lines = stacktrace.split("\n")
     for (let i = 1; i < lines.length; i++) {
-      if (
-        lines[i - 1].endsWith(": in function 'xpcall'") &&
-        lines[i].startsWith(thisFileName)
-      ) {
+      if (lines[i - 1].endsWith(": in function 'xpcall'") && lines[i].startsWith(thisFileName)) {
         if (lines[i - 2] === "\t[C]: in function 'rawxpcall'") {
           i--
         }
@@ -219,9 +199,7 @@ export function createRunner(state: TestState): TestRunner {
   function enterDescribe({ block }: EnterDescribe): Task {
     Log.logWithSource(LogLevel.Debug, `BLOCK: ${block.name}`, block.source)
     if (block.children.length === 0) {
-      state.suppressedErrors.push(
-        `${block.path} has no tests defined.\n${formatSource(block.source)}`,
-      )
+      state.suppressedErrors.push(`${block.path} has no tests defined.\n${formatSource(block.source)}`)
     } else if (hasAnyTest(block)) {
       const hooks = block.hooks.filter((x) => x.type === "beforeAll")
       for (const hook of hooks) {
@@ -268,11 +246,7 @@ export function createRunner(state: TestState): TestRunner {
     const part = test.parts[partIndex]
     state.currentTestRun = testRun
     if (!isSkippedTest(test)) {
-      Log.logWithSource(
-        LogLevel.Trace,
-        `Running test ${test.name}`,
-        part.source,
-      )
+      Log.logWithSource(LogLevel.Trace, `Running test ${test.name}`, part.source)
       if (test.errors.length === 0) {
         const [success, error] = xpcall(part.func, getErrorWithStacktrace)
         if (!success) {
@@ -289,16 +263,10 @@ export function createRunner(state: TestState): TestRunner {
     const { test, partIndex } = testRun
     const tickNumber = game.tick - testRun.tickStarted
     if (tickNumber > testRun.timeout) {
-      test.errors.push(
-        `Test timed out after ${testRun.timeout} ticks:\n${formatSource(
-          test.parts[partIndex].source,
-        )}`,
-      )
+      test.errors.push(`Test timed out after ${testRun.timeout} ticks:\n${formatSource(test.parts[partIndex].source)}`)
     }
 
-    for (const func of Object.keys(
-      testRun.onTickFuncs,
-    ) as unknown as OnTickFn[]) {
+    for (const func of Object.keys(testRun.onTickFuncs) as unknown as OnTickFn[]) {
       const [success, result] = xpcall(func, getErrorWithStacktrace, tickNumber)
       if (!success) {
         test.errors.push(result as string)
@@ -317,11 +285,7 @@ export function createRunner(state: TestState): TestRunner {
 
     if (!isSkipped) {
       function collectHooks(block: DescribeBlock, hooks: TestFn[]) {
-        hooks.push(
-          ...block.hooks
-            .filter((x) => x.type === "afterEach")
-            .map((x) => x.func),
-        )
+        hooks.push(...block.hooks.filter((x) => x.type === "afterEach").map((x) => x.func))
         if (block.parent) collectHooks(block.parent, hooks)
         return hooks
       }
@@ -356,11 +320,7 @@ export function createRunner(state: TestState): TestRunner {
   }
 
   function leaveDescribe({ block }: LeaveDescribe): Task | undefined {
-    Log.logWithSource(
-      LogLevel.Trace,
-      `Leaving describe block ${block.name}`,
-      block.source,
-    )
+    Log.logWithSource(LogLevel.Trace, `Leaving describe block ${block.name}`, block.source)
     const hasTests = hasAnyTest(block)
     if (hasTests) {
       const hooks = block.hooks.filter((x) => x.type === "afterAll")
@@ -374,13 +334,6 @@ export function createRunner(state: TestState): TestRunner {
     if (!block.parent) return undefined
     return nextDescribeBlockItem(block.parent, block.indexInParent + 1)
   }
-
-  // export default function run(): void {
-  //   for (const [, scope] of pairs(fileDescribeBlocks)) {
-  //     _runBlock(scope)
-  //   }
-  //   reportRunResult()
-  // }
 
   function runTask(task: Task): Task | undefined {
     switch (task.type) {
@@ -402,12 +355,7 @@ export function createRunner(state: TestState): TestRunner {
   }
 
   let ticksToWait = 0
-
   let nextTask: Task | undefined
-
-  function testLoadError(message: string) {
-    makeLoadError(state, message)
-  }
 
   const resume = onLoad(state)
   if (resume.result === LoadResult.FirstLoad) {
@@ -415,19 +363,18 @@ export function createRunner(state: TestState): TestRunner {
       type: "enterDescribe",
       block: state.rootBlock,
     }
-    state.setReloadState(ReloadState.Running)
+    state.setTestStage(TestStage.Running)
   } else if (resume.result === LoadResult.ResumeAfterReload) {
     nextTask = {
       type: "runTestPart",
       testRun: newTestRun(resume.test, resume.partIndex),
     }
-    state.setReloadState(ReloadState.Running)
+    state.setTestStage(TestStage.Running)
   } else if (resume.result === LoadResult.ConfigChangedAfterReload) {
-    testLoadError(
-      `Test configuration changed after reloading: ${resume.test.path}. Aborting test run.`,
-    )
-  } else if (resume.result === LoadResult.UnexpectedReload) {
-    testLoadError(
+    makeLoadError(state, `Test configuration changed after reloading: ${resume.test.path}. Aborting test run.`)
+  } else if (resume.result === LoadResult.AlreadyRunning) {
+    makeLoadError(
+      state,
       "World was unexpectedly reloaded while tests were running. " +
         "This will cause tests to break. " +
         "Reload/re-create the test scenario to restart test runs",
@@ -445,7 +392,7 @@ export function createRunner(state: TestState): TestRunner {
       while (nextTask) {
         nextTask = runTask(nextTask)
         if (!nextTask) {
-          state.setReloadState(ReloadState.Completed)
+          state.setTestStage(TestStage.Completed)
           return
         }
         const waitTicks = (nextTask as WaitForTestPart).waitTicks

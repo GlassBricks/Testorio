@@ -1,7 +1,4 @@
-export function enable_all(
-  surface: LuaSurface,
-  area: BoundingBox | string,
-): void {
+export function enable_all(surface: LuaSurface, area: BoundingBox | string): void {
   if (typeof area === "string") {
     area = surface.get_script_area(area).area
   }
@@ -10,10 +7,7 @@ export function enable_all(
   }
 }
 
-export function disable_all(
-  surface: LuaSurface,
-  area: BoundingBox | string,
-): void {
+export function disable_all(surface: LuaSurface, area: BoundingBox | string): void {
   if (typeof area === "string") {
     area = surface.get_script_area(area).area
   }
@@ -26,12 +20,16 @@ export function testArea(
   surfaceId: uint | string,
   areaId: number | string | BoundingBox,
 ): LuaMultiReturn<[surface: LuaSurface, area: BoundingBox]> {
-  const surface =
-    game.get_surface(surfaceId) ?? error(`No surface with id ${surfaceId}`)
-  const area =
-    typeof areaId === "string" || typeof areaId === "number"
-      ? surface.get_script_area(areaId).area
-      : areaId
+  const surface = game.get_surface(surfaceId) ?? error(`No surface with id ${surfaceId}`)
+  let area: BoundingBox
+  if (typeof areaId === "string" || typeof areaId === "number") {
+    area = surface.get_script_area(areaId)?.area
+  } else {
+    area = areaId
+  }
+  if (!area) {
+    error(`No area with name/id ${areaId} on surface "${surface.name}"`)
+  }
   enable_all(surface, area)
   afterTest(() => {
     disable_all(surface, area)

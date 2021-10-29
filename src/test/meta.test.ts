@@ -1,14 +1,9 @@
 import * as Log from "../tests/Log"
 import { LogLevel } from "../tests/Log"
 import { createRunner } from "../tests/runner"
-import {
-  _setTestState,
-  getTestState,
-  resetTestState,
-  TestState,
-} from "../tests/state"
+import { _setTestState, getTestState, resetTestState, TestState } from "../tests/state"
 import { DescribeBlock, Test } from "../tests/tests"
-import { ReloadState } from "../constants"
+import { TestStage } from "../constants"
 
 // simulated test environment
 let actions: unknown[] = []
@@ -23,10 +18,10 @@ beforeEach(() => {
   resetTestState()
   mockTestState = getTestState()
 
-  let reloadState = ReloadState.Uninitialized
-  mockTestState.getReloadState = () => reloadState
-  mockTestState.setReloadState = (state) => {
-    reloadState = state
+  let testStage = TestStage.NotRun
+  mockTestState.getTestStage = () => testStage
+  mockTestState.setTestStage = (state) => {
+    testStage = state
   }
 
   Log.setLevel(LogLevel.None)
@@ -35,12 +30,8 @@ beforeEach(() => {
 afterEach(() => {
   _setTestState(originalTestState)
   Log.setLevel(oldLogLevel)
-  const reloadState = mockTestState.getReloadState()
-  if (
-    mockTestState.rootBlock.children.length > 0 &&
-    (reloadState === ReloadState.Loaded ||
-      reloadState === ReloadState.Uninitialized)
-  ) {
+  const testStage = mockTestState.getTestStage()
+  if (mockTestState.rootBlock.children.length > 0 && testStage === TestStage.NotRun) {
     error("Simulated test defined but not run")
   }
 })
@@ -50,8 +41,7 @@ function getFirst<T extends Test | DescribeBlock = Test>(): T {
 }
 
 function runTestSync<T extends Test | DescribeBlock = Test>(): T {
-  if (mockTestState.getReloadState() === ReloadState.Uninitialized) {
-    mockTestState.setReloadState(ReloadState.Loaded)
+  if (mockTestState.getTestStage() === TestStage.NotRun) {
     const runner = createRunner(mockTestState)
     runner.tick()
     if (!runner.isDone()) {
@@ -61,13 +51,10 @@ function runTestSync<T extends Test | DescribeBlock = Test>(): T {
   return getFirst()
 }
 
-function runTestAsync<T extends Test | DescribeBlock = Test>(
-  callback: (item: T) => void,
-): void {
-  if (mockTestState.getReloadState() !== ReloadState.Uninitialized) {
+function runTestAsync<T extends Test | DescribeBlock = Test>(callback: (item: T) => void): void {
+  if (mockTestState.getTestStage() !== TestStage.NotRun) {
     error("duplicate call to runTestAsync/cannot re-run mock test async")
   }
-  mockTestState.setReloadState(ReloadState.Loaded)
   const runner = createRunner(mockTestState)
   _setTestState(originalTestState)
   async()
@@ -484,10 +471,7 @@ describe("focused tests", () => {
       actions.push("yes")
     })
     runTestSync()
-    assert.is_false(
-      mockTestState.hasFocusedTests,
-      "should not have focused tests if skipped",
-    )
+    assert.is_false(mockTestState.hasFocusedTests, "should not have focused tests if skipped")
     assert.same(["yes"], actions)
   })
 })
@@ -925,9 +909,6 @@ describe.each(["test", "describe"], "%s.each", (funcName) => {
 
 describe("reload state", () => {
   function reloadAndTick(): void {
-    if (mockTestState.getReloadState() === ReloadState.Uninitialized) {
-      mockTestState.setReloadState(ReloadState.Loaded)
-    }
     const runner = createRunner(mockTestState)
     runner.tick()
   }
@@ -935,15 +916,14 @@ describe("reload state", () => {
   // would also check for uninitialized, but that requires too deep a level of meta
 
   test("Reload state lifecycle", () => {
-    assert.equal(ReloadState.Uninitialized, mockTestState.getReloadState())
+    assert.equal(TestStage.NotRun, mockTestState.getTestStage())
     test("", () => {
       // empty
     })
-    mockTestState.setReloadState(ReloadState.Loaded)
     const runner = createRunner(mockTestState)
-    assert.equal(ReloadState.Running, mockTestState.getReloadState())
+    assert.equal(TestStage.Running, mockTestState.getTestStage())
     runner.tick()
-    assert.equal(ReloadState.Completed, mockTestState.getReloadState())
+    assert.equal(TestStage.Completed, mockTestState.getTestStage())
   })
 
   test("Cannot reload while testing", () => {
@@ -954,17 +934,13 @@ describe("reload state", () => {
     assert.same(mockTestState.suppressedErrors, [])
     reloadAndTick()
     assert.not_same(mockTestState.suppressedErrors, [])
-    assert.equal(ReloadState.LoadError, mockTestState.getReloadState())
+    assert.equal(TestStage.LoadError, mockTestState.getTestStage())
   })
 
-  test.each(
-    [ReloadState.Uninitialized, ReloadState.Completed, ReloadState.LoadError],
-    "should not run with state %s",
-    (state) => {
-      mockTestState.setReloadState(state)
-      assert.error(() => {
-        createRunner(mockTestState)
-      })
-    },
-  )
+  test.each([TestStage.Completed, TestStage.LoadError], "should not run with state %s", (state) => {
+    mockTestState.setTestStage(state)
+    assert.error(() => {
+      createRunner(mockTestState)
+    })
+  })
 })

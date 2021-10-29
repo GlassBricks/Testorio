@@ -1,5 +1,5 @@
 import { getTestState } from "../tests/state"
-import { ReloadState } from "../constants"
+import { TestStage } from "../constants"
 
 declare const global: {
   foo?: () => 0
@@ -13,5 +13,5 @@ test("after_mod_reload", () => {
 }).after_mod_reload(() => {
   assert.is_nil(global.foo)
   assert.equal("initial", someValue)
-  assert.equal(getTestState().getReloadState(), ReloadState.Running)
+  assert.equal(getTestState().getTestStage(), TestStage.Running)
 })

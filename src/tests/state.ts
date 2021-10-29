@@ -1,5 +1,6 @@
 import { createRootDescribeBlock, DescribeBlock, Test } from "./tests"
-import { ReloadState, Settings } from "../constants"
+import { Settings, TestStage } from "../constants"
+import { onTestStageChanged } from "./onTestStageChanged"
 import OnTickFn = Testorio.OnTickFn
 
 /** @noSelf */
@@ -15,8 +16,8 @@ export interface TestState {
 
   // state that is persistent across game reload
   // here as a function so is mock-able in meta test
-  getReloadState(): ReloadState
-  setReloadState(state: ReloadState): void
+  getTestStage(): TestStage
+  setTestStage(state: TestStage): void
 }
 
 export interface TestRun {
@@ -46,6 +47,15 @@ export function _setTestState(state: TestState): void {
   TESTORIO_TEST_STATE = state
 }
 
+export function getGlobalTestStage(): TestStage {
+  return settings.global[Settings.TestStage].value as TestStage
+}
+
+function setGlobalTestStage(stage: TestStage) {
+  settings.global[Settings.TestStage] = { value: stage }
+  script.raise_event(onTestStageChanged, { stage })
+}
+
 export function resetTestState(): void {
   const rootBlock = createRootDescribeBlock()
   _setTestState({
@@ -53,17 +63,13 @@ export function resetTestState(): void {
     currentBlock: rootBlock,
     hasFocusedTests: false,
     suppressedErrors: [],
-    getReloadState() {
-      return settings.global[Settings.ReloadState].value as ReloadState
-    },
-    setReloadState(state) {
-      settings.global[Settings.ReloadState] = { value: state }
-    },
+    getTestStage: getGlobalTestStage,
+    setTestStage: setGlobalTestStage,
   })
 }
 
 export function makeLoadError(state: TestState, error: string): void {
-  state.setReloadState(ReloadState.LoadError)
+  state.setTestStage(TestStage.LoadError)
   state.rootBlock = createRootDescribeBlock()
   state.currentBlock = undefined
   state.currentTestRun = undefined
