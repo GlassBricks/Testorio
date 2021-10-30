@@ -62,15 +62,6 @@ local TestBuilder = {}
 
 ---@param func T
 ---@return TestBuilder<T>
-function TestBuilder.next(func) end
-
----@param ticks number
----@param func T
----@return TestBuilder<T>
-function TestBuilder.after_ticks(ticks, func) end
-
----@param func T
----@return TestBuilder<T>
 function TestBuilder.after_script_reload(func) end
 
 ---@param func T

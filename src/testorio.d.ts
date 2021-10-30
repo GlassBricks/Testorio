@@ -1,4 +1,3 @@
-// eslint-disable-next-line eslint-comments/disable-enable-pair
 /* eslint-disable no-var */
 declare var test: Testorio.TestCreator
 declare var it: Testorio.TestCreator
@@ -23,16 +22,8 @@ declare namespace Testorio {
   interface TestCreatorBase {
     (name: string, func: TestFn): TestBuilder
 
-    each<V extends any[]>(
-      values: V[],
-      name: string,
-      func: (...values: V) => void,
-    ): TestBuilder<typeof func>
-    each<T>(
-      values: T[],
-      name: string,
-      func: (value: T) => void,
-    ): TestBuilder<typeof func>
+    each<V extends any[]>(values: V[], name: string, func: (...values: V) => void): TestBuilder<typeof func>
+    each<T>(values: T[], name: string, func: (value: T) => void): TestBuilder<typeof func>
   }
 
   /** @noSelf */
@@ -44,8 +35,6 @@ declare namespace Testorio {
 
   /** @noSelf */
   export interface TestBuilder<F extends (...args: any) => void = TestFn> {
-    next(func: F): TestBuilder<F>
-    after_ticks(ticks: number, func: F): TestBuilder<F>
     after_script_reload(func: F): TestBuilder<F>
     after_mod_reload(func: F): TestBuilder<F>
   }
@@ -54,11 +43,7 @@ declare namespace Testorio {
   interface DescribeCreatorBase {
     (name: string, func: TestFn): void
 
-    each<V extends any[]>(
-      values: V[],
-      name: string,
-      func: (...values: V) => void,
-    ): void
+    each<V extends any[]>(values: V[], name: string, func: (...values: V) => void): void
     each<T>(values: T[], name: string, func: (value: T) => void): void
   }
 

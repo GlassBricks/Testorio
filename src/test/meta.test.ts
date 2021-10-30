@@ -725,66 +725,6 @@ describe("after_ticks", () => {
   })
 })
 
-describe("multi-part tests", () => {
-  test("simple", () => {
-    test("some test", () => {
-      actions.push(1)
-    }).next(() => {
-      actions.push(2)
-    })
-    runTestSync()
-    assert.same([1, 2], actions)
-  })
-
-  test("async", () => {
-    test("some test", () => {
-      async()
-      after_ticks(2, () => {
-        actions.push(1)
-        done()
-      })
-    }).next(() => {
-      async()
-      after_ticks(2, () => {
-        actions.push(2)
-        done()
-      })
-    })
-    runTestAsync(() => {
-      assert.same([1, 2], actions)
-    })
-  })
-
-  it("clears on_tick between parts", () => {
-    test("some test", () => {
-      async()
-      on_tick((tick) => {
-        actions.push(tick)
-      })
-      after_ticks(2, done)
-    }).next(() => {
-      async()
-      after_ticks(3, () => {
-        actions.push("done")
-        done()
-      })
-    })
-    runTestAsync(() => {
-      assert.same([1, 2, "done"], actions)
-    })
-  })
-
-  test("error stops multi-part test", () => {
-    test("some test", () => {
-      error("oh no")
-    }).next(() => {
-      actions.push("should not run")
-    })
-    runTestSync()
-    assert.same([], actions)
-  })
-})
-
 describe("ticks between tests", () => {
   test("simple", () => {
     let tick1 = 0

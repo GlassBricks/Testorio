@@ -1,4 +1,5 @@
-- Test configuration
+- Multi part tests in a better way
+- Test results separately
+- Test events
 - store and re-report results
-- config GUI
 - progress GUI

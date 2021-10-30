@@ -52,35 +52,23 @@ function addNext(test: Test, func: TestFn, funcForSource: Function = func) {
     source,
   })
 }
-function createTestBuilder<F extends () => void>(nextFn: (func: F) => void) {
+function createTestBuilder<F extends () => void>(addPart: (func: F) => void) {
   function reloadFunc(reload: () => void, what: string) {
-    return (func: F) =>
-      result
-        .next((() => {
-          async(1)
-          game.print(`${getCurrentTestRun().test.path}:\nReloading ${what} for test`)
-          on_tick(() => {
-            prepareReload(getTestState())
-            reload()
-          })
-        }) as F)
-        .next(func)
+    return (func: F) => {
+      addPart((() => {
+        async(1)
+        game.print(`${getCurrentTestRun().test.path}:\nReloading ${what} for test`)
+        on_tick(() => {
+          prepareReload(getTestState())
+          reload()
+        })
+      }) as F)
+      addPart(func)
+      return result
+    }
   }
 
   const result: TestBuilder<F> = {
-    next(func) {
-      nextFn(func)
-      return result
-    },
-    after_ticks(ticks, func): TestBuilder<F> {
-      result
-        .next((() => {
-          async()
-          after_ticks(ticks, done)
-        }) as F)
-        .next(func)
-      return result
-    },
     after_script_reload: reloadFunc(() => game.reload_script(), "script"),
     after_mod_reload: reloadFunc(() => game.reload_mods(), "mods"),
   }
