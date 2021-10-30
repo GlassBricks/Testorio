@@ -37,13 +37,7 @@ export interface Test {
   result?: "passed" | "failed" | "skipped" | "todo"
 }
 
-export function addTest(
-  parent: DescribeBlock,
-  name: string,
-  source: Source,
-  func: TestFn,
-  mode: TestMode,
-): Test {
+export function addTest(parent: DescribeBlock, name: string, source: Source, func: TestFn, mode: TestMode): Test {
   const test: Test = {
     type: "test",
     name,
@@ -92,12 +86,7 @@ export interface DescribeBlock {
   ticksBetweenTests: number
 }
 
-export function addDescribeBlock(
-  parent: DescribeBlock,
-  name: string,
-  source: Source,
-  mode: TestMode,
-): DescribeBlock {
+export function addDescribeBlock(parent: DescribeBlock, name: string, source: Source, mode: TestMode): DescribeBlock {
   mode ??= parent.mode
   const block: DescribeBlock = {
     type: "describeBlock",

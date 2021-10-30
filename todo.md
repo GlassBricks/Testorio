@@ -1,4 +1,2 @@
-- Test results separately
-- Test events
 - store and re-report results
 - progress GUI

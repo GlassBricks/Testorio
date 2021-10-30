@@ -1,6 +1,7 @@
 import { createRootDescribeBlock, DescribeBlock, Test } from "./tests"
 import { Settings, TestStage } from "../constants"
-import { onTestStageChanged } from "./onTestStageChanged"
+import { _raiseTestEvent, TestEvent } from "./testEvents"
+import { onTestStateChanged } from "./eventIds"
 import OnTickFn = Testorio.OnTickFn
 
 /** @noSelf */
@@ -18,6 +19,8 @@ export interface TestState {
   // here as a function so is mock-able in meta test
   getTestStage(): TestStage
   setTestStage(state: TestStage): void
+
+  raiseTestEvent(event: TestEvent): void
 }
 
 export interface TestRun {
@@ -53,7 +56,7 @@ export function getGlobalTestStage(): TestStage {
 
 function setGlobalTestStage(stage: TestStage) {
   settings.global[Settings.TestStage] = { value: stage }
-  script.raise_event(onTestStageChanged, { stage })
+  script.raise_event(onTestStateChanged, { stage })
 }
 
 export function resetTestState(): void {
@@ -65,6 +68,7 @@ export function resetTestState(): void {
     suppressedErrors: [],
     getTestStage: getGlobalTestStage,
     setTestStage: setGlobalTestStage,
+    raiseTestEvent: _raiseTestEvent,
   })
 }
 

@@ -11,11 +11,7 @@ export function load(...files: string[]): void {
   switch (testStage) {
     case TestStage.NotRun: {
       addOnEvent(defines.events.on_game_created_from_scenario, runTests)
-      const modName = script.mod_name
-      remote.add_interface(Remote.TestRun, {
-        runTests,
-        modName: () => modName,
-      })
+      remote.add_interface(Remote.RunTests, { runTests })
       break
     }
     case TestStage.Running:
@@ -47,27 +43,16 @@ function loadTests(...files: string[]): TestState {
 
 function runTests() {
   let runner: TestRunner | undefined
-  function prepareRun() {
-    if (game.is_multiplayer()) {
-      error("Tests cannot be in run in multiplayer")
-    }
-    game.speed = 1000
-    game.autosave_enabled = false
-  }
-  function finishRun() {
-    game.speed = 1
-    revertOnTick()
-  }
   if (game) game.tick_paused = false
   const revertOnTick = addOnEvent(defines.events.on_tick, () => {
     if (!runner) {
       runner = createRunner(getTestState())
-      prepareRun()
     }
     runner.tick()
     if (runner.isDone()) {
       runner.reportResult()
-      finishRun()
+      game.speed = 1
+      revertOnTick()
     }
   })
 }

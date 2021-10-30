@@ -4,15 +4,18 @@ import { createRunner } from "../tests/runner"
 import { _setTestState, getTestState, resetTestState, TestState } from "../tests/state"
 import { DescribeBlock, Test } from "../tests/tests"
 import { TestStage } from "../constants"
+import { TestEvent } from "../tests/testEvents"
 
 // simulated test environment
 let actions: unknown[] = []
+let events: TestEvent[] = []
 let mockTestState: TestState
 let originalTestState: TestState
 let oldLogLevel: LogLevel
 
 beforeEach(() => {
   actions = []
+  events = []
   originalTestState = getTestState()
   oldLogLevel = Log.getLevel()
   resetTestState()
@@ -22,6 +25,9 @@ beforeEach(() => {
   mockTestState.getTestStage = () => testStage
   mockTestState.setTestStage = (state) => {
     testStage = state
+  }
+  mockTestState.raiseTestEvent = (event) => {
+    events.push(event)
   }
 
   Log.setLevel(LogLevel.None)
@@ -947,5 +953,82 @@ describe("reload state", () => {
     assert.error(() => {
       createRunner(mockTestState)
     })
+  })
+})
+
+describe("test events", () => {
+  test("Full lifecycle", () => {
+    describe("block", () => {
+      test("test", () => {
+        //noop
+      })
+    })
+    runTestSync()
+    const expected: TestEvent["type"][] = [
+      "startTestRun",
+      "enterDescribeBlock", // root
+      "enterDescribeBlock",
+      "testStarted",
+      "testPassed",
+      "exitDescribeBlock",
+      "exitDescribeBlock",
+      "finishTestRun",
+    ]
+    assert.same(
+      expected,
+      events.map((x) => x.type),
+    )
+  })
+  test("failing", () => {
+    test("test", () => {
+      error("on no")
+    })
+    runTestSync()
+    const expected: TestEvent["type"][] = [
+      "startTestRun",
+      "enterDescribeBlock",
+      "testStarted",
+      "testFailed",
+      "exitDescribeBlock",
+      "finishTestRun",
+    ]
+    assert.same(
+      expected,
+      events.map((x) => x.type),
+    )
+  })
+  test("skipped", () => {
+    test.skip("test", () => {
+      // noop
+    })
+    runTestSync()
+    const expected: TestEvent["type"][] = [
+      "startTestRun",
+      "enterDescribeBlock",
+      "testStarted",
+      "testSkipped",
+      "exitDescribeBlock",
+      "finishTestRun",
+    ]
+    assert.same(
+      expected,
+      events.map((x) => x.type),
+    )
+  })
+  test("todo", () => {
+    test.todo("todo")
+    runTestSync()
+    const expected: TestEvent["type"][] = [
+      "startTestRun",
+      "enterDescribeBlock",
+      "testStarted",
+      "testTodo",
+      "exitDescribeBlock",
+      "finishTestRun",
+    ]
+    assert.same(
+      expected,
+      events.map((x) => x.type),
+    )
   })
 })

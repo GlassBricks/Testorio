@@ -4,7 +4,7 @@ import { Colors, Locale, Prototypes, Remote, Settings, TestStage } from "../cons
 import * as modGui from "mod-gui"
 import { getGlobalTestStage } from "../tests/state"
 import { assertNever } from "../util"
-import { onTestStageChanged } from "../tests/onTestStageChanged"
+import { onTestStateChanged } from "../tests/eventIds"
 
 const enum GuiNames {
   ConfigWindow = "testorio:test-config",
@@ -235,7 +235,7 @@ function updateModSelectGui() {
   }
 }
 
-script.on_event(onTestStageChanged, updateModSelectGui)
+script.on_event(onTestStateChanged, updateModSelectGui)
 
 function TestStageBar(parent: FrameGuiElement) {
   global.configGui!.testStageFlow = parent.add({
@@ -340,10 +340,10 @@ function onLoad() {
   }
   if (global.toRunTests) {
     global.toRunTests = undefined
-    if (!remote.interfaces[Remote.TestRun]) {
+    if (!remote.interfaces[Remote.RunTests]) {
       game.print("Could not run tests: tests not loaded after refresh", Colors.red)
     } else {
-      remote.call(Remote.TestRun, "runTests")
+      remote.call(Remote.RunTests, "runTests")
     }
   }
 

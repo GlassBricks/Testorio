@@ -1,13 +1,15 @@
-import * as Log from "./Log"
-import { LogLevel } from "./Log"
 import { resumeAfterReload } from "./resume"
-import reportRunResult from "./report"
 import { makeLoadError, TestRun, TestState } from "./state"
 import { DescribeBlock, formatSource, Hook, Test } from "./tests"
 import { assertNever } from "../util"
 import { Remote, TestStage } from "../constants"
+import reportRunResult from "./report"
 import TestFn = Testorio.TestFn
 import OnTickFn = Testorio.OnTickFn
+
+interface StartTestRun {
+  type: "startTestRun"
+}
 
 interface EnterDescribe {
   type: "enterDescribe"
@@ -41,7 +43,19 @@ interface LeaveDescribe {
   block: DescribeBlock
 }
 
-type Task = EnterDescribe | EnterTest | RunTestPart | WaitForTestPart | LeaveTest | LeaveDescribe
+interface FinishTestRun {
+  type: "finishTestRun"
+}
+
+type Task =
+  | StartTestRun
+  | EnterDescribe
+  | EnterTest
+  | RunTestPart
+  | WaitForTestPart
+  | LeaveTest
+  | LeaveDescribe
+  | FinishTestRun
 
 export interface TestRunner {
   tick(): void
@@ -78,10 +92,13 @@ function onLoad(testState: TestState):
   | {
       result: LoadResult.AlreadyRunning
     } {
+  if (game.is_multiplayer()) {
+    error("Tests cannot be in run in multiplayer")
+  }
   const testStage = testState.getTestStage()
   switch (testStage) {
     case TestStage.NotRun:
-      return remote.interfaces[Remote.TestRun]
+      return remote.interfaces[Remote.RunTests]
         ? { result: LoadResult.FirstLoad }
         : error("Test runner trying to be created when tests not loaded")
     case TestStage.ToReload: {
@@ -143,6 +160,23 @@ export function createRunner(state: TestState): TestRunner {
     return stacktrace
   }
 
+  function startTestRun(): Task {
+    state.raiseTestEvent({
+      type: "startTestRun",
+    })
+    return {
+      type: "enterDescribe",
+      block: state.rootBlock,
+    }
+  }
+
+  function finishTestRun(): undefined {
+    state.raiseTestEvent({
+      type: "finishTestRun",
+    })
+    return
+  }
+
   function nextDescribeBlockItem(block: DescribeBlock, index: number): Task {
     const item = block.children[index]
     if (item) {
@@ -197,7 +231,11 @@ export function createRunner(state: TestState): TestRunner {
   }
 
   function enterDescribe({ block }: EnterDescribe): Task {
-    Log.logWithSource(LogLevel.Debug, `BLOCK: ${block.name}`, block.source)
+    state.raiseTestEvent({
+      type: "enterDescribeBlock",
+      block,
+    })
+
     if (block.children.length === 0) {
       state.suppressedErrors.push(`${block.path} has no tests defined.\n${formatSource(block.source)}`)
     } else if (hasAnyTest(block)) {
@@ -213,10 +251,13 @@ export function createRunner(state: TestState): TestRunner {
   }
 
   function enterTest({ test }: EnterTest): Task {
-    Log.logWithSource(LogLevel.Debug, `TEST:  ${test.path}`, test.source)
     // set testRun now, no errors in hooks
     const testRun = newTestRun(test, 0)
     state.currentTestRun = testRun
+    state.raiseTestEvent({
+      type: "testStarted",
+      test,
+    })
 
     if (!isSkippedTest(test)) {
       function collectHooks(block: DescribeBlock, hooks: Hook[]) {
@@ -246,7 +287,6 @@ export function createRunner(state: TestState): TestRunner {
     const part = test.parts[partIndex]
     state.currentTestRun = testRun
     if (!isSkippedTest(test)) {
-      Log.logWithSource(LogLevel.Trace, `Running test ${test.name}`, part.source)
       if (test.errors.length === 0) {
         const [success, error] = xpcall(part.func, getErrorWithStacktrace)
         if (!success) {
@@ -280,7 +320,6 @@ export function createRunner(state: TestState): TestRunner {
 
   function leaveTest({ testRun }: LeaveTest): Task {
     const { test } = testRun
-    Log.logWithSource(LogLevel.Trace, `Leaving test ${test.name}`, test.source)
     const isSkipped = isSkippedTest(test)
 
     if (!isSkipped) {
@@ -302,25 +341,36 @@ export function createRunner(state: TestState): TestRunner {
     state.currentTestRun = undefined
     if (isSkipped) {
       if (test.mode === "todo") {
-        Log.logWithSource(LogLevel.Warn, "TODO", test.source)
         test.result = "todo"
+        state.raiseTestEvent({
+          type: "testTodo",
+          test,
+        })
       } else {
-        Log.logWithSource(LogLevel.Warn, "SKIPPED", test.source)
         test.result = "skipped"
+        state.raiseTestEvent({
+          type: "testSkipped",
+          test,
+        })
       }
     } else if (test.errors.length > 0) {
-      Log.log(LogLevel.Debug, `FAIL`)
       test.result = "failed"
+      state.raiseTestEvent({
+        type: "testFailed",
+        test,
+      })
     } else {
-      Log.log(LogLevel.Debug, `PASS`)
       test.result = "passed"
+      state.raiseTestEvent({
+        type: "testPassed",
+        test,
+      })
     }
 
     return nextDescribeBlockItem(test.parent, test.indexInParent + 1)
   }
 
   function leaveDescribe({ block }: LeaveDescribe): Task | undefined {
-    Log.logWithSource(LogLevel.Trace, `Leaving describe block ${block.name}`, block.source)
     const hasTests = hasAnyTest(block)
     if (hasTests) {
       const hooks = block.hooks.filter((x) => x.type === "afterAll")
@@ -331,12 +381,21 @@ export function createRunner(state: TestState): TestRunner {
         }
       }
     }
-    if (!block.parent) return undefined
-    return nextDescribeBlockItem(block.parent, block.indexInParent + 1)
+    state.raiseTestEvent({
+      type: "exitDescribeBlock",
+      block,
+    })
+    return block.parent
+      ? nextDescribeBlockItem(block.parent, block.indexInParent + 1)
+      : {
+          type: "finishTestRun",
+        }
   }
 
   function runTask(task: Task): Task | undefined {
     switch (task.type) {
+      case "startTestRun":
+        return startTestRun()
       case "enterDescribe":
         return enterDescribe(task)
       case "enterTest":
@@ -349,6 +408,8 @@ export function createRunner(state: TestState): TestRunner {
         return leaveTest(task)
       case "leaveDescribe":
         return leaveDescribe(task)
+      case "finishTestRun":
+        return finishTestRun()
       default:
         assertNever(task)
     }
@@ -360,8 +421,7 @@ export function createRunner(state: TestState): TestRunner {
   const resume = onLoad(state)
   if (resume.result === LoadResult.FirstLoad) {
     nextTask = {
-      type: "enterDescribe",
-      block: state.rootBlock,
+      type: "startTestRun",
     }
     state.setTestStage(TestStage.Running)
   } else if (resume.result === LoadResult.ResumeAfterReload) {

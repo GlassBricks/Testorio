@@ -3,6 +3,12 @@ export const enum Settings {
   TestStage = "testorio:test-stage",
 }
 
+export const enum Remote {
+  TestsAvailableFor = "testorio-tests-available-for-",
+  RunTests = "testorio-run-tests",
+  TestEvents = "testorio-test-event",
+}
+
 export const enum Prototypes {
   EnablerTool = "testorio:enabler-tool",
   TestTubeSprite = "testorio:test-tube-sprite",
@@ -32,12 +38,6 @@ export namespace Colors {
   export const red: Color = { r: 244, g: 85, b: 85 }
   export const green: Color = { r: 155, g: 244, b: 122 }
   export const yellow: Color = { r: 255, g: 204, b: 20 }
-}
-
-export const enum Remote {
-  TestsAvailableFor = "testorio-tests-available-for-",
-  TestRun = "testorio-test-run",
-  TestState = "testorio-test-state",
 }
 
 // test state that is persistent across game reload. Stored in global.settings
