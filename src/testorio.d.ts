@@ -1,4 +1,6 @@
 /* eslint-disable no-var */
+import TestFn = Testorio.TestFn
+
 declare var test: Testorio.TestCreator
 declare var it: Testorio.TestCreator
 declare var describe: Testorio.DescribeCreator
@@ -12,6 +14,7 @@ declare function done(): void
 declare function on_tick(func: Testorio.OnTickFn): void
 declare function after_ticks(ticks: number, func: Testorio.TestFn): void
 declare function ticks_between_tests(ticks: number): void
+declare function part(func: TestFn): void
 
 declare namespace Testorio {
   type TestFn = () => void

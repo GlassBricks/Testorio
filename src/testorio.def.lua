@@ -31,6 +31,9 @@ function afterTicks(ticks, func) end
 ---@param ticks number
 function ticksBetweenTests(ticks) end
 
+---@param func TestFn
+function part(func) end
+
 
 ---@alias TestFn fun(): void
 ---@alias HookFn TestFn

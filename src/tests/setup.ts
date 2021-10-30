@@ -220,6 +220,7 @@ type Globals =
   | "test"
   | "it"
   | "describe"
+  | "part"
 type GlobalsObj = {
   [P in Globals]: typeof globalThis[P]
 }
@@ -244,11 +245,11 @@ export const globals: GlobalsObj = {
     addHook("afterEach", func)
   },
 
-  afterTest(func): void {
+  afterTest(func) {
     getCurrentTestRun().test.afterTest.push(func)
   },
 
-  async(timeout: number = DEFAULT_TIMEOUT): void {
+  async(timeout = DEFAULT_TIMEOUT) {
     const testRun = getCurrentTestRun()
     if (testRun.async) {
       error("test is already async")
@@ -293,10 +294,18 @@ export const globals: GlobalsObj = {
       }
     })
   },
-  ticks_between_tests(ticks: number): void {
+  ticks_between_tests(ticks) {
     if (ticks < 0) {
       error("ticks between tests must be 0 or greater")
     }
     getCurrentBlock().ticksBetweenTests = ticks
+  },
+  part(func) {
+    const { test, partIndex } = getCurrentTestRun()
+    const source = getCallerSource()
+    table.insert(test.parts, partIndex + 2, {
+      func,
+      source,
+    })
   },
 }
