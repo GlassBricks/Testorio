@@ -16,7 +16,7 @@ export const enum Prototypes {
 
 export const enum Locale {
   Tests = "testorio.tests",
-  TestConfiguration = "testorio.test-configuration",
+  TestConfig = "testorio.test-configuration",
   LoadTestsFor = "testorio.load-tests-for",
   NoMod = "testorio.no-mod",
   OtherMod = "testorio.other-mod",
@@ -24,6 +24,7 @@ export const enum Locale {
   TestsRunning = "testorio.tests-running",
   TestsCompleted = "testorio.tests-completed",
   RunTests = "testorio.run-tests",
+  TestConsole = "testorio.test-console",
 }
 
 const path = "__testorio__/graphics/"
@@ -35,9 +36,10 @@ export const Graphics = {
 } as const
 
 export namespace Colors {
-  export const red: Color = { r: 244, g: 85, b: 85 }
-  export const green: Color = { r: 155, g: 244, b: 122 }
+  export const red: Color = { r: 255, g: 40, b: 40 }
+  export const green: Color = { r: 155, g: 255, b: 122 }
   export const yellow: Color = { r: 255, g: 204, b: 20 }
+  export const purple: Color = { r: 240, g: 20, b: 220 }
 }
 
 // test state that is persistent across game reload. Stored in global.settings
