@@ -306,6 +306,16 @@ describe("failing tests", () => {
     assert.matches(failMessage, theTest.errors[1], undefined, true)
   })
 
+  test("afterTest", () => {
+    test("test", () => {
+      afterTest(fail)
+      error("first error")
+    })
+    const theTest = runTestSync()
+    assert.are_equal(2, theTest.errors.length)
+    assert.matches(failMessage, theTest.errors[1], undefined, true)
+  })
+
   test("Error stacktrace is clean", () => {
     test("foo", () => {
       error("oh no")
@@ -420,10 +430,10 @@ describe("focused tests", () => {
   test("shallow nested focus", () => {
     describe.only("should run", () => {
       test.only("", () => {
-        actions.push("yes")
+        actions.push("yes1")
       })
       test("", () => {
-        actions.push("no1")
+        actions.push("yes2")
       })
     })
     describe("should not run", () => {
@@ -432,39 +442,7 @@ describe("focused tests", () => {
       })
     })
     runTestSync()
-    assert.same(["yes"], actions)
-  })
-
-  test("multiple nested focuses", () => {
-    describe.only("should run", () => {
-      describe.only("", () => {
-        test("", () => {
-          actions.push("yes1")
-        })
-      })
-      describe("", () => {
-        test("", () => {
-          actions.push("no1")
-        })
-        // new focus
-        test.only("", () => {
-          actions.push("yes2")
-        })
-      })
-      test("", () => {
-        actions.push("no1")
-      })
-      test.only("", () => {
-        actions.push("yes3")
-      })
-    })
-    describe("should not run", () => {
-      test("", () => {
-        actions.push("no2")
-      })
-    })
-    runTestSync()
-    assert.same(["yes1", "yes2", "yes3"], actions)
+    assert.same(["yes1", "yes2"], actions)
   })
 
   test("skipped describes do not focus", () => {

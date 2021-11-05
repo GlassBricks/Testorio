@@ -39,10 +39,7 @@ declare global {
 
 // stored in settings so can be accessed even when global table is not yet loaded
 export function getTestState(): TestState {
-  if (!TESTORIO_TEST_STATE) {
-    error("Tests are not configured to be run")
-  }
-  return TESTORIO_TEST_STATE
+  return TESTORIO_TEST_STATE ?? error("Tests are not configured to be run")
 }
 
 // internal, export for meta-test only
@@ -89,9 +86,5 @@ export function getCurrentBlock(): DescribeBlock {
 }
 
 export function getCurrentTestRun(): TestRun {
-  const run = getTestState().currentTestRun
-  if (!run) {
-    error("This can only be used during a test", 3)
-  }
-  return run
+  return getTestState().currentTestRun ?? error("This can only be used during a test", 3)
 }

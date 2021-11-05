@@ -31,14 +31,16 @@ function createTest(name: string, func: TestFn, mode: TestMode, upStack: number 
   if (state.currentTestRun) {
     error(`Test "${name}" cannot be nested inside test "${state.currentTestRun.test.path}"`)
   }
-  const currentBlock = getCurrentBlock()
-  if (currentBlock.mode === "skip" && mode !== "todo") {
+  const parent = getCurrentBlock()
+  if (parent.mode === "skip" && mode !== "todo") {
     mode = "skip"
+  } else {
+    mode ??= parent.mode
   }
   if (mode === "only") {
     state.hasFocusedTests = true
   }
-  return addTest(currentBlock, name, getCallerSource(upStack + 1), func, mode)
+  return addTest(parent, name, getCallerSource(upStack + 1), func, mode)
 }
 // eslint-disable-next-line @typescript-eslint/ban-types
 function addNext(test: Test, func: TestFn, funcForSource: Function = func) {
@@ -74,17 +76,7 @@ function createTestBuilder<F extends () => void>(addPart: (func: F) => void) {
   }
   return result
 }
-function propagateFocus(block: DescribeBlock) {
-  if (block.mode === "only" && block.children.every((child) => child.mode !== "only")) {
-    for (const child of block.children) {
-      if (child.mode !== undefined) continue
-      child.mode = "only"
-      if (child.type === "describeBlock") {
-        propagateFocus(block)
-      }
-    }
-  }
-}
+
 function createDescribe(name: string, block: TestFn, mode: TestMode, upStack: number = 1): DescribeBlock | undefined {
   const state = getTestState()
   if (state.currentTestRun) {
@@ -93,19 +85,19 @@ function createDescribe(name: string, block: TestFn, mode: TestMode, upStack: nu
 
   const source = getCallerSource(upStack + 1)
 
-  const previousBlock = getCurrentBlock()
-  if (previousBlock.mode === "skip") {
+  const parent = getCurrentBlock()
+  if (parent.mode === "skip") {
     mode = "skip"
+  } else {
+    mode ??= parent.mode
   }
   if (mode === "only") {
     state.hasFocusedTests = true
   }
-
-  const describeBlock = addDescribeBlock(previousBlock, name, source, mode)
+  const describeBlock = addDescribeBlock(parent, name, source, mode)
   state.currentBlock = describeBlock
   block()
-  state.currentBlock = previousBlock
-  propagateFocus(describeBlock)
+  state.currentBlock = parent
   return describeBlock
 }
 function setCall<T extends object, F extends (...args: any) => any>(obj: T, func: F): T & F {

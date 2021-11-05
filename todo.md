@@ -1,2 +1,1 @@
-- store and re-report results
-- progress GUI
+- Redo include/skip logic

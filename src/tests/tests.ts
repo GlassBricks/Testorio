@@ -28,12 +28,11 @@ export interface Test {
     source: Source
   }[]
   readonly afterTest: TestFn[]
-  readonly errors: string[]
 
-  mode: TestMode
-
+  readonly mode: TestMode
   readonly ticksBefore: number
 
+  readonly errors: string[]
   result?: "passed" | "failed" | "skipped" | "todo"
 }
 
@@ -81,13 +80,12 @@ export interface DescribeBlock {
 
   readonly hooks: Hook[]
 
-  mode: TestMode
+  readonly mode: TestMode
 
   ticksBetweenTests: number
 }
 
 export function addDescribeBlock(parent: DescribeBlock, name: string, source: Source, mode: TestMode): DescribeBlock {
-  mode ??= parent.mode
   const block: DescribeBlock = {
     type: "describeBlock",
     name,
