@@ -1,8 +1,8 @@
 import { Locale, Prototypes, Remote, Settings, TestStage } from "../constants"
 import * as modGui from "mod-gui"
-import { getGlobalTestStage } from "../tests/state"
+import { getGlobalTestStage } from "../testorio/state"
 import { assertNever } from "../util"
-import { onTestStateChanged } from "../tests/eventIds"
+import { onTestStateChanged } from "../testorio/eventIds"
 import { GuiAction, guiAction } from "./guiAction"
 import { postLoadAction } from "./load"
 

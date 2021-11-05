@@ -11,5 +11,5 @@ export = function init(...files: string[]): void {
     return
   }
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  ;(require("./tests/load") as typeof import("./tests/load")).load(...files)
+  ;(require("./testorio/load") as typeof import("./testorio/load")).load(...files)
 }

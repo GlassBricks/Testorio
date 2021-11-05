@@ -8,10 +8,7 @@ interface TestResult {
   test: Test
 }
 
-function collectTestResults(
-  block: DescribeBlock,
-  results: TestResult[],
-): TestResult[] {
+function collectTestResults(block: DescribeBlock, results: TestResult[]): TestResult[] {
   for (const child of block.children) {
     if (child.type === "describeBlock") {
       collectTestResults(child, results)
@@ -91,18 +88,9 @@ export default function reportRunResult(testState: TestState): void {
   const oldLevel = Log.getLevel()
   Log.setLevel(LogLevel.Trace)
   Log.log(
-    result.status === "passed"
-      ? LogLevel.Trace
-      : result.status === "todo"
-      ? LogLevel.Warn
-      : LogLevel.Error,
+    result.status === "passed" ? LogLevel.Trace : result.status === "todo" ? LogLevel.Warn : LogLevel.Error,
 
-    "Test run result: " +
-      (result.status === "passed"
-        ? "PASS"
-        : result.status === "todo"
-        ? "PASS with todo"
-        : "FAIL"),
+    "Test run result: " + (result.status === "passed" ? "PASS" : result.status === "todo" ? "PASS with todo" : "FAIL"),
   )
   Log.log(LogLevel.Info, `${result.passed}/${result.ran} tests passed`)
   if (result.skipped !== 0) {

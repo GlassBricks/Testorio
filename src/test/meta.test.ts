@@ -1,10 +1,10 @@
-import * as Log from "../tests/Log"
-import { LogLevel } from "../tests/Log"
-import { createRunner } from "../tests/runner"
-import { _setTestState, getTestState, resetTestState, TestState } from "../tests/state"
-import { DescribeBlock, Test } from "../tests/tests"
+import * as Log from "../testorio/Log"
+import { LogLevel } from "../testorio/Log"
+import { createRunner } from "../testorio/runner"
+import { _setTestState, getTestState, resetTestState, TestState } from "../testorio/state"
+import { DescribeBlock, Test } from "../testorio/tests"
 import { TestStage } from "../constants"
-import { TestEvent } from "../tests/testEvents"
+import { TestEvent } from "../testorio/testEvents"
 
 // simulated test environment
 let actions: unknown[] = []
