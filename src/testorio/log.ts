@@ -33,7 +33,7 @@ export function doLog(level: LogLevel, message: string, color: LogColor = level 
   }
 }
 
-const debugAdapterEnabled = script.active_mods.debugadapter
+export const debugAdapterEnabled = script.active_mods.debugadapter !== undefined
 
 let currentLevel: LogLevel = debugAdapterEnabled ? LogLevel.Debug : LogLevel.Info
 
@@ -61,7 +61,7 @@ function logWithSource(color: LogColor, message: string, source: Source): void {
   _G.print("DBGprint: " + json!.encode(body))
 }
 
-export const debugAdapterLogHandler: LogHandler = (color, message, source) => {
+export const debugAdapterLogger: LogHandler = (color, message, source) => {
   if (source) {
     logWithSource(color, message, source)
   } else {
@@ -82,17 +82,11 @@ export const logColors: readonly ColorArray[] = [
   [255, 204, 50],
   [255, 100, 100],
 ]
-const gameLogHandler: LogHandler = (level, message) => {
+export const gameLogger: LogHandler = (level, message) => {
   if (game) game.print(message, logColors[level - 1])
 }
 
-// todo: better register
-if (debugAdapterEnabled) {
-  addLogHandlers(debugAdapterLogHandler)
-}
-addLogHandlers(gameLogHandler)
-
-export const logListener: TestListener = (event, state) => {
+export const loggingListener: TestListener = (event, state) => {
   switch (event.type) {
     case "startTestRun": {
       doLog(LogLevel.Trace, "Test run started")

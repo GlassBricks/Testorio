@@ -35,6 +35,16 @@ function ticks_between_tests(ticks) end
 function part(func) end
 
 
+---@class TestorioConfig
+---@field show_progress_gui boolean | nil
+---@field default_timeout number | nil
+---@field default_ticks_between_tests number | nil
+---@field game_speed number | nil
+---@field verbose boolean | nil
+---@field before_test_run fun() | nil
+---@field after_test_run fun() | nil
+---
+
 ---@alias TestFn fun(): void
 ---@alias HookFn TestFn
 ---@alias OnTickFn (fun(tick: number): void) | (fun(tick: number): boolean)

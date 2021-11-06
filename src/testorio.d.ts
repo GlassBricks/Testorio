@@ -17,6 +17,20 @@ declare function ticks_between_tests(ticks: number): void
 declare function part(func: TestFn): void
 
 declare namespace Testorio {
+  interface Config {
+    show_progress_gui?: boolean
+
+    default_timeout?: number
+    default_ticks_between_tests?: number
+
+    game_speed?: number
+
+    verbose?: boolean
+
+    before_test_run?(): void
+    after_test_run?(): void
+  }
+
   type TestFn = () => void
   type HookFn = TestFn
   type OnTickFn = (tick: number) => void | boolean

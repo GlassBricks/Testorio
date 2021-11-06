@@ -4,18 +4,19 @@ import { getTestState, resetTestState, TestState } from "./state"
 import { Remote, TestStage } from "../constants"
 import { globals } from "./setup"
 import { addTestListeners } from "./testEvents"
-import { standardTestListeners } from "./standardEventListeners"
+import { builtinTestListeners } from "./builtinEventListeners"
 import { progressGuiListener, progressGuiLogHandler } from "./progressGui"
-import { addLogHandlers } from "./log"
+import { addLogHandlers, debugAdapterEnabled, debugAdapterLogger, gameLogger, LogLevel, setLogLevel } from "./log"
+import Config = Testorio.Config
 
-export function load(...files: string[]): void {
-  const testState = loadTests(...files)
+export function load(files: string[], config: Config): void {
+  const testState = loadTests(files, config)
   const testStage = testState.getTestStage()
 
   switch (testStage) {
     case TestStage.NotRun: {
       addOnEvent(defines.events.on_game_created_from_scenario, runTests)
-      remote.add_interface(Remote.RunTests, { runTests })
+      remote.add_interface(Remote.RunTests, { runTests, modName: () => script.mod_name })
       break
     }
     case TestStage.Running:
@@ -27,12 +28,15 @@ export function load(...files: string[]): void {
   }
 }
 
-function loadTests(...files: string[]): TestState {
+function loadTests(files: string[], config: Config): TestState {
   Object.assign(globalThis, globals)
-  resetTestState()
+  resetTestState(config)
   const state = getTestState()
   const modName = `__${script.mod_name}__`
 
+  if (config.default_ticks_between_tests) {
+    ticks_between_tests(config.default_ticks_between_tests)
+  }
   for (let file of files) {
     if (file.includes("/") && !file.startsWith(modName)) {
       file = `${modName}/${file}`
@@ -45,21 +49,43 @@ function loadTests(...files: string[]): TestState {
   return state
 }
 
+addTestListeners(...builtinTestListeners)
 function runTests() {
   let runner: TestRunner | undefined
   if (game) game.tick_paused = false
 
-  addTestListeners(...standardTestListeners, progressGuiListener)
-  addLogHandlers(progressGuiLogHandler)
+  const state = getTestState()
+  const { config } = state
+  if (config.show_progress_gui !== false) {
+    addTestListeners(progressGuiListener)
+    addLogHandlers(progressGuiLogHandler)
+  } else {
+    addLogHandlers(gameLogger)
+  }
+  if (debugAdapterEnabled) {
+    addLogHandlers(debugAdapterLogger)
+  } else {
+    addLogHandlers((_, message) => {
+      log(message)
+    })
+  }
+  if (config.verbose) {
+    setLogLevel(LogLevel.Trace)
+  } else if (debugAdapterEnabled) {
+    setLogLevel(LogLevel.Debug)
+  } else {
+    setLogLevel(LogLevel.Info)
+  }
 
+  config.before_test_run?.()
   const revertOnTick = addOnEvent(defines.events.on_tick, () => {
     if (!runner) {
-      runner = createRunner(getTestState())
+      runner = createRunner(state)
     }
     runner.tick()
     if (runner.isDone()) {
-      game.speed = 1
       revertOnTick()
+      config.after_test_run?.()
     }
   })
 }

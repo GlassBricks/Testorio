@@ -4,9 +4,11 @@ import { _raiseTestEvent, TestEvent } from "./testEvents"
 import { onTestStateChanged } from "./eventIds"
 import { createRunResult, RunResults } from "./result"
 import OnTickFn = Testorio.OnTickFn
+import Config = Testorio.Config
 
 /** @noSelf */
 export interface TestState {
+  config: Config
   rootBlock: DescribeBlock
   // setup
   currentBlock?: DescribeBlock
@@ -60,9 +62,10 @@ function setGlobalTestStage(stage: TestStage) {
   script.raise_event(onTestStateChanged, { stage })
 }
 
-export function resetTestState(): void {
+export function resetTestState(config: Config): void {
   const rootBlock = createRootDescribeBlock()
   _setTestState({
+    config,
     rootBlock,
     currentBlock: rootBlock,
     hasFocusedTests: false,

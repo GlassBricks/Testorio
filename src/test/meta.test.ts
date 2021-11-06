@@ -15,7 +15,7 @@ before_each(() => {
   actions = []
   events = []
   originalTestState = getTestState()
-  resetTestState()
+  resetTestState({})
   mockTestState = getTestState()
 
   let testStage = TestStage.NotRun

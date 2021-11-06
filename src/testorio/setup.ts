@@ -189,7 +189,6 @@ function createDescribeEach(mode: TestMode): DescribeCreatorBase {
     (name, func) => createDescribe(name, func, mode),
   )
 }
-const DEFAULT_TIMEOUT = 60 * 60
 const test = createTestEach(undefined) as TestCreator
 test.skip = createTestEach("skip")
 test.only = createTestEach("only")
@@ -205,6 +204,8 @@ test.todo = (name: string) => {
 const describe = createDescribeEach(undefined) as DescribeCreator
 describe.skip = createDescribeEach("skip")
 describe.only = createDescribeEach("only")
+
+const DEFAULT_TIMEOUT = 60 * 60
 
 type Globals =
   | `${"before" | "after"}_${"each" | "all"}`
@@ -244,10 +245,13 @@ export const globals: Pick<typeof globalThis, Globals> = {
     getCurrentTestRun().test.afterTest.push(func)
   },
 
-  async(timeout = DEFAULT_TIMEOUT) {
+  async(timeout) {
     const testRun = getCurrentTestRun()
     if (testRun.async) {
       error("test is already async")
+    }
+    if (!timeout) {
+      timeout = getTestState().config.default_timeout ?? DEFAULT_TIMEOUT
     }
     if (timeout < 1) {
       error("test timeout must be greater than 0")

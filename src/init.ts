@@ -1,7 +1,8 @@
 import { Remote, Settings } from "./constants"
+import Config = Testorio.Config
 
 let initCalled = false
-export = function init(...files: string[]): void {
+export = function init(files: string[], config: Config = {}): void {
   if (initCalled) {
     error("Duplicate call to test init")
   }
@@ -11,5 +12,5 @@ export = function init(...files: string[]): void {
     return
   }
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  ;(require("./testorio/load") as typeof import("./testorio/load")).load(...files)
+  ;(require("./testorio/load") as typeof import("./testorio/load")).load(files, config)
 }

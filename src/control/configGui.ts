@@ -93,7 +93,7 @@ function ModSelect(parent: LuaGuiElement) {
   mainFlow.add({
     type: "label",
     style: "caption_label",
-    caption: ["", [Locale.LoadTestsFor], ":"],
+    caption: [Locale.LoadTestsFor],
   })
 
   const selectFlow = mainFlow.add({
@@ -120,7 +120,7 @@ function ModSelect(parent: LuaGuiElement) {
     type: "sprite-button",
     style: "tool_button",
     sprite: "utility/refresh",
-    tooltip: ["gui.refresh"],
+    tooltip: [Locale.ReloadMods],
     tags: {
       modName,
       on_gui_click: Refresh,
@@ -223,7 +223,7 @@ const Refresh = guiAction("refresh", () => {
 
 const runTests = postLoadAction("runTests", () => {
   if (!remote.interfaces[Remote.RunTests]) {
-    game.print("Could not run tests as no tests loaded for mod " + getTestMod())
+    game.print(`No tests loaded for mod ${getTestMod()}; try reloading.`)
     return
   }
   destroyConfigGui()
@@ -247,14 +247,12 @@ function updateTestStageGui() {
   const mainFlow = configGui.testStageFlow
   mainFlow.clear()
 
-  const buttons = {
-    runTests: false,
-  }
+  let runTestsButtons = false
   let message: LocalisedString
   const stage = getGlobalTestStage()
   if (stage === TestStage.NotRun) {
     message = [Locale.TestsNotRun]
-    buttons.runTests = true
+    runTestsButtons = true
   } else if (stage === TestStage.Running || stage === TestStage.ToReload) {
     message = [Locale.TestsRunning]
   } else if (stage === TestStage.Completed) {
@@ -270,37 +268,41 @@ function updateTestStageGui() {
     caption: message,
   })
 
-  const bottomFlow = mainFlow.add({
-    type: "flow",
-    direction: "horizontal",
-  })
+  if (runTestsButtons) {
+    const buttonFlow = mainFlow.add({
+      type: "flow",
+      direction: "horizontal",
+    })
 
-  const modSelect = global.configGui!.modSelect
-  if (buttons.runTests) {
-    const buttons = [
-      bottomFlow.add({
-        type: "button",
-        style: "green_button",
-        caption: [Locale.ReloadAndRunTests],
-        tags: {
-          modName,
-          on_gui_click: ReloadAndStartTests,
-        },
-      }),
-      bottomFlow.add({
-        type: "button",
-        caption: [Locale.RunTests],
-        tags: {
-          modName,
-          on_gui_click: StartTests,
-        },
-      }),
-    ]
+    const refreshRunEnabled = remote.interfaces[Remote.TestsAvailableFor + getTestMod()] !== undefined
+    buttonFlow.add({
+      type: "button",
+      style: "green_button",
+      caption: [Locale.ReloadAndRunTests],
+      tags: {
+        modName,
+        on_gui_click: ReloadAndStartTests,
+      },
+      enabled: refreshRunEnabled,
+      tooltip: !refreshRunEnabled ? [Locale.ModNotRegisteredTests] : undefined,
+    })
+    const spacer = buttonFlow.add({
+      type: "empty-widget",
+    })
+    spacer.style.horizontally_stretchable = true
 
-    const enabled = typeof modSelect.items[modSelect.selected_index - 1] === "string"
-    for (const button of buttons) {
-      button.enabled = enabled
-    }
+    const runNowEnabled =
+      remote.interfaces[Remote.RunTests] !== undefined && remote.call(Remote.RunTests, "modName") === getTestMod()
+    buttonFlow.add({
+      type: "button",
+      caption: [Locale.RunNow],
+      tags: {
+        modName,
+        on_gui_click: StartTests,
+      },
+      enabled: runNowEnabled,
+      tooltip: !runNowEnabled ? [Locale.ModNotLoadedTests] : undefined,
+    })
   }
 
   if (stage !== TestStage.NotRun) {
@@ -313,6 +315,7 @@ function updateTestStageGui() {
 script.on_event(onTestStateChanged, updateTestStageGui)
 
 function createConfigGui(player: LuaPlayer): FrameGuiElement {
+  player.gui.screen[TestConfigName]?.destroy()
   global.configGui = { player } as typeof global["configGui"]
 
   const frame = player.gui.screen.add({
@@ -320,6 +323,7 @@ function createConfigGui(player: LuaPlayer): FrameGuiElement {
     name: TestConfigName,
     direction: "vertical",
   })
+  frame.auto_center = true
 
   TitleBar(frame, [Locale.TestConfigTitle])
   ModSelect(frame)
@@ -329,7 +333,6 @@ function createConfigGui(player: LuaPlayer): FrameGuiElement {
   })
   TestStageBar(frame)
 
-  frame.location = [100, 100]
   updateTestStageGui()
 
   return frame
@@ -346,11 +349,11 @@ function destroyConfigGui() {
 }
 const DestroyConfigGui = guiAction("destroyConfigGui", destroyConfigGui)
 
-const ToggleConfigGui = guiAction("toggleConfigGuiAction", (e) => {
+const ToggleConfigGui = guiAction("toggleConfigGui", (e) => {
   if (game.is_multiplayer()) {
     destroyConfigGui()
     game.players[e.player_index].print("Tests cannot be run in multiplayer")
-  } else if (global.configGui) {
+  } else if (configGuiValid()) {
     destroyConfigGui()
   } else {
     createConfigGui(game.players[e.player_index])
@@ -390,7 +393,7 @@ function createModButtonForAllPlayers() {
 }
 
 script.on_init(createModButtonForAllPlayers)
-// script.on_configuration_changed(createModButtonForAllPlayers)
+script.on_configuration_changed(refreshConfigGui)
 
 script.on_event([defines.events.on_player_removed, defines.events.on_player_left_game], (e) => {
   if (global.configGui && global.configGui.player.valid && global.configGui.player.index === e.player_index) {
