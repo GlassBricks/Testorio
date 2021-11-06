@@ -1,6 +1,5 @@
 import { DescribeBlock, Test } from "./tests"
-import { loggingHandler, setupHandler } from "./eventHandlers"
-import { onTestEvent } from "./eventIds"
+import { TestState } from "./state"
 
 interface BaseTestEvent {
   type: string
@@ -39,6 +38,9 @@ export interface ExitDescribeBlock extends BaseTestEvent {
 export interface FinishTestRun extends BaseTestEvent {
   type: "finishTestRun"
 }
+export interface LoadError extends BaseTestEvent {
+  type: "loadError"
+}
 
 export type TestEvent =
   | StartTestRun
@@ -50,22 +52,17 @@ export type TestEvent =
   | TestTodo
   | ExitDescribeBlock
   | FinishTestRun
+  | LoadError
 
-export type TestEventHandler = (type: TestEvent) => void
+export type TestListener = (event: TestEvent, state: TestState) => void
 
-const _onEventHandlers: TestEventHandler[] = []
-export function addTestEventHandler(handler: TestEventHandler): void {
-  _onEventHandlers.push(handler)
+const testListeners: TestListener[] = []
+export function addTestListeners(...handler: TestListener[]): void {
+  testListeners.push(...handler)
 }
 
-export function _raiseTestEvent(event: TestEvent) {
-  for (const handler of _onEventHandlers) {
-    handler(event)
+export function _raiseTestEvent(state: TestState, event: TestEvent) {
+  for (const handler of testListeners) {
+    handler(event, state)
   }
 }
-
-addTestEventHandler(setupHandler)
-addTestEventHandler(loggingHandler)
-addTestEventHandler((event) => {
-  script.raise_event(onTestEvent, event)
-})

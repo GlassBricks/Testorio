@@ -15,8 +15,8 @@ data.extend([
     stack_size: 1,
     stackable: false,
     draw_label_for_cursor_render: true,
-    selection_color: Colors.green,
-    alt_selection_color: Colors.red,
+    selection_color: Colors.Green,
+    alt_selection_color: Colors.Red,
     selection_mode: ["any-entity"],
     alt_selection_mode: ["any-entity"],
 

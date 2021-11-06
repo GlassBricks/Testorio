@@ -2,6 +2,7 @@ import { createRootDescribeBlock, DescribeBlock, Test } from "./tests"
 import { Settings, TestStage } from "../constants"
 import { _raiseTestEvent, TestEvent } from "./testEvents"
 import { onTestStateChanged } from "./eventIds"
+import { createRunResult, RunResults } from "./result"
 import OnTickFn = Testorio.OnTickFn
 
 /** @noSelf */
@@ -15,12 +16,14 @@ export interface TestState {
   currentTestRun?: TestRun
   suppressedErrors: string[]
 
+  results: RunResults
+
   // state that is persistent across game reload
   // here as a function so is mock-able in meta test
   getTestStage(): TestStage
   setTestStage(state: TestStage): void
 
-  raiseTestEvent(event: TestEvent): void
+  raiseTestEvent(this: this, event: TestEvent): void
 }
 
 export interface TestRun {
@@ -38,6 +41,7 @@ declare global {
 }
 
 // stored in settings so can be accessed even when global table is not yet loaded
+// TODO: monitor usages for globalness
 export function getTestState(): TestState {
   return TESTORIO_TEST_STATE ?? error("Tests are not configured to be run")
 }
@@ -65,7 +69,10 @@ export function resetTestState(): void {
     suppressedErrors: [],
     getTestStage: getGlobalTestStage,
     setTestStage: setGlobalTestStage,
-    raiseTestEvent: _raiseTestEvent,
+    raiseTestEvent(event) {
+      _raiseTestEvent(this, event)
+    },
+    results: createRunResult(),
   })
 }
 

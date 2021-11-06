@@ -16,15 +16,23 @@ export const enum Prototypes {
 
 export const enum Locale {
   Tests = "testorio.tests",
-  TestConfig = "testorio.test-configuration",
+  TestConfigTitle = "testorio.test-config-title",
   LoadTestsFor = "testorio.load-tests-for",
   NoMod = "testorio.no-mod",
   OtherMod = "testorio.other-mod",
   TestsNotRun = "testorio.tests-not-run",
   TestsRunning = "testorio.tests-running",
   TestsCompleted = "testorio.tests-completed",
+  LoadError = "testorio.load-error",
   RunTests = "testorio.run-tests",
-  TestConsole = "testorio.test-console",
+  ReloadAndRunTests = "testorio.reload-and-run-tests",
+
+  TestProgressGuiTitle = "testorio.test-progress-gui-title",
+  RunningTest = "testorio.running-test",
+  Passed = "testorio.n-passed",
+  Failed = "testorio.n-failed",
+  Skipped = "testorio.n-skipped",
+  Todo = "testorio.n-todo",
 }
 
 const path = "__testorio__/graphics/"
@@ -36,10 +44,10 @@ export const Graphics = {
 } as const
 
 export namespace Colors {
-  export const red: Color = { r: 255, g: 40, b: 40 }
-  export const green: Color = { r: 155, g: 255, b: 122 }
-  export const yellow: Color = { r: 255, g: 204, b: 20 }
-  export const purple: Color = { r: 240, g: 20, b: 220 }
+  export const Red: Color = { r: 255, g: 40, b: 40 }
+  export const Green: Color = { r: 155, g: 255, b: 122 }
+  export const Yellow: Color = { r: 255, g: 204, b: 20 }
+  export const Purple: Color = { r: 240, g: 20, b: 220 }
 }
 
 // test state that is persistent across game reload. Stored in global.settings

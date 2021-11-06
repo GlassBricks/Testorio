@@ -6,7 +6,7 @@ import { onTestStateChanged } from "../testorio/eventIds"
 import { GuiAction, guiAction } from "./guiAction"
 import { postLoadAction } from "./load"
 
-const TestConfig = "testorio:test-config"
+const TestConfigName = "testorio:test-config"
 const ModSelectWidth = 150
 const modName = script.mod_name
 
@@ -226,10 +226,17 @@ const runTests = postLoadAction("runTests", () => {
     game.print("Could not run tests as no tests loaded for mod " + getTestMod())
     return
   }
+  destroyConfigGui()
   remote.call(Remote.RunTests, "runTests")
 })
-const StartTests = guiAction("startTests", () => {
+
+const ReloadAndStartTests = guiAction("reloadAndStartTests", () => {
   game.reload_mods()
+  game.auto_save("beforeTest-" + getTestMod())
+  runTests()
+})
+
+const StartTests = guiAction("startTests", () => {
   game.auto_save("beforeTest-" + getTestMod())
   runTests()
 })
@@ -250,8 +257,10 @@ function updateTestStageGui() {
     buttons.runTests = true
   } else if (stage === TestStage.Running || stage === TestStage.ToReload) {
     message = [Locale.TestsRunning]
-  } else if (stage === TestStage.Completed || stage === TestStage.LoadError) {
+  } else if (stage === TestStage.Completed) {
     message = [Locale.TestsCompleted]
+  } else if (stage === TestStage.LoadError) {
+    message = [Locale.LoadError]
   } else {
     assertNever(stage)
   }
@@ -268,17 +277,30 @@ function updateTestStageGui() {
 
   const modSelect = global.configGui!.modSelect
   if (buttons.runTests) {
-    const button = bottomFlow.add({
-      type: "button",
-      style: "green_button",
-      caption: [Locale.RunTests],
-      tags: {
-        modName,
-        on_gui_click: StartTests,
-      },
-    })
+    const buttons = [
+      bottomFlow.add({
+        type: "button",
+        style: "green_button",
+        caption: [Locale.ReloadAndRunTests],
+        tags: {
+          modName,
+          on_gui_click: ReloadAndStartTests,
+        },
+      }),
+      bottomFlow.add({
+        type: "button",
+        caption: [Locale.RunTests],
+        tags: {
+          modName,
+          on_gui_click: StartTests,
+        },
+      }),
+    ]
 
-    button.enabled = typeof modSelect.items[modSelect.selected_index - 1] === "string"
+    const enabled = typeof modSelect.items[modSelect.selected_index - 1] === "string"
+    for (const button of buttons) {
+      button.enabled = enabled
+    }
   }
 
   if (stage !== TestStage.NotRun) {
@@ -295,11 +317,11 @@ function createConfigGui(player: LuaPlayer): FrameGuiElement {
 
   const frame = player.gui.screen.add({
     type: "frame",
-    name: TestConfig,
+    name: TestConfigName,
     direction: "vertical",
   })
 
-  TitleBar(frame, [Locale.TestConfig])
+  TitleBar(frame, [Locale.TestConfigTitle])
   ModSelect(frame)
   frame.add({
     type: "line",
@@ -317,7 +339,7 @@ function destroyConfigGui() {
   if (!configGuiValid()) return
   const configGui = global.configGui!
   global.configGui = undefined
-  const element = configGui.player.gui.screen[TestConfig]
+  const element = configGui.player.gui.screen[TestConfigName]
   if (element && element.valid) {
     element.destroy()
   }
@@ -337,10 +359,10 @@ const ToggleConfigGui = guiAction("toggleConfigGuiAction", (e) => {
 
 function createModButton(player: LuaPlayer) {
   const flow = modGui.get_button_flow(player)
-  flow[TestConfig]?.destroy()
+  flow[TestConfigName]?.destroy()
   modGui.get_button_flow(player).add({
     type: "sprite-button",
-    name: TestConfig,
+    name: TestConfigName,
     style: modGui.button_style,
     sprite: Prototypes.TestTubeSprite,
     tooltip: [Locale.Tests],
@@ -370,13 +392,13 @@ function createModButtonForAllPlayers() {
 script.on_init(createModButtonForAllPlayers)
 // script.on_configuration_changed(createModButtonForAllPlayers)
 
-script.on_event(defines.events.on_player_removed, (e) => {
+script.on_event([defines.events.on_player_removed, defines.events.on_player_left_game], (e) => {
   if (global.configGui && global.configGui.player.valid && global.configGui.player.index === e.player_index) {
     destroyConfigGui()
   }
 })
 
-script.on_event(defines.events.on_player_created, (e) => {
+script.on_event([defines.events.on_player_created, defines.events.on_player_joined_game], (e) => {
   createModButton(game.players[e.player_index])
   if (game.is_multiplayer() || game.connected_players.length > 1) {
     destroyConfigGui()

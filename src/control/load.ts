@@ -1,10 +1,8 @@
 // a hacky way to send an event that will only fire at a later time --
-//
-// after game.reload_mods(), and
-// won't be present in game.auto_save() fired on the same tick
+// after game.reload_mods(), and won't be present in game.auto_save() fired on the same tick
 
-const lsId = "testorio.run-tests-fake-translation"
-function somehowRequestTranslation(data: string) {
+const lsId = "testorio.fake-translation"
+function fireFakeTranslation(data: string) {
   const ls: LocalisedString = [lsId, data]
   for (const player of game.connected_players) {
     if (player.request_translation(ls)) return
@@ -19,7 +17,7 @@ export function postLoadAction(name: string, func: () => void): () => void {
   if (name in loadEvents) error(`duplicate load event name ${name}`)
   loadEvents[name] = func
   return () => {
-    somehowRequestTranslation(name)
+    fireFakeTranslation(name)
   }
 }
 

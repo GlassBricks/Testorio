@@ -1,23 +1,20 @@
-import * as Log from "../testorio/Log"
-import { LogLevel } from "../testorio/Log"
 import { createRunner } from "../testorio/runner"
 import { _setTestState, getTestState, resetTestState, TestState } from "../testorio/state"
 import { DescribeBlock, Test } from "../testorio/tests"
 import { TestStage } from "../constants"
 import { TestEvent } from "../testorio/testEvents"
+import { resultCollector } from "../testorio/result"
 
 // simulated test environment
 let actions: unknown[] = []
 let events: TestEvent[] = []
 let mockTestState: TestState
 let originalTestState: TestState
-let oldLogLevel: LogLevel
 
 beforeEach(() => {
   actions = []
   events = []
   originalTestState = getTestState()
-  oldLogLevel = Log.getLevel()
   resetTestState()
   mockTestState = getTestState()
 
@@ -28,14 +25,12 @@ beforeEach(() => {
   }
   mockTestState.raiseTestEvent = (event) => {
     events.push(event)
+    if (event.type !== "finishTestRun" && event.type !== "loadError") resultCollector(event, mockTestState)
   }
-
-  Log.setLevel(LogLevel.None)
 })
 
 afterEach(() => {
   _setTestState(originalTestState)
-  Log.setLevel(oldLogLevel)
   const testStage = mockTestState.getTestStage()
   if (mockTestState.rootBlock.children.length > 0 && testStage === TestStage.NotRun) {
     error("Simulated test defined but not run")
@@ -246,12 +241,12 @@ test("passing test", () => {
 
   const result = runTestSync()
   assert.are_same([], result.errors)
-  assert.are_equal("passed", result.result)
+  assert.are_equal("passed", mockTestState.results.tests[0].result)
 })
 
 describe("failing tests", () => {
   afterEach(() => {
-    assert.are_equal("failed", runTestSync().result)
+    assert.are_equal("failed", mockTestState.results.tests[0].result)
   })
 
   const failMessage = "FAIL: 238472"
@@ -302,8 +297,8 @@ describe("failing tests", () => {
       error("first error")
     })
     const theTest = runTestSync()
-    assert.are_equal(2, theTest.errors.length)
-    assert.matches(failMessage, theTest.errors[1], undefined, true)
+    assert.are_equal(1, theTest.errors.length)
+    assert.matches(failMessage, mockTestState.suppressedErrors[0], undefined, true)
   })
 
   test("afterTest", () => {
@@ -341,7 +336,7 @@ describe("skipped tests", () => {
       actions.push("run")
     })
     const first = runTestSync()
-    assert.equal("skipped", first.result)
+    assert.are_equal("skipped", mockTestState.results.tests[0].result)
     assert.is_same([], first.errors)
     assert.same([], actions, "no actions should be taken on skipped test")
   })
@@ -354,7 +349,7 @@ describe("skipped tests", () => {
       })
     })
     const first = runTestSync<DescribeBlock>().children[0] as Test
-    assert.equal("skipped", first.result)
+    assert.are_equal("skipped", mockTestState.results.tests[0].result)
     assert.is_same([], first.errors)
     assert.same([], actions, "no actions should be taken on skipped test")
   })
@@ -363,7 +358,7 @@ describe("skipped tests", () => {
     setupActionHooks()
     test.todo("skipped test")
     const first = runTestSync()
-    assert.equal("todo", first.result)
+    assert.are_equal("todo", mockTestState.results.tests[0].result)
     assert.is_same([], first.errors)
   })
 

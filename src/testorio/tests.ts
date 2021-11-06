@@ -1,3 +1,4 @@
+import { assertNever } from "../util"
 import HookFn = Testorio.HookFn
 import TestFn = Testorio.TestFn
 
@@ -33,7 +34,6 @@ export interface Test {
   readonly ticksBefore: number
 
   readonly errors: string[]
-  result?: "passed" | "failed" | "skipped" | "todo"
 }
 
 export function addTest(parent: DescribeBlock, name: string, source: Source, func: TestFn, mode: TestMode): Test {
@@ -115,4 +115,22 @@ export function createRootDescribeBlock(): DescribeBlock {
     mode: undefined,
     ticksBetweenTests: 0,
   }
+}
+
+export function isSkippedTest(test: Test, hasFocusedTests: boolean) {
+  return test.mode === "skip" || test.mode === "todo" || (hasFocusedTests && test.mode !== "only")
+}
+
+export function countRunningTests(block: DescribeBlock, hasFocusedTests: boolean): number {
+  if (block.mode === "skip") return 0
+  let result = 0
+  for (const child of block.children) {
+    if (child.type === "describeBlock") result += countRunningTests(child, hasFocusedTests)
+    else if (child.type === "test") {
+      if (!isSkippedTest(child, hasFocusedTests)) result++
+    } else {
+      assertNever(child)
+    }
+  }
+  return result
 }

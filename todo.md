@@ -1,1 +1,2 @@
-- Redo include/skip logic
+- add timeout
+- Basic test config

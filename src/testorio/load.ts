@@ -3,6 +3,10 @@ import { createRunner, TestRunner } from "./runner"
 import { getTestState, resetTestState, TestState } from "./state"
 import { Remote, TestStage } from "../constants"
 import { globals } from "./setup"
+import { addTestListeners } from "./testEvents"
+import { standardTestListeners } from "./standardEventListeners"
+import { progressGuiListener, progressGuiLogHandler } from "./progressGui"
+import { addLogHandlers } from "./log"
 
 export function load(...files: string[]): void {
   const testState = loadTests(...files)
@@ -26,6 +30,7 @@ export function load(...files: string[]): void {
 function loadTests(...files: string[]): TestState {
   Object.assign(globalThis, globals)
   resetTestState()
+  const state = getTestState()
   const modName = `__${script.mod_name}__`
 
   for (let file of files) {
@@ -36,7 +41,6 @@ function loadTests(...files: string[]): TestState {
       require(file)
     })
   }
-  const state = getTestState()
   state.currentBlock = undefined
   return state
 }
@@ -44,13 +48,16 @@ function loadTests(...files: string[]): TestState {
 function runTests() {
   let runner: TestRunner | undefined
   if (game) game.tick_paused = false
+
+  addTestListeners(...standardTestListeners, progressGuiListener)
+  addLogHandlers(progressGuiLogHandler)
+
   const revertOnTick = addOnEvent(defines.events.on_tick, () => {
     if (!runner) {
       runner = createRunner(getTestState())
     }
     runner.tick()
     if (runner.isDone()) {
-      runner.reportResult()
       game.speed = 1
       revertOnTick()
     }

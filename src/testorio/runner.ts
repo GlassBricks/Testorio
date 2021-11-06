@@ -1,9 +1,8 @@
 import { resumeAfterReload } from "./resume"
 import { makeLoadError, TestRun, TestState } from "./state"
-import { DescribeBlock, formatSource, Hook, Test } from "./tests"
+import { DescribeBlock, formatSource, Hook, isSkippedTest, Test } from "./tests"
 import { assertNever } from "../util"
 import { Remote, TestStage } from "../constants"
-import reportRunResult from "./report"
 import TestFn = Testorio.TestFn
 import OnTickFn = Testorio.OnTickFn
 
@@ -47,6 +46,10 @@ interface FinishTestRun {
   type: "finishTestRun"
 }
 
+interface ReportLoadError {
+  type: "reportLoadError"
+}
+
 type Task =
   | StartTestRun
   | EnterDescribe
@@ -56,11 +59,10 @@ type Task =
   | LeaveTest
   | LeaveDescribe
   | FinishTestRun
+  | ReportLoadError
 
 export interface TestRunner {
   tick(): void
-
-  reportResult(): void
 
   isDone(): boolean
 }
@@ -102,7 +104,7 @@ function onLoad(testState: TestState):
         ? { result: LoadResult.FirstLoad }
         : error("Test runner trying to be created when tests not loaded")
     case TestStage.ToReload: {
-      const { test, partIndex } = resumeAfterReload(testState.rootBlock)
+      const { test, partIndex } = resumeAfterReload(testState)
       return partIndex
         ? {
             result: LoadResult.ResumeAfterReload,
@@ -126,12 +128,10 @@ function onLoad(testState: TestState):
 }
 
 export function createRunner(state: TestState): TestRunner {
-  function isSkippedTest(test: Test) {
-    return test.mode === "skip" || test.mode === "todo" || (state.hasFocusedTests && test.mode !== "only")
-  }
-
   function hasAnyTest(block: DescribeBlock): boolean {
-    return block.children.some((child) => (child.type === "test" ? !isSkippedTest(child) : hasAnyTest(child)))
+    return block.children.some((child) =>
+      child.type === "test" ? !isSkippedTest(child, state.hasFocusedTests) : hasAnyTest(child),
+    )
   }
 
   function addErrorToAllTests(block: DescribeBlock, error: string): void {
@@ -173,6 +173,13 @@ export function createRunner(state: TestState): TestRunner {
   function finishTestRun(): undefined {
     state.raiseTestEvent({
       type: "finishTestRun",
+    })
+    return
+  }
+
+  function reportLoadError(): undefined {
+    state.raiseTestEvent({
+      type: "loadError",
     })
     return
   }
@@ -259,7 +266,7 @@ export function createRunner(state: TestState): TestRunner {
       test,
     })
 
-    if (!isSkippedTest(test)) {
+    if (!isSkippedTest(test, state.hasFocusedTests)) {
       function collectHooks(block: DescribeBlock, hooks: Hook[]) {
         if (block.parent) collectHooks(block.parent, hooks)
         hooks.push(...block.hooks.filter((x) => x.type === "beforeEach"))
@@ -286,7 +293,7 @@ export function createRunner(state: TestState): TestRunner {
     const { test, partIndex } = testRun
     const part = test.parts[partIndex]
     state.currentTestRun = testRun
-    if (!isSkippedTest(test)) {
+    if (!isSkippedTest(test, state.hasFocusedTests)) {
       if (test.errors.length === 0) {
         const [success, error] = xpcall(part.func, getErrorWithStacktrace)
         if (!success) {
@@ -320,7 +327,7 @@ export function createRunner(state: TestState): TestRunner {
 
   function leaveTest({ testRun }: LeaveTest): Task {
     const { test } = testRun
-    const isSkipped = isSkippedTest(test)
+    const isSkipped = isSkippedTest(test, state.hasFocusedTests)
 
     if (!isSkipped) {
       function collectHooks(block: DescribeBlock, hooks: TestFn[]) {
@@ -341,26 +348,22 @@ export function createRunner(state: TestState): TestRunner {
     state.currentTestRun = undefined
     if (isSkipped) {
       if (test.mode === "todo") {
-        test.result = "todo"
         state.raiseTestEvent({
           type: "testTodo",
           test,
         })
       } else {
-        test.result = "skipped"
         state.raiseTestEvent({
           type: "testSkipped",
           test,
         })
       }
     } else if (test.errors.length > 0) {
-      test.result = "failed"
       state.raiseTestEvent({
         type: "testFailed",
         test,
       })
     } else {
-      test.result = "passed"
       state.raiseTestEvent({
         type: "testPassed",
         test,
@@ -377,7 +380,7 @@ export function createRunner(state: TestState): TestRunner {
       for (const hook of hooks) {
         const [success, message] = xpcall(hook.func, getErrorWithStacktrace)
         if (!success) {
-          addErrorToAllTests(block, `Error running ${hook.type}: ${message}`)
+          state.suppressedErrors.push(`Error running ${hook.type}: ${message}`)
         }
       }
     }
@@ -410,6 +413,8 @@ export function createRunner(state: TestState): TestRunner {
         return leaveDescribe(task)
       case "finishTestRun":
         return finishTestRun()
+      case "reportLoadError":
+        return reportLoadError()
       default:
         assertNever(task)
     }
@@ -417,6 +422,13 @@ export function createRunner(state: TestState): TestRunner {
 
   let ticksToWait = 0
   let nextTask: Task | undefined
+
+  function createLoadError(message: string) {
+    makeLoadError(state, message)
+    nextTask = {
+      type: "reportLoadError",
+    }
+  }
 
   const resume = onLoad(state)
   if (resume.result === LoadResult.FirstLoad) {
@@ -431,13 +443,10 @@ export function createRunner(state: TestState): TestRunner {
     }
     state.setTestStage(TestStage.Running)
   } else if (resume.result === LoadResult.ConfigChangedAfterReload) {
-    makeLoadError(state, `Test configuration changed after reloading: ${resume.test.path}. Aborting test run.`)
+    createLoadError(`Tests changed after reloading: ${resume.test.path}. Aborting test run.`)
   } else if (resume.result === LoadResult.AlreadyRunning) {
-    makeLoadError(
-      state,
-      "World was unexpectedly reloaded while tests were running. " +
-        "This will cause tests to break. " +
-        "Reload/re-create the test scenario to restart test runs",
+    createLoadError(
+      `Save was unexpectedly reloaded while tests were running. This will cause tests to break. Aborting test run`,
     )
   } else {
     assertNever(resume)
@@ -452,7 +461,7 @@ export function createRunner(state: TestState): TestRunner {
       while (nextTask) {
         nextTask = runTask(nextTask)
         if (!nextTask) {
-          state.setTestStage(TestStage.Completed)
+          if (state.getTestStage() !== "LoadError") state.setTestStage(TestStage.Completed)
           return
         }
         const waitTicks = (nextTask as WaitForTestPart).waitTicks
@@ -461,9 +470,6 @@ export function createRunner(state: TestState): TestRunner {
           return
         }
       }
-    },
-    reportResult() {
-      reportRunResult(state)
     },
     isDone() {
       return nextTask === undefined

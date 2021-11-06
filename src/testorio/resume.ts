@@ -1,10 +1,12 @@
 import type { TestState } from "./state"
 import { DescribeBlock, Test } from "./tests"
 import { TestStage } from "../constants"
+import { RunResults } from "./result"
 
 declare const global: {
   __testResume?: {
-    oldConfiguration: DescribeBlock
+    rootBlock: DescribeBlock
+    results: RunResults
     test: Test
     partIndex: number
   }
@@ -13,7 +15,8 @@ declare const global: {
 export function prepareReload(testState: TestState): void {
   const currentRun = testState.currentTestRun!
   global.__testResume = {
-    oldConfiguration: testState.rootBlock,
+    rootBlock: testState.rootBlock,
+    results: testState.results,
     test: currentRun.test,
     partIndex: currentRun.partIndex + 1,
   }
@@ -21,7 +24,6 @@ export function prepareReload(testState: TestState): void {
 }
 
 const mutableTestState: Partial<Record<keyof Test, true>> = {
-  result: true,
   errors: true,
 }
 
@@ -63,15 +65,16 @@ function compareAndFindTest(current: unknown, stored: unknown, storedTest: Test)
   return undefined
 }
 
-export function resumeAfterReload(loadedRootBlock: DescribeBlock): {
+export function resumeAfterReload(state: TestState): {
   test: Test
   partIndex: number | undefined
 } {
   const testResume = global.__testResume ?? error("__testResume not set while attempting to resume")
 
   global.__testResume = undefined
-  const stored = testResume.oldConfiguration
-  const test = compareAndFindTest(loadedRootBlock, stored, testResume.test)
+  const stored = testResume.rootBlock
+  const test = compareAndFindTest(state.rootBlock, stored, testResume.test)
+  state.results = testResume.results
   return test
     ? {
         test,

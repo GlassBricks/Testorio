@@ -1,6 +1,7 @@
 import { addDescribeBlock, addTest, DescribeBlock, HookType, Source, Test, TestMode } from "./tests"
 import { prepareReload } from "./resume"
 import { getCurrentBlock, getCurrentTestRun, getTestState } from "./state"
+import { doLog, LogColor, LogLevel } from "./log"
 import HookFn = Testorio.HookFn
 import TestFn = Testorio.TestFn
 import TestBuilder = Testorio.TestBuilder
@@ -57,9 +58,10 @@ function addNext(test: Test, func: TestFn, funcForSource: Function = func) {
 function createTestBuilder<F extends () => void>(addPart: (func: F) => void) {
   function reloadFunc(reload: () => void, what: string) {
     return (func: F) => {
+      const source = getCallerSource()
       addPart((() => {
         async(1)
-        game.print(`${getCurrentTestRun().test.path}:\nReloading ${what} for test`)
+        doLog(LogLevel.Info, `${getCurrentTestRun().test.path}: reloading ${what}`, LogColor.Yellow, source)
         on_tick(() => {
           prepareReload(getTestState())
           reload()
