@@ -16,7 +16,7 @@ export function disable_all(surface: LuaSurface, area: BoundingBox | string): vo
   }
 }
 
-export function testArea(
+export function test_area(
   surfaceId: uint | string,
   areaId: number | string | BoundingBox,
 ): LuaMultiReturn<[surface: LuaSurface, area: BoundingBox]> {
@@ -31,7 +31,7 @@ export function testArea(
     error(`No area with name/id ${areaId} on surface "${surface.name}"`)
   }
   enable_all(surface, area)
-  afterTest(() => {
+  after_test(() => {
     disable_all(surface, area)
   })
   return $multi(surface, area)

@@ -11,7 +11,7 @@ let events: TestEvent[] = []
 let mockTestState: TestState
 let originalTestState: TestState
 
-beforeEach(() => {
+before_each(() => {
   actions = []
   events = []
   originalTestState = getTestState()
@@ -29,7 +29,7 @@ beforeEach(() => {
   }
 })
 
-afterEach(() => {
+after_each(() => {
   _setTestState(originalTestState)
   const testStage = mockTestState.getTestStage()
   if (mockTestState.rootBlock.children.length > 0 && testStage === TestStage.NotRun) {
@@ -150,10 +150,10 @@ describe("setup", () => {
 
 describe("hooks", () => {
   test("beforeAll, afterAll", () => {
-    beforeAll(() => {
+    before_all(() => {
       actions.push("beforeAll")
     })
-    afterAll(() => {
+    after_all(() => {
       actions.push("afterAll")
     })
     test("test", () => {
@@ -164,10 +164,10 @@ describe("hooks", () => {
   })
 
   test("beforeEach, afterEach", () => {
-    beforeEach(() => {
+    before_each(() => {
       actions.push("beforeEach")
     })
-    afterEach(() => {
+    after_each(() => {
       actions.push("afterEach")
     })
     test("test", () => {
@@ -180,7 +180,7 @@ describe("hooks", () => {
   test("finally", () => {
     test("", () => {
       actions.push("test")
-      afterTest(() => {
+      after_test(() => {
         actions.push("afterTest")
       })
     })
@@ -189,21 +189,21 @@ describe("hooks", () => {
   })
 
   test("nested", () => {
-    beforeAll(() => actions.push("1 - beforeAll"))
-    afterAll(() => actions.push("1 - afterAll"))
-    beforeEach(() => actions.push("1 - beforeEach"))
-    afterEach(() => actions.push("1 - afterEach"))
+    before_all(() => actions.push("1 - beforeAll"))
+    after_all(() => actions.push("1 - afterAll"))
+    before_each(() => actions.push("1 - beforeEach"))
+    after_each(() => actions.push("1 - afterEach"))
     test("test1", () => {
       actions.push("1 - test")
-      afterTest(() => {
+      after_test(() => {
         actions.push("1 - afterTest")
       })
     })
     describe("Scoped / Nested scope", () => {
-      beforeAll(() => actions.push("2 - beforeAll"))
-      afterAll(() => actions.push("2 - afterAll"))
-      beforeEach(() => actions.push("2 - beforeEach"))
-      afterEach(() => actions.push("2 - afterEach"))
+      before_all(() => actions.push("2 - beforeAll"))
+      after_all(() => actions.push("2 - afterAll"))
+      before_each(() => actions.push("2 - beforeEach"))
+      after_each(() => actions.push("2 - afterEach"))
       test("test2", () => actions.push("2 - test"))
     })
     runTestSync()
@@ -233,10 +233,10 @@ test("passing test", () => {
     assert.are_equal(1, 1)
   }
 
-  beforeAll(foo)
-  beforeEach(foo)
-  afterAll(foo)
-  afterEach(foo)
+  before_all(foo)
+  before_each(foo)
+  after_all(foo)
+  after_each(foo)
   test("pass", foo)
 
   const result = runTestSync()
@@ -245,7 +245,7 @@ test("passing test", () => {
 })
 
 describe("failing tests", () => {
-  afterEach(() => {
+  after_each(() => {
     assert.are_equal("failed", mockTestState.results.tests[0].result)
   })
 
@@ -263,7 +263,7 @@ describe("failing tests", () => {
   })
 
   test("beforeEach", () => {
-    beforeEach(fail)
+    before_each(fail)
     test("test", () => {
       error("Should not have second error")
     })
@@ -272,7 +272,7 @@ describe("failing tests", () => {
     assert.matches(failMessage, theTest.errors[0], undefined, true)
   })
   test("beforeAll", () => {
-    beforeAll(fail)
+    before_all(fail)
     test("test", () => {
       error("Should not have second error")
     })
@@ -282,7 +282,7 @@ describe("failing tests", () => {
   })
 
   test("afterEach", () => {
-    afterEach(fail)
+    after_each(fail)
     test("test", () => {
       error("first error")
     })
@@ -292,7 +292,7 @@ describe("failing tests", () => {
   })
 
   test("afterAll", () => {
-    afterAll(fail)
+    after_all(fail)
     test("test", () => {
       error("first error")
     })
@@ -303,7 +303,7 @@ describe("failing tests", () => {
 
   test("afterTest", () => {
     test("test", () => {
-      afterTest(fail)
+      after_test(fail)
       error("first error")
     })
     const theTest = runTestSync()
@@ -324,10 +324,10 @@ describe("failing tests", () => {
 
 describe("skipped tests", () => {
   function setupActionHooks() {
-    beforeAll(() => actions.push("beforeAll"))
-    afterAll(() => actions.push("afterAll"))
-    beforeEach(() => actions.push("beforeEach"))
-    afterEach(() => actions.push("afterEach"))
+    before_all(() => actions.push("beforeAll"))
+    after_all(() => actions.push("afterAll"))
+    before_each(() => actions.push("beforeEach"))
+    after_each(() => actions.push("afterEach"))
   }
 
   test("skipped test", () => {

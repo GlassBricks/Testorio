@@ -5,15 +5,15 @@ it = nil
 ---@type DescribeCreator
 describe = nil
 ---@type Lifecycle
-beforeAll = nil
+before_all = nil
 ---@type Lifecycle
-afterAll = nil
+after_all = nil
 ---@type Lifecycle
-beforeEach = nil
+before_each = nil
 ---@type Lifecycle
-afterEach = nil
+after_each = nil
 ---@type Lifecycle
-afterTest = nil
+after_test = nil
 
 ---@param timeout number|nil
 ---@overload fun()
@@ -22,14 +22,14 @@ function async(timeout) end
 function done() end
 
 ---@param func OnTickFn
-function onTick(func) end
+function on_tick(func) end
 
 ---@param ticks number
 ---@param func TestFn
-function afterTicks(ticks, func) end
+function after_ticks(ticks, func) end
 
 ---@param ticks number
-function ticksBetweenTests(ticks) end
+function ticks_between_tests(ticks) end
 
 ---@param func TestFn
 function part(func) end

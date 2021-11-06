@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 import { addDescribeBlock, addTest, DescribeBlock, HookType, Source, Test, TestMode } from "./tests"
 import { prepareReload } from "./resume"
 import { getCurrentBlock, getCurrentTestRun, getTestState } from "./state"
@@ -188,7 +190,7 @@ function createDescribeEach(mode: TestMode): DescribeCreatorBase {
   )
 }
 const DEFAULT_TIMEOUT = 60 * 60
-export const test = createTestEach(undefined) as TestCreator
+const test = createTestEach(undefined) as TestCreator
 test.skip = createTestEach("skip")
 test.only = createTestEach("only")
 test.todo = (name: string) => {
@@ -200,12 +202,13 @@ test.todo = (name: string) => {
     "todo",
   )
 }
-export const it = test
-export const describe = createDescribeEach(undefined) as DescribeCreator
+const describe = createDescribeEach(undefined) as DescribeCreator
 describe.skip = createDescribeEach("skip")
 describe.only = createDescribeEach("only")
+
 type Globals =
-  | HookType
+  | `${"before" | "after"}_${"each" | "all"}`
+  | "after_test"
   | "async"
   | "done"
   | "on_tick"
@@ -215,31 +218,29 @@ type Globals =
   | "it"
   | "describe"
   | "part"
-type GlobalsObj = {
-  [P in Globals]: typeof globalThis[P]
-}
-export const globals: GlobalsObj = {
+
+export const globals: Pick<typeof globalThis, Globals> = {
   test,
   it: test,
   describe,
 
-  beforeAll(func) {
+  before_all(func) {
     addHook("beforeAll", func)
   },
 
-  afterAll(func) {
+  after_all(func) {
     addHook("afterAll", func)
   },
 
-  beforeEach(func) {
+  before_each(func) {
     addHook("beforeEach", func)
   },
 
-  afterEach(func) {
+  after_each(func) {
     addHook("afterEach", func)
   },
 
-  afterTest(func) {
+  after_test(func) {
     getCurrentTestRun().test.afterTest.push(func)
   },
 

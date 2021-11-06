@@ -4,11 +4,11 @@ import TestFn = Testorio.TestFn
 declare var test: Testorio.TestCreator
 declare var it: Testorio.TestCreator
 declare var describe: Testorio.DescribeCreator
-declare var beforeAll: Testorio.Lifecycle
-declare var afterAll: Testorio.Lifecycle
-declare var beforeEach: Testorio.Lifecycle
-declare var afterEach: Testorio.Lifecycle
-declare var afterTest: Testorio.Lifecycle
+declare var before_all: Testorio.Lifecycle
+declare var after_all: Testorio.Lifecycle
+declare var before_each: Testorio.Lifecycle
+declare var after_each: Testorio.Lifecycle
+declare var after_test: Testorio.Lifecycle
 declare function async(timeout?: number): void
 declare function done(): void
 declare function on_tick(func: Testorio.OnTickFn): void
