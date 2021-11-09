@@ -2,9 +2,7 @@ import cpy from "cpy"
 import del from "del"
 import * as fs from "fs"
 import * as path from "path"
-import { fileURLToPath } from "url"
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const repositories = path.resolve(__dirname, "..")
 const outDir = path.resolve(__dirname, "../src")
 
@@ -33,15 +31,12 @@ async function copySay() {
   const repo = path.join(repositories, "say")
   const destination = outDir
   await Promise.all([
-    fs.promises.copyFile(
-      path.join(repo, "src/init.lua"),
-      path.join(destination, "say.lua"),
-    ),
-    fs.promises.copyFile(
-      path.join(repo, "LICENSE"),
-      path.join(destination, "say-LICENSE"),
-    ),
+    fs.promises.copyFile(path.join(repo, "src/init.lua"), path.join(destination, "say.lua")),
+    fs.promises.copyFile(path.join(repo, "LICENSE"), path.join(destination, "say-LICENSE")),
   ])
 }
 
-await Promise.all([copyLuassert(), copySay()])
+Promise.all([copyLuassert(), copySay()]).catch((e) => {
+  console.error(e)
+  process.exit(1)
+})

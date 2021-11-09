@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2019",
     "moduleResolution": "node",
-    "module": "esnext",
+    "module": "nodenext",
     "lib": [
       "ES2019"
     ],
@@ -10,8 +10,6 @@
       "node"
     ],
     "strict": true,
-    "experimentalDecorators": true,
-    "resolveJsonModule": true,
     "esModuleInterop": true
   },
   "include": [
