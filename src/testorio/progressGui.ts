@@ -107,7 +107,7 @@ function getPlayer(): LuaPlayer {
 
 function createTestProgressGui(state: TestState): TestProgressGui {
   const player = getPlayer()
-  const totalTests = countRunningTests(state.rootBlock, state.hasFocusedTests)
+  const totalTests = countRunningTests(state.rootBlock, state)
   const gui: TestProgressGui = {
     player,
     progressBar: undefined!,

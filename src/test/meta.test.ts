@@ -1005,3 +1005,22 @@ describe("test events", () => {
     )
   })
 })
+
+test("Test pattern", () => {
+  mockTestState.config = {
+    test_pattern: "foo",
+  }
+  test("bar", () => {
+    actions.push("no")
+  })
+  test("a foo test", () => {
+    actions.push("yes1")
+  })
+  describe("foo", () => {
+    test("yes", () => {
+      actions.push("yes2")
+    })
+  })
+  runTestSync()
+  assert.are_same(["yes1", "yes2"], actions)
+})

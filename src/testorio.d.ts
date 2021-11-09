@@ -27,6 +27,8 @@ declare namespace Testorio {
 
     verbose?: boolean
 
+    test_pattern?: string
+
     before_test_run?(): void
     after_test_run?(): void
   }

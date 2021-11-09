@@ -129,9 +129,7 @@ function onLoad(testState: TestState):
 
 export function createRunner(state: TestState): TestRunner {
   function hasAnyTest(block: DescribeBlock): boolean {
-    return block.children.some((child) =>
-      child.type === "test" ? !isSkippedTest(child, state.hasFocusedTests) : hasAnyTest(child),
-    )
+    return block.children.some((child) => (child.type === "test" ? !isSkippedTest(child, state) : hasAnyTest(child)))
   }
 
   function addErrorToAllTests(block: DescribeBlock, error: string): void {
@@ -266,7 +264,7 @@ export function createRunner(state: TestState): TestRunner {
       test,
     })
 
-    if (!isSkippedTest(test, state.hasFocusedTests)) {
+    if (!isSkippedTest(test, state)) {
       function collectHooks(block: DescribeBlock, hooks: Hook[]) {
         if (block.parent) collectHooks(block.parent, hooks)
         hooks.push(...block.hooks.filter((x) => x.type === "beforeEach"))
@@ -293,7 +291,7 @@ export function createRunner(state: TestState): TestRunner {
     const { test, partIndex } = testRun
     const part = test.parts[partIndex]
     state.currentTestRun = testRun
-    if (!isSkippedTest(test, state.hasFocusedTests)) {
+    if (!isSkippedTest(test, state)) {
       if (test.errors.length === 0) {
         const [success, error] = xpcall(part.func, getErrorWithStacktrace)
         if (!success) {
@@ -327,7 +325,7 @@ export function createRunner(state: TestState): TestRunner {
 
   function leaveTest({ testRun }: LeaveTest): Task {
     const { test } = testRun
-    const isSkipped = isSkippedTest(test, state.hasFocusedTests)
+    const isSkipped = isSkippedTest(test, state)
 
     if (!isSkipped) {
       function collectHooks(block: DescribeBlock, hooks: TestFn[]) {

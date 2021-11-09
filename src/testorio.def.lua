@@ -41,9 +41,9 @@ function part(func) end
 ---@field default_ticks_between_tests number | nil
 ---@field game_speed number | nil
 ---@field verbose boolean | nil
+---@field test_pattern string | nil
 ---@field before_test_run fun() | nil
 ---@field after_test_run fun() | nil
----
 
 ---@alias TestFn fun(): void
 ---@alias HookFn TestFn

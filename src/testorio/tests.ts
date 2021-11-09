@@ -1,4 +1,5 @@
 import { assertNever } from "../util"
+import { TestState } from "./state"
 import HookFn = Testorio.HookFn
 import TestFn = Testorio.TestFn
 
@@ -117,17 +118,22 @@ export function createRootDescribeBlock(): DescribeBlock {
   }
 }
 
-export function isSkippedTest(test: Test, hasFocusedTests: boolean) {
-  return test.mode === "skip" || test.mode === "todo" || (hasFocusedTests && test.mode !== "only")
+export function isSkippedTest(test: Test, state: TestState) {
+  return (
+    test.mode === "skip" ||
+    test.mode === "todo" ||
+    (state.hasFocusedTests && test.mode !== "only") ||
+    (state.config.test_pattern !== undefined && !string.match(test.path, state.config.test_pattern)[0])
+  )
 }
 
-export function countRunningTests(block: DescribeBlock, hasFocusedTests: boolean): number {
+export function countRunningTests(block: DescribeBlock, state: TestState): number {
   if (block.mode === "skip") return 0
   let result = 0
   for (const child of block.children) {
-    if (child.type === "describeBlock") result += countRunningTests(child, hasFocusedTests)
+    if (child.type === "describeBlock") result += countRunningTests(child, state)
     else if (child.type === "test") {
-      if (!isSkippedTest(child, hasFocusedTests)) result++
+      if (!isSkippedTest(child, state)) result++
     } else {
       assertNever(child)
     }
