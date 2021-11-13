@@ -4,12 +4,12 @@ import { getTestState, resetTestState, TestState } from "./state"
 import { Remote, TestStage } from "../constants"
 import { globals } from "./setup"
 import { addTestListeners } from "./testEvents"
-import { builtinTestListeners } from "./builtinEventListeners"
-import { progressGuiListener, progressGuiLogHandler } from "./progressGui"
+import { builtinTestListeners } from "./builtinTestListeners"
+import { progressGuiListener, progressGuiLogger } from "./progressGui"
 import { addLogHandlers, debugAdapterEnabled, debugAdapterLogger, gameLogger, LogLevel, setLogLevel } from "./log"
 import Config = Testorio.Config
 
-export function load(files: string[], config: Config): void {
+export function load(this: unknown, files: string[], config: Config): void {
   const testState = loadTests(files, config)
   const testStage = testState.getTestStage()
 
@@ -37,12 +37,11 @@ function loadTests(files: string[], config: Config): TestState {
   if (config.default_ticks_between_tests) {
     ticks_between_tests(config.default_ticks_between_tests)
   }
-  for (let file of files) {
-    if (file.includes("/") && !file.startsWith(modName)) {
-      file = `${modName}/${file}`
-    }
+  for (const file of files) {
+    const path = string.match(file, "^__[%w-_]+__")[0] ? file : `${modName}/${file}`
+
     describe(file, () => {
-      require(file)
+      require(path)
     })
   }
   state.currentBlock = undefined
@@ -58,7 +57,7 @@ function runTests() {
   const { config } = state
   if (config.show_progress_gui !== false) {
     addTestListeners(progressGuiListener)
-    addLogHandlers(progressGuiLogHandler)
+    addLogHandlers(progressGuiLogger)
   } else {
     addLogHandlers(gameLogger)
   }
@@ -69,22 +68,26 @@ function runTests() {
       log(message)
     })
   }
-  if (config.verbose) {
+  if (config.log_level === "trace") {
     setLogLevel(LogLevel.Trace)
+  } else if (config.log_level === "debug") {
+    setLogLevel(LogLevel.Debug)
+  } else if (config.log_level === "basic") {
+    setLogLevel(LogLevel.Info)
   } else if (debugAdapterEnabled) {
     setLogLevel(LogLevel.Debug)
   } else {
-    setLogLevel(LogLevel.Info)
+    setLogLevel(LogLevel.Debug)
   }
 
   config.before_test_run?.()
-  const revertOnTick = addOnEvent(defines.events.on_tick, () => {
+  addOnEvent(defines.events.on_tick, () => {
     if (!runner) {
       runner = createRunner(state)
     }
     runner.tick()
     if (runner.isDone()) {
-      revertOnTick()
+      revertPatchedEvents()
       config.after_test_run?.()
     }
   })
@@ -94,9 +97,7 @@ const patchedHandlers: Record<defines.Events, [handler?: (data: any) => void]> =
 let scriptPatched = false
 const oldOnEvent = script.on_event
 
-type Revert = () => void
-
-function addOnEvent(event: defines.Events, func: () => void): Revert {
+function addOnEvent(event: defines.Events, func: () => void) {
   patchedHandlers[event] = [script.get_event_handler(event)]
 
   oldOnEvent(event, (data) => {
@@ -116,10 +117,12 @@ function addOnEvent(event: defines.Events, func: () => void): Revert {
       }
     }
   }
+}
 
-  return () => {
-    const handler = patchedHandlers[event][0]
+function revertPatchedEvents() {
+  script.on_event = oldOnEvent
+  for (const [event, handler] of pairs(patchedHandlers)) {
     delete patchedHandlers[event]
-    oldOnEvent(event, handler)
+    script.on_event(event, handler[0])
   }
 }

@@ -1,1 +1,3 @@
 scripts/*
+*.d.ts
+factorio-mod-linker/

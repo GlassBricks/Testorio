@@ -57,8 +57,8 @@ export type TestEvent =
 export type TestListener = (event: TestEvent, state: TestState) => void
 
 const testListeners: TestListener[] = []
-export function addTestListeners(...handler: TestListener[]): void {
-  testListeners.push(...handler)
+export function addTestListeners(...listeners: TestListener[]): void {
+  testListeners.push(...listeners)
 }
 
 export function _raiseTestEvent(state: TestState, event: TestEvent) {

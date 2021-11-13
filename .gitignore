@@ -120,7 +120,9 @@ dist
 
 .idea
 *.iml
-.vscode/lua
+.vscode/
 
 src/**/*.lua
 !src/**/*.def.lua
+index.d.ts
+factorio-mod-linker/*.js

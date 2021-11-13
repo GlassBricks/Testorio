@@ -11,17 +11,14 @@
     ],
     "strict": true,
     "experimentalDecorators": true,
-    "rootDir": "./src",
-    "outDir": "./src"
+    "baseUrl": "."
   },
   "tstl": {
     "luaTarget": "5.2",
-    "sourceMapTraceback": true,
-    "noImplicitSelf": true,
-    "noResolvePaths": ["__testorio__/init"]
+    "noImplicitSelf": true
   },
   "include": [
-    "./src/**/*", "./node_modules/typed-factorio/runtime/index.d.ts", "testorio.d.ts"
+    ".", "../node_modules/typed-factorio/runtime/index.d.ts", "../index.d.ts"
   ],
   "exclude": []
 }

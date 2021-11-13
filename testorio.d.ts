@@ -1,4 +1,5 @@
-/* eslint-disable no-var */
+/** @noSelfInFile */
+/// <reference types="luassert-tstl" />
 import TestFn = Testorio.TestFn
 
 declare var test: Testorio.TestCreator
@@ -16,6 +17,7 @@ declare function after_ticks(ticks: number, func: Testorio.TestFn): void
 declare function ticks_between_tests(ticks: number): void
 declare function part(func: TestFn): void
 
+/** @noSelf */
 declare namespace Testorio {
   interface Config {
     show_progress_gui?: boolean
@@ -25,7 +27,7 @@ declare namespace Testorio {
 
     game_speed?: number
 
-    verbose?: boolean
+    log_level?: "basic" | "debug" | "trace"
 
     test_pattern?: string
 

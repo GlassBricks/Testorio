@@ -2,10 +2,22 @@
   "name": "testorio",
   "version": "0.1.0",
   "license": "MIT",
+  "type": "module",
+  "bin": {
+    "fml": "factorio-mod-linker/index.js"
+  },
+  "dependencies": {
+    "@types/rimraf": "^3.0.2",
+    "commander": "^8.3.0",
+    "cosmiconfig": "^7.0.1",
+    "globby": "^12.0.2",
+    "rimraf": "^3.0.2"
+  },
   "devDependencies": {
-    "@types/node": "^16.11.6",
-    "@typescript-eslint/eslint-plugin": "^5.3.0",
-    "@typescript-eslint/parser": "^5.3.0",
+    "@types/node": "^16.11.7",
+    "@typescript-eslint/eslint-plugin": "^5.3.1",
+    "@typescript-eslint/parser": "^5.3.1",
+    "concurrently": "^6.3.0",
     "cpy": "^8.1.2",
     "del": "^6.0.0",
     "del-cli": "^4.0.1",
@@ -18,23 +30,27 @@
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-prettier": "^4.0.0",
     "lua-types": "^2.11.0",
-    "luassert-tstl": "^0.2.0",
+    "luassert-tstl": "^0.2.2",
     "prettier": "^2.4.1",
-    "prettier-plugin-jsdoc": "^0.3.24",
+    "prettier-plugin-jsdoc": "^0.3.30",
     "ts-node": "^10.4.0",
-    "typed-factorio": "^0.11.0",
+    "typed-factorio": "^0.11.1",
     "typescript": "^4.4.4",
     "typescript-to-lua": "^1.1.1",
     "typescript-tstl-plugin": "^0.3.2"
   },
   "scripts": {
-    "build": "tstl",
-    "build:full": "yarn run copy-luassert && yarn run build",
-    "copy-luassert": "ts-node ./scripts/copy-luassert.ts",
+    "build:mod": "tstl",
+    "build:copy-luassert": "yarn run script copy-luassert.ts",
+    "build:fml": "tsc -p factorio-mod-linker/tsconfig.json",
+    "build:defs": "yarn run script generate-module-defs.ts",
+    "build:test-mod": "tstl -p testorio-test-mod/tsconfig.json",
+    "build:all": "concurrently \"yarn run build:mod\" \"yarn run build:copy-luassert\" \"yarn run build:defs\" \"yarn run build:fml\"",
     "watch": "tstl --watch",
+    "script": "cd ./scripts && node --experimental-specifier-resolution=node --loader ts-node/esm",
     "lint": "eslint **/*.{ts,tsx}",
     "lint:fix": "eslint **/*{ts,tsx} --fix",
-    "clean": "del \"src/**/*.lua\" \"!src/say.lua\" \"!src/luassert/**\" \"!src/**/*.def.lua\" \"!src/scenarios/**\"",
-    "clean:full": "del \"src/**/*.{lua,js}\" \"!src/**/*.def.lua\" \"!src/scenarios/**\""
+    "clean:mod": "del \"mod/**/*.lua\" \"!mod/say.lua\" \"!mod/luassert/**\" \"!**/*.def.lua\" \"!**/scenarios/**\"",
+    "clean:all": "del \"**/*.{lua,js}\" \"!**/*.def.lua\" \"!**/scenarios/**\""
   }
 }

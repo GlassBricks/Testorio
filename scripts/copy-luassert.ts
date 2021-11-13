@@ -2,7 +2,9 @@ import cpy from "cpy"
 import del from "del"
 import * as fs from "fs"
 import * as path from "path"
+import { fileURLToPath } from "url"
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const repositories = path.resolve(__dirname, "..")
 const outDir = path.resolve(__dirname, "../src")
 
@@ -36,7 +38,4 @@ async function copySay() {
   ])
 }
 
-Promise.all([copyLuassert(), copySay()]).catch((e) => {
-  console.error(e)
-  process.exit(1)
-})
+await Promise.all([copyLuassert(), copySay()])

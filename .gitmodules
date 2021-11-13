@@ -1,6 +1,6 @@
-[submodule "say"]
-	path = say
-	url = https://github.com/Olivine-Labs/say.git
 [submodule "luassert"]
 	path = luassert
-	url = https://github.com/GlassBricks/luassert-factorio.git
+	url = https://github.com/GlassBricks/luassert-factorio
+[submodule "say"]
+	path = say
+	url = https://github.com/Olivine-Labs/say

@@ -201,7 +201,7 @@ export const progressGuiListener: TestListener = (event, state) => {
 
 const colors = logColors.map((x) => x.join())
 
-export const progressGuiLogHandler: LogHandler = (level, message) => {
+export const progressGuiLogger: LogHandler = (level, message) => {
   const gui = global.__testProgressGui
   if (!gui) return
   const color = colors[level - 1]

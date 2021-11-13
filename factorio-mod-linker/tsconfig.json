@@ -1,13 +1,10 @@
 {
   "compilerOptions": {
     "target": "ES2019",
+    "module": "commonjs",
     "moduleResolution": "node",
-    "module": "esnext",
-    "types": ["node"],
     "strict": true,
     "esModuleInterop": true
   },
-  "include": [
-    "."
-  ]
+  "include": ["."]
 }
