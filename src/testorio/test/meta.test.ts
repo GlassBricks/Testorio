@@ -1,9 +1,9 @@
-import { createRunner } from "../testorio/runner"
-import { _setTestState, getTestState, resetTestState, TestState } from "../testorio/state"
-import { DescribeBlock, Test } from "../testorio/tests"
-import { TestStage } from "../constants"
-import { TestEvent } from "../testorio/testEvents"
-import { resultCollector } from "../testorio/result"
+import { createRunner } from "../runner"
+import { _setTestState, getTestState, resetTestState, TestState } from "../state"
+import { DescribeBlock, Test } from "../tests"
+import { TestStage } from "../../shared-constants"
+import { TestEvent } from "../testEvents"
+import { resultCollector } from "../result"
 
 // simulated test environment
 let actions: unknown[] = []

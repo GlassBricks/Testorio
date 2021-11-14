@@ -1,7 +1,7 @@
 import "./control/index"
 
-const init = require("__testorio__/init")
+const init = require("@NoResolution:__testorio__/init")
 
-init(["test/meta.test.lua", "test/reload.test.lua", "test/inWorld.test.lua"], {
+init(["testorio/test/meta.test.lua", "testorio/test/reload.test.lua", "testorio/test/inWorld.test.lua"], {
   default_ticks_between_tests: 1,
 })

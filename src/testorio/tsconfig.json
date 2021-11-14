@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "none",
+    "moduleResolution": "node",
+    "types": ["typed-factorio/runtime"],
+    "plugins": [
+      {
+        "name": "typescript-tstl-plugin"
+      }
+    ],
+    "strict": true,
+    "experimentalDecorators": true,
+    "rootDir": "."
+  },
+  "tstl": {
+    "luaTarget": "5.2",
+    "sourceMapTraceback": true,
+    "noImplicitSelf": true
+  },
+  "include": [
+    ".", "../../node_modules/typed-factorio/runtime/index.d.ts", "../../index.d.ts"
+  ],
+  "exclude": []
+}

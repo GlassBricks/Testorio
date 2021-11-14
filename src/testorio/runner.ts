@@ -1,8 +1,8 @@
 import { resumeAfterReload } from "./resume"
 import { makeLoadError, TestRun, TestState } from "./state"
 import { DescribeBlock, formatSource, Hook, isSkippedTest, Test } from "./tests"
-import { assertNever } from "../util"
-import { Remote, TestStage } from "../constants"
+import { assertNever } from "./util"
+import { Remote, TestStage } from "../shared-constants"
 import TestFn = Testorio.TestFn
 import OnTickFn = Testorio.OnTickFn
 

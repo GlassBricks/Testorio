@@ -122,7 +122,10 @@ dist
 *.iml
 .vscode/
 
-src/**/*.lua
-!src/**/*.def.lua
+**/*.lua
+!**/*.def.lua
 index.d.ts
 factorio-mod-linker/*.js
+
+src/luassert
+src/say-LICENSE

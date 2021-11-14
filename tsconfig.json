@@ -1,27 +1,9 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "none",
-    "moduleResolution": "node",
-    "types": ["typed-factorio/runtime"],
-    "plugins": [
-      {
-        "name": "typescript-tstl-plugin"
-      }
-    ],
-    "strict": true,
-    "experimentalDecorators": true,
-    "rootDir": "./src",
-    "outDir": "./src"
+    "module": "commonjs",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "strict": true
   },
-  "tstl": {
-    "luaTarget": "5.2",
-    "sourceMapTraceback": true,
-    "noImplicitSelf": true,
-    "noResolvePaths": ["__testorio__/init"]
-  },
-  "include": [
-    "./src/**/*", "./node_modules/typed-factorio/runtime/index.d.ts", "testorio.d.ts"
-  ],
-  "exclude": []
+  "include": ["gulpfile.ts"]
 }

@@ -1,4 +1,7 @@
 {
   "name": "testorio-test-mod",
-  "version": "0.0.0"
+  "version": "0.0.0",
+  "title": "Testorio test mod",
+  "author": "GlassBricks",
+  "factorio_version": "1.1"
 }

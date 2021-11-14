@@ -1,12 +1,13 @@
-import "../luassert"
+import "__testorio__/luassert/init"
 import { createRunner, TestRunner } from "./runner"
 import { getTestState, resetTestState, TestState } from "./state"
-import { Remote, TestStage } from "../constants"
+import { Remote, TestStage } from "../shared-constants"
 import { globals } from "./setup"
 import { addTestListeners } from "./testEvents"
 import { builtinTestListeners } from "./builtinTestListeners"
 import { progressGuiListener, progressGuiLogger } from "./progressGui"
 import { addLogHandlers, debugAdapterEnabled, debugAdapterLogger, gameLogger, LogLevel, setLogLevel } from "./log"
+import _require_ from "./require/_require_"
 import Config = Testorio.Config
 
 export function load(this: unknown, files: string[], config: Config): void {
@@ -32,16 +33,13 @@ function loadTests(files: string[], config: Config): TestState {
   Object.assign(globalThis, globals)
   resetTestState(config)
   const state = getTestState()
-  const modName = `__${script.mod_name}__`
 
   if (config.default_ticks_between_tests) {
     ticks_between_tests(config.default_ticks_between_tests)
   }
   for (const file of files) {
-    const path = string.match(file, "^__[%w-_]+__")[0] ? file : `${modName}/${file}`
-
     describe(file, () => {
-      require(path)
+      _require_(file)
     })
   }
   state.currentBlock = undefined

@@ -63,7 +63,7 @@ function createTestBuilder<F extends () => void>(addPart: (func: F) => void) {
       const source = getCallerSource()
       addPart((() => {
         async(1)
-        doLog(LogLevel.Info, `${getCurrentTestRun().test.path}: reloading ${what}`, LogColor.Yellow, source)
+        doLog(LogLevel.Info, `${getCurrentTestRun().test.path}: reloading ${what}`, LogColor.White, source)
         on_tick(() => {
           prepareReload(getTestState())
           reload()

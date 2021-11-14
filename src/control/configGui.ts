@@ -1,8 +1,5 @@
-import { Locale, Prototypes, Remote, Settings, TestStage } from "../constants"
+import { Locale, Prototypes, Remote, Settings, TestStage } from "../shared-constants"
 import * as modGui from "mod-gui"
-import { getGlobalTestStage } from "../testorio/state"
-import { assertNever } from "../util"
-import { onTestStateChanged } from "../testorio/eventIds"
 import { GuiAction, guiAction } from "./guiAction"
 import { postLoadAction } from "./load"
 
@@ -228,6 +225,7 @@ const runTests = postLoadAction("runTests", () => {
   }
   destroyConfigGui()
   remote.call(Remote.RunTests, "runTests")
+  updateTestStageGui()
 })
 
 const ReloadAndStartTests = guiAction("reloadAndStartTests", () => {
@@ -249,18 +247,12 @@ function updateTestStageGui() {
 
   let runTestsButtons = false
   let message: LocalisedString
-  const stage = getGlobalTestStage()
+  const stage = settings.global[Settings.TestStage].value as TestStage
   if (stage === TestStage.NotRun) {
     message = [Locale.TestsNotRun]
     runTestsButtons = true
-  } else if (stage === TestStage.Running || stage === TestStage.ToReload) {
-    message = [Locale.TestsRunning]
-  } else if (stage === TestStage.Completed) {
-    message = [Locale.TestsCompleted]
-  } else if (stage === TestStage.LoadError) {
-    message = [Locale.LoadError]
   } else {
-    assertNever(stage)
+    message = [Locale.TestsRan]
   }
 
   mainFlow.add({
@@ -311,8 +303,6 @@ function updateTestStageGui() {
     configGui.refreshButton.enabled = false
   }
 }
-
-script.on_event(onTestStateChanged, updateTestStageGui)
 
 function createConfigGui(player: LuaPlayer): FrameGuiElement {
   player.gui.screen[TestConfigName]?.destroy()

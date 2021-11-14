@@ -1,4 +1,4 @@
-import { Prototypes } from "../constants"
+import { Prototypes } from "../shared-constants"
 
 script.on_event(defines.events.on_player_selected_area, (data) => {
   if (data.item !== Prototypes.EnablerTool) return

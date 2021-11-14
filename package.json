@@ -1,26 +1,32 @@
 {
   "name": "testorio",
   "version": "0.1.0",
+  "description": "Utilities for Testorio, a test framework for factorio.",
+  "keywords": [
+    "factorio", "test", "testing"
+  ],
+  "homepage": "https://github.com/GlassBricks/Testorio#readme",
   "license": "MIT",
-  "type": "module",
+  "files": [
+    "*.d.ts", "factorio-mod-linker/index.js"
+  ],
   "bin": {
-    "fml": "factorio-mod-linker/index.js"
+    "fml": "./factorio-mod-linker/index.js"
   },
+  "repository": "https://github.com/GlassBricks/Testorio.git",
   "dependencies": {
     "@types/rimraf": "^3.0.2",
     "commander": "^8.3.0",
     "cosmiconfig": "^7.0.1",
-    "globby": "^12.0.2",
+    "globby": "^11.0.4",
     "rimraf": "^3.0.2"
   },
   "devDependencies": {
+    "@types/gulp": "^4.0.9",
     "@types/node": "^16.11.7",
     "@typescript-eslint/eslint-plugin": "^5.3.1",
     "@typescript-eslint/parser": "^5.3.1",
-    "concurrently": "^6.3.0",
-    "cpy": "^8.1.2",
-    "del": "^6.0.0",
-    "del-cli": "^4.0.1",
+    "del": "^5.1.0",
     "eslint": "^8.2.0",
     "eslint-config-esnext": "^4.1.0",
     "eslint-config-prettier": "^8.3.0",
@@ -29,6 +35,8 @@
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-prettier": "^4.0.0",
+    "gulp": "^4.0.2",
+    "gulp-typescript": "^6.0.0-alpha.1",
     "lua-types": "^2.11.0",
     "luassert-tstl": "^0.2.2",
     "prettier": "^2.4.1",
@@ -40,17 +48,14 @@
     "typescript-tstl-plugin": "^0.3.2"
   },
   "scripts": {
-    "build:mod": "tstl",
-    "build:copy-luassert": "yarn run script copy-luassert.ts",
-    "build:fml": "tsc -p factorio-mod-linker/tsconfig.json",
-    "build:defs": "yarn run script generate-module-defs.ts",
-    "build:test-mod": "tstl -p testorio-test-mod/tsconfig.json",
-    "build:all": "concurrently \"yarn run build:mod\" \"yarn run build:copy-luassert\" \"yarn run build:defs\" \"yarn run build:fml\"",
-    "watch": "tstl --watch",
-    "script": "cd ./scripts && node --experimental-specifier-resolution=node --loader ts-node/esm",
+    "build:all": "gulp buildAll",
+    "build:package": "gulp buildPackage",
+    "clean:mod": "gulp cleanMod",
+    "clean": "gulp clean",
+    "watch:modfiles": "tstl -p src/tsconfig.json --watch",
+    "watch:testorio": "tstl -p src/testorio/tsconfig.json --watch",
+    "fml": "node factorio-mod-linker/index.js",
     "lint": "eslint **/*.{ts,tsx}",
-    "lint:fix": "eslint **/*{ts,tsx} --fix",
-    "clean:mod": "del \"mod/**/*.lua\" \"!mod/say.lua\" \"!mod/luassert/**\" \"!**/*.def.lua\" \"!**/scenarios/**\"",
-    "clean:all": "del \"**/*.{lua,js}\" \"!**/*.def.lua\" \"!**/scenarios/**\""
+    "lint:fix": "eslint **/*{ts,tsx} --fix"
   }
 }

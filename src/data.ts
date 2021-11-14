@@ -1,5 +1,6 @@
 import { Data } from "typed-factorio/data/types"
-import { Colors, Graphics, Prototypes } from "./constants"
+import { Prototypes } from "./shared-constants"
+import { Colors, Graphics } from "./constants"
 
 declare const data: Data
 

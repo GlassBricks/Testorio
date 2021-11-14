@@ -1,8 +1,8 @@
 import { createRootDescribeBlock, DescribeBlock, Test } from "./tests"
-import { Settings, TestStage } from "../constants"
+import { Settings, TestStage } from "../shared-constants"
 import { _raiseTestEvent, TestEvent } from "./testEvents"
-import { onTestStateChanged } from "./eventIds"
 import { createRunResult, RunResults } from "./result"
+import { onTestStateChanged } from "./eventIds"
 import OnTickFn = Testorio.OnTickFn
 import Config = Testorio.Config
 

@@ -1,4 +1,4 @@
-import { test_area } from "../testUtil/areas"
+import { test_area } from "__testorio__/testUtil/areas"
 
 test("inWorld", () => {
   const [surface, area] = test_area(1, "Test1")

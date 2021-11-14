@@ -1,9 +1,9 @@
-import { Remote, TestStage } from "../constants"
+import { Remote, TestStage } from "../shared-constants"
 
 let eventId: CustomEventId<{ stage: TestStage }>
-if (!remote.interfaces[Remote.TestEvents]) {
+if (!remote.interfaces[Remote.Testorio]) {
   eventId = script.generate_event_name()
-  remote.add_interface(Remote.TestEvents, {
+  remote.add_interface(Remote.Testorio, {
     onTestStageChanged: () => eventId,
   })
 } else {

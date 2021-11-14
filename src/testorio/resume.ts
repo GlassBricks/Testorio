@@ -1,6 +1,6 @@
 import type { TestState } from "./state"
 import { DescribeBlock, Test } from "./tests"
-import { TestStage } from "../constants"
+import { TestStage } from "../shared-constants"
 import { RunResults } from "./result"
 
 declare const global: {

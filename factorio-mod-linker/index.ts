@@ -3,11 +3,11 @@
 import { program } from "commander"
 import { cosmiconfig } from "cosmiconfig"
 import * as fs from "fs/promises"
-import { globby } from "globby"
 import * as process from "process"
 import * as path from "path"
 import rr from "rimraf"
 import * as util from "util"
+import globby from "globby"
 
 const rimraf = util.promisify(rr)
 

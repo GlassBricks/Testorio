@@ -13,7 +13,7 @@ function init(this: void, a: string[] | undefined, b: string[] | Config | undefi
   initCalled = true
   remote.add_interface("testorio-tests-available-for-" + script.mod_name, {})
   if (script.mod_name === settings.global["testorio:test-mod"].value) {
-    require("testorio/load").load(files, config)
+    require("@NoResolution:__testorio__/testorio/load").load(files, config)
   }
 }
 

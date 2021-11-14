@@ -1,4 +1,4 @@
-import { assertNever } from "../util"
+import { assertNever } from "./util"
 import { TestState } from "./state"
 import HookFn = Testorio.HookFn
 import TestFn = Testorio.TestFn

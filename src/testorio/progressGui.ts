@@ -1,9 +1,16 @@
-import { Colors, Locale, Settings } from "../constants"
+import { Locale, Settings } from "../shared-constants"
 import { TestListener } from "./testEvents"
 import { countRunningTests } from "./tests"
 import { TestState } from "./state"
 import { RunResults } from "./result"
 import { logColors, LogHandler } from "./log"
+
+namespace Colors {
+  export const Red: Color = { r: 255, g: 40, b: 40 }
+  export const Green: Color = { r: 155, g: 255, b: 122 }
+  export const Yellow: Color = { r: 255, g: 204, b: 20 }
+  export const Purple: Color = { r: 240, g: 20, b: 220 }
+}
 
 interface TestProgressGui {
   player: LuaPlayer
@@ -75,7 +82,7 @@ function TestCount(parent: LuaGuiElement, gui: TestProgressGui) {
     style.horizontal_align = "center"
     return result
   }
-  const colors = [undefined, Colors.Red, Colors.Yellow, Colors.Purple]
+  const colors = [Colors.Green, Colors.Red, Colors.Yellow, Colors.Purple]
   for (let i = 0; i < 4; i++) {
     const label = addLabel()
     const color = colors[i]
