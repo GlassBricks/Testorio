@@ -237,6 +237,8 @@ const ReloadAndStartTests = guiAction("reloadAndStartTests", () => {
 })
 
 const StartTests = guiAction("startTests", () => {
+  if (remote.interfaces[Remote.RunTests] === undefined || remote.call(Remote.RunTests, "modName") !== getTestMod())
+    game.reload_mods()
   game.auto_save("beforeTest")
   runTests()
 })
@@ -274,7 +276,22 @@ function updateTestStageGui() {
       direction: "horizontal",
     })
 
-    const refreshRunEnabled = remote.interfaces[Remote.TestsAvailableFor + getTestMod()] !== undefined
+    const runEnabled = remote.interfaces[Remote.TestsAvailableFor + getTestMod()] !== undefined
+
+    buttonFlow.add({
+      type: "button",
+      caption: [Locale.RunNow],
+      tags: {
+        modName,
+        on_gui_click: StartTests,
+      },
+      enabled: runEnabled,
+      tooltip: !runEnabled ? [Locale.ModNotRegisteredTests] : undefined,
+    })
+    const spacer = buttonFlow.add({
+      type: "empty-widget",
+    })
+    spacer.style.horizontally_stretchable = true
     buttonFlow.add({
       type: "button",
       style: "green_button",
@@ -283,25 +300,8 @@ function updateTestStageGui() {
         modName,
         on_gui_click: ReloadAndStartTests,
       },
-      enabled: refreshRunEnabled,
-      tooltip: !refreshRunEnabled ? [Locale.ModNotRegisteredTests] : undefined,
-    })
-    const spacer = buttonFlow.add({
-      type: "empty-widget",
-    })
-    spacer.style.horizontally_stretchable = true
-
-    const runNowEnabled =
-      remote.interfaces[Remote.RunTests] !== undefined && remote.call(Remote.RunTests, "modName") === getTestMod()
-    buttonFlow.add({
-      type: "button",
-      caption: [Locale.RunNow],
-      tags: {
-        modName,
-        on_gui_click: StartTests,
-      },
-      enabled: runNowEnabled,
-      tooltip: !runNowEnabled ? [Locale.ModNotLoadedTests] : undefined,
+      enabled: runEnabled,
+      tooltip: !runEnabled ? [Locale.ModNotRegisteredTests] : undefined,
     })
   }
 
