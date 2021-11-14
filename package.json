@@ -54,6 +54,7 @@
     "clean": "gulp clean",
     "watch:modfiles": "tstl -p src/tsconfig.json --watch",
     "watch:testorio": "tstl -p src/testorio/tsconfig.json --watch",
+    "watch:test-mod": "tstl -p testorio-test-mod/tsconfig.json --watch",
     "fml": "node factorio-mod-linker/index.js",
     "lint": "eslint **/*.{ts,tsx}",
     "lint:fix": "eslint **/*{ts,tsx} --fix"

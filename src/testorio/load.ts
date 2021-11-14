@@ -11,22 +11,10 @@ import _require_ from "./require/_require_"
 import Config = Testorio.Config
 
 export function load(this: unknown, files: string[], config: Config): void {
-  const testState = loadTests(files, config)
-  const testStage = testState.getTestStage()
-
-  switch (testStage) {
-    case TestStage.NotRun: {
-      addOnEvent(defines.events.on_game_created_from_scenario, runTests)
-      remote.add_interface(Remote.RunTests, { runTests, modName: () => script.mod_name })
-      break
-    }
-    case TestStage.Running:
-    case TestStage.ToReload:
-      runTests()
-      break
-    case TestStage.Completed:
-      break
-  }
+  loadTests(files, config)
+  remote.add_interface(Remote.RunTests, { runTests, modName: () => script.mod_name })
+  addOnEvent(defines.events.on_game_created_from_scenario, runTests)
+  addOnEvent(defines.events.on_tick, tryContinueTests)
 }
 
 function loadTests(files: string[], config: Config): TestState {
@@ -47,7 +35,18 @@ function loadTests(files: string[], config: Config): TestState {
 }
 
 addTestListeners(...builtinTestListeners)
+
+function tryContinueTests() {
+  const testStage = getTestState().getTestStage()
+  if (testStage === TestStage.Running || testStage === TestStage.ToReload) {
+    runTests()
+  } else {
+    revertPatchedEvents()
+  }
+}
+
 function runTests() {
+  log("Running tests")
   let runner: TestRunner | undefined
   if (game) game.tick_paused = false
 
@@ -96,7 +95,9 @@ let scriptPatched = false
 const oldOnEvent = script.on_event
 
 function addOnEvent(event: defines.Events, func: () => void) {
-  patchedHandlers[event] = [script.get_event_handler(event)]
+  if (!patchedHandlers[event]) {
+    patchedHandlers[event] = [script.get_event_handler(event)]
+  }
 
   oldOnEvent(event, (data) => {
     patchedHandlers[event][0]?.(data)

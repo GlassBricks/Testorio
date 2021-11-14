@@ -1,8 +1,3 @@
-export const enum Settings {
-  TestMod = "testorio:test-mod",
-  TestStage = "testorio:test-stage",
-}
-
 export const enum Remote {
   TestsAvailableFor = "testorio-tests-available-for-",
   RunTests = "testorio-run-tests",
@@ -24,7 +19,7 @@ export const enum Locale {
   ModNotRegisteredTests = "testorio.mod-not-registered-tests",
   ModNotLoadedTests = "testorio.mod-not-loaded-tests",
   TestsNotRun = "testorio.tests-not-run",
-  TestsRan = "testorio.tests-running",
+  TestsRan = "testorio.tests-ran",
   TestsCompleted = "testorio.tests-completed",
   RunNow = "testorio.run-now",
   ReloadAndRunTests = "testorio.reload-and-run-tests",

@@ -1,7 +1,8 @@
-import { Locale, Prototypes, Remote, Settings, TestStage } from "../shared-constants"
+import { Locale, Prototypes, Remote, TestStage } from "../shared-constants"
 import * as modGui from "mod-gui"
 import { GuiAction, guiAction } from "./guiAction"
-import { postLoadAction } from "./load"
+import { postLoadAction } from "./postLoadAction"
+import { Settings } from "../constants"
 
 const TestConfigName = "testorio:test-config"
 const ModSelectWidth = 150

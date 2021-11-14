@@ -1,4 +1,4 @@
-import { Locale, Settings } from "../shared-constants"
+import { Locale, Remote } from "../shared-constants"
 import { TestListener } from "./testEvents"
 import { countRunningTests } from "./tests"
 import { TestState } from "./state"
@@ -30,7 +30,7 @@ declare const global: {
 const TestProgressName = "testorio:test-progress"
 
 function getTestMod(): string {
-  return settings.global[Settings.TestMod].value as string
+  return remote.call(Remote.Testorio, "getTestMod")
 }
 
 function StatusText(parent: LuaGuiElement, gui: TestProgressGui) {

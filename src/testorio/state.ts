@@ -1,8 +1,7 @@
 import { createRootDescribeBlock, DescribeBlock, Test } from "./tests"
-import { Settings, TestStage } from "../shared-constants"
+import { Remote, TestStage } from "../shared-constants"
 import { _raiseTestEvent, TestEvent } from "./testEvents"
 import { createRunResult, RunResults } from "./result"
-import { onTestStateChanged } from "./eventIds"
 import OnTickFn = Testorio.OnTickFn
 import Config = Testorio.Config
 
@@ -54,12 +53,11 @@ export function _setTestState(state: TestState): void {
 }
 
 export function getGlobalTestStage(): TestStage {
-  return settings.global[Settings.TestStage].value as TestStage
+  return remote.call(Remote.Testorio, "getGlobalTestStage")
 }
 
-function setGlobalTestStage(stage: TestStage) {
-  settings.global[Settings.TestStage] = { value: stage }
-  script.raise_event(onTestStateChanged, { stage })
+function setGlobalTestStage(stage: TestStage): void {
+  remote.call(Remote.Testorio, "setGlobalTestStage", stage)
 }
 
 export function resetTestState(config: Config): void {

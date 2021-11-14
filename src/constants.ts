@@ -1,5 +1,10 @@
 import { TestStage } from "./shared-constants"
 
+export const enum Settings {
+  TestMod = "testorio:test-mod",
+  TestStage = "testorio:test-stage",
+}
+
 const path = "__testorio__/graphics/"
 export const Graphics = {
   EnablerTool: path + "enabler-tool.png",

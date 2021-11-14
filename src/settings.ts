@@ -1,6 +1,6 @@
 import { Data } from "typed-factorio/settings/types"
-import { Settings, TestStage } from "./shared-constants"
-import { TestStageValues } from "./constants"
+import { TestStage } from "./shared-constants"
+import { Settings, TestStageValues } from "./constants"
 
 declare const data: Data
 

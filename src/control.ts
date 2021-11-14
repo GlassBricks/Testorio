@@ -1,3 +1,4 @@
+import "./remote"
 import "./control/index"
 
 const init = require("@NoResolution:__testorio__/init")
