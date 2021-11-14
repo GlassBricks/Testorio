@@ -1,5 +1,5 @@
 import { createRootDescribeBlock, DescribeBlock, Test } from "./tests"
-import { Remote, TestStage } from "../shared-constants"
+import { TestStage } from "../shared-constants"
 import { _raiseTestEvent, TestEvent } from "./testEvents"
 import { createRunResult, RunResults } from "./result"
 import OnTickFn = Testorio.OnTickFn
@@ -40,9 +40,11 @@ export interface TestRun {
 declare global {
   let TESTORIO_TEST_STATE: TestState | undefined
 }
+declare const global: {
+  __testorioTestStage?: TestStage
+}
 
 // stored in settings so can be accessed even when global table is not yet loaded
-// TODO: monitor usages for globalness
 export function getTestState(): TestState {
   return TESTORIO_TEST_STATE ?? error("Tests are not configured to be run")
 }
@@ -53,11 +55,11 @@ export function _setTestState(state: TestState): void {
 }
 
 export function getGlobalTestStage(): TestStage {
-  return remote.call(Remote.Testorio, "getGlobalTestStage")
+  return global.__testorioTestStage ?? TestStage.NotRun
 }
 
 function setGlobalTestStage(stage: TestStage): void {
-  remote.call(Remote.Testorio, "setGlobalTestStage", stage)
+  global.__testorioTestStage = stage
 }
 
 export function resetTestState(config: Config): void {

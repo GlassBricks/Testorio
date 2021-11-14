@@ -3,6 +3,7 @@ import * as modGui from "mod-gui"
 import { GuiAction, guiAction } from "./guiAction"
 import { postLoadAction } from "./postLoadAction"
 import { Settings } from "../constants"
+import { onTestStageChanged } from "../remote"
 
 const TestConfigName = "testorio:test-config"
 const ModSelectWidth = 150
@@ -231,12 +232,12 @@ const runTests = postLoadAction("runTests", () => {
 
 const ReloadAndStartTests = guiAction("reloadAndStartTests", () => {
   game.reload_mods()
-  game.auto_save("beforeTest-" + getTestMod())
+  game.auto_save("beforeTest")
   runTests()
 })
 
 const StartTests = guiAction("startTests", () => {
-  game.auto_save("beforeTest-" + getTestMod())
+  game.auto_save("beforeTest")
   runTests()
 })
 
@@ -252,8 +253,14 @@ function updateTestStageGui() {
   if (stage === TestStage.NotRun) {
     message = [Locale.TestsNotRun]
     runTestsButtons = true
+  } else if (stage === TestStage.Running || stage === TestStage.ToReload) {
+    message = [Locale.TestsRunning]
+  } else if (stage === TestStage.Completed) {
+    message = [Locale.TestsCompleted]
+  } else if (stage === TestStage.LoadError) {
+    message = [Locale.TestLoadError]
   } else {
-    message = [Locale.TestsRan]
+    message = [Locale.TestsCompleted]
   }
 
   mainFlow.add({
@@ -304,6 +311,8 @@ function updateTestStageGui() {
     configGui.refreshButton.enabled = false
   }
 }
+
+script.on_event(onTestStageChanged, updateTestStageGui)
 
 function createConfigGui(player: LuaPlayer): FrameGuiElement {
   player.gui.screen[TestConfigName]?.destroy()

@@ -7,7 +7,7 @@ import { addTestListeners } from "./testEvents"
 import { builtinTestListeners } from "./builtinTestListeners"
 import { progressGuiListener, progressGuiLogger } from "./progressGui"
 import { addLogHandlers, debugAdapterEnabled, debugAdapterLogger, gameLogger, LogLevel, setLogLevel } from "./log"
-import _require_ from "./require/_require_"
+import _require_ = require("./require/_require_")
 import Config = Testorio.Config
 
 export function load(this: unknown, files: string[], config: Config): void {

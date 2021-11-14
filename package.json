@@ -11,7 +11,7 @@
     "*.d.ts", "factorio-mod-linker/index.js"
   ],
   "bin": {
-    "fml": "./factorio-mod-linker/index.js"
+    "fml": "./factorio-mod-linker.js"
   },
   "repository": "https://github.com/GlassBricks/Testorio.git",
   "dependencies": {
@@ -55,7 +55,7 @@
     "watch:modfiles": "tstl -p src/tsconfig.json --watch",
     "watch:testorio": "tstl -p src/testorio/tsconfig.json --watch",
     "watch:test-mod": "tstl -p testorio-test-mod/tsconfig.json --watch",
-    "fml": "node factorio-mod-linker/index.js",
+    "fml": "node factorio-mod-linker.js",
     "lint": "eslint **/*.{ts,tsx}",
     "lint:fix": "eslint **/*{ts,tsx} --fix"
   }

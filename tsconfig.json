@@ -5,5 +5,5 @@
     "esModuleInterop": true,
     "strict": true
   },
-  "include": ["gulpfile.ts"]
+  "include": ["./*.ts"]
 }

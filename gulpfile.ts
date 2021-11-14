@@ -1,4 +1,4 @@
-import * as gulp from "gulp"
+import { dest, parallel, series, src, task } from "gulp"
 import * as ts from "typescript"
 import * as tstl from "typescript-to-lua"
 import * as path from "path"
@@ -34,7 +34,7 @@ function buildModfiles() {
   return compileTstl("src/tsconfig.json")
 }
 
-gulp.task(buildModfiles)
+task(buildModfiles)
 
 async function copyLuassert() {
   const outDir = path.resolve(__dirname, "src")
@@ -79,7 +79,7 @@ async function copyLuassert() {
 
   await Promise.all([copyLuassert(), copySay()])
 }
-gulp.task(copyLuassert)
+task(copyLuassert)
 
 async function buildDefs() {
   const outFile = "index.d.ts"
@@ -126,46 +126,45 @@ async function buildDefs() {
   }
   await fs.unlink(fakeSrcDir)
 }
-gulp.task(buildDefs)
+task(buildDefs)
 
 // files intended to be used by other mods.
 function compileTestorio() {
   return compileTstl("src/testorio/tsconfig.json")
 }
-const buildTestorio = gulp.series(gulp.parallel(copyLuassert, buildDefs), compileTestorio)
-gulp.task("buildTestorio", buildTestorio)
+const buildTestorio = series(parallel(copyLuassert, buildDefs), compileTestorio)
+task("buildTestorio", buildTestorio)
 
-const buildMod = gulp.parallel(buildModfiles, buildTestorio)
-gulp.task("buildMod", buildMod)
+const buildMod = parallel(buildModfiles, buildTestorio)
+task("buildMod", buildMod)
 
 function buildFml() {
-  return gulp
-    .src("factorio-mod-linker/index.ts")
+  return src("factorio-mod-linker.ts")
     .pipe(
       gulpTs({
         target: "ES2019",
-        module: "es2020",
+        module: "commonjs",
         moduleResolution: "node",
         strict: true,
         esModuleInterop: true,
       }),
     )
-    .pipe(gulp.dest("factorio-mod-linker"))
+    .pipe(dest("."))
 }
-gulp.task(buildFml)
+task(buildFml)
 
 function compileTestMod() {
   return compileTstl("testorio-test-mod/tsconfig.json")
 }
 
-gulp.task("buildTestMod", gulp.series(buildDefs, compileTestMod))
-gulp.task("buildPackage", gulp.series(cleanAll, gulp.parallel(buildMod, buildFml)))
-gulp.task(
+task("buildTestMod", series(buildDefs, compileTestMod))
+task("buildPackage", series(cleanAll, parallel(buildMod, buildFml)))
+task(
   "buildAll",
-  gulp.series(
+  series(
     cleanAll,
-    gulp.parallel(
-      gulp.series(gulp.parallel(copyLuassert, buildDefs), gulp.parallel(compileTestorio, compileTestMod)),
+    parallel(
+      series(parallel(copyLuassert, buildDefs), parallel(compileTestorio, compileTestMod)),
       buildModfiles,
       buildFml,
     ),
@@ -175,7 +174,7 @@ gulp.task(
 function cleanMod() {
   return del(["src/!**!/!*.lua", "!src/say.lua", "!**!/luassert/!**", "!**!/!*.def.lua", "!**!/scenarios/!**"])
 }
-gulp.task("cleanMod", cleanMod)
+task("cleanMod", cleanMod)
 
 function cleanAll() {
   return del([

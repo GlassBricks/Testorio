@@ -125,7 +125,7 @@ dist
 **/*.lua
 !**/*.def.lua
 index.d.ts
-factorio-mod-linker/*.js
+factorio-mod-linker.js
 
 src/luassert
 src/say-LICENSE
