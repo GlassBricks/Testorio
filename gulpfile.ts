@@ -6,6 +6,7 @@ import del from "del"
 import * as fs from "fs/promises"
 import globby from "globby"
 import gulpTs from "gulp-typescript"
+import * as child_process from "child_process"
 
 function logDiagnostics(diagnostics: readonly ts.Diagnostic[]) {
   if (!diagnostics.length) return
@@ -24,9 +25,11 @@ function logDiagnostics(diagnostics: readonly ts.Diagnostic[]) {
   throw new Error("build completed with diagnostics")
 }
 
-async function compileTstl(configFile: string) {
-  const result = tstl.transpileProject(path.join(__dirname, configFile))
-  logDiagnostics(result.diagnostics)
+function compileTstl(configFile: string) {
+  return child_process.spawn("tstl", ["-p", configFile], {
+    stdio: "inherit",
+    cwd: __dirname,
+  })
 }
 
 // mod files, not including testorio lib itself
@@ -100,6 +103,9 @@ async function buildDefs() {
         emitDeclarationOnly: true,
         outFile,
       },
+      tstl: {
+        noImplicitSelf: true,
+      },
       include: ["__testorio__/init.ts", "__testorio__/testUtil"],
       stripInternal: true,
     },
@@ -132,11 +138,9 @@ task(buildDefs)
 function compileTestorio() {
   return compileTstl("src/testorio/tsconfig.json")
 }
-const buildTestorio = series(parallel(copyLuassert, buildDefs), compileTestorio)
-task("buildTestorio", buildTestorio)
+task("buildTestorio", series(parallel(copyLuassert, buildDefs), compileTestorio))
 
-const buildMod = parallel(buildModfiles, buildTestorio)
-task("buildMod", buildMod)
+task("buildMod", parallel(buildModfiles, "buildTestorio"))
 
 function buildFml() {
   return src("factorio-mod-linker.ts")
@@ -158,7 +162,7 @@ function compileTestMod() {
 }
 
 task("buildTestMod", series(buildDefs, compileTestMod))
-task("buildPackage", series(cleanAll, parallel(buildMod, buildFml)))
+task("buildPackage", series(cleanAll, parallel("buildMod", buildFml)))
 task(
   "buildAll",
   series(
@@ -172,17 +176,27 @@ task(
 )
 
 function cleanMod() {
-  return del(["src/!**!/!*.lua", "!src/say.lua", "!**!/luassert/!**", "!**!/!*.def.lua", "!**!/scenarios/!**"])
+  return del(["src/**/*.lua", "!src/say.lua", "**/luassert/**", "!**/*.def.lua", "!**/scenarios/**"])
 }
 task("cleanMod", cleanMod)
 
 function cleanAll() {
   return del([
-    "src/!**!/!*.{lua,js}",
-    "!**!/!*.def.lua",
-    "!**/scenarios/!**",
-    "!luassert/!**",
-    "!say/!**",
+    "**/*.{lua,js}",
+    "!**/*.def.lua",
+    "!**/{scenarios,node_modules}/**",
+    "!luassert/**",
+    "!say/**",
     "index.d.ts",
   ])
 }
+task("clean", cleanAll)
+
+function runFml() {
+  return child_process.spawn("node", ["factorio-mod-linker.js"], {
+    stdio: "inherit",
+    cwd: __dirname,
+  })
+}
+
+task("prepareTest", series("buildAll", runFml))

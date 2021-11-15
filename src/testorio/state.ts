@@ -1,3 +1,4 @@
+/** @noSelfInFile */
 import { createRootDescribeBlock, DescribeBlock, Test } from "./tests"
 import { TestStage } from "../shared-constants"
 import { _raiseTestEvent, TestEvent } from "./testEvents"
