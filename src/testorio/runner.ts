@@ -76,6 +76,7 @@ const enum LoadResult {
   ResumeAfterReload,
   ConfigChangedAfterReload,
   AlreadyRunning,
+  AlreadyRan,
 }
 
 function onLoad(testState: TestState):
@@ -93,6 +94,9 @@ function onLoad(testState: TestState):
     }
   | {
       result: LoadResult.AlreadyRunning
+    }
+  | {
+      result: LoadResult.AlreadyRan
     } {
   if (game.is_multiplayer()) {
     error("Tests cannot be in run in multiplayer")
@@ -119,6 +123,7 @@ function onLoad(testState: TestState):
     case TestStage.Running:
       return { result: LoadResult.AlreadyRunning }
     case TestStage.Completed:
+      return { result: LoadResult.AlreadyRan }
     case TestStage.LoadError:
       return error("Unexpected reload state when test runner loaded: " + testStage)
     default:
@@ -446,6 +451,9 @@ export function createRunner(state: TestState): TestRunner {
     createLoadError(
       `Save was unexpectedly reloaded while tests were running. This will cause tests to break. Aborting test run`,
     )
+  } else if (resume.result === LoadResult.AlreadyRan) {
+    game.print("Tests already ran. Aborting run...")
+    nextTask = undefined
   } else {
     assertNever(resume)
   }

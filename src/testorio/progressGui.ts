@@ -210,7 +210,7 @@ const colors = logColors.map((x) => x.join())
 
 export const progressGuiLogger: LogHandler = (level, message) => {
   const gui = global.__testProgressGui
-  if (!gui) return
+  if (!gui || !gui.progressBar.valid) return
   const color = colors[level - 1]
   gui.testOutput.text += table.concat(["[color=", color, "]", message, "[/color]\n"])
 }

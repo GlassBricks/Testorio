@@ -921,7 +921,7 @@ describe("reload state", () => {
     assert.equal(TestStage.LoadError, mockTestState.getTestStage())
   })
 
-  test.each([TestStage.Completed, TestStage.LoadError], "should not run with state %s", (state) => {
+  test.each([TestStage.LoadError], "should not run with state %s", (state) => {
     mockTestState.setTestStage(state)
     assert.error(() => {
       createRunner(mockTestState)
