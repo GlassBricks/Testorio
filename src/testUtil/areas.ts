@@ -1,38 +1,46 @@
-export function enable_all(surface: LuaSurface, area: BoundingBox | string | number): void {
+function getSurfaceAndArea(
+  surface: SurfaceIdentification,
+  area: number | string | BoundingBox,
+): LuaMultiReturn<[surface: LuaSurface, area: BoundingBox]> {
+  if (typeof surface === "string" || typeof surface === "number") {
+    surface = game.get_surface(surface) ?? error(`Surface with id/name ${surface} not found`)
+  }
   if (typeof area === "string" || typeof area === "number") {
     area = surface.get_script_area(area).area
   }
+  return $multi(surface, area)
+}
+
+export function enable_all(
+  surface: SurfaceIdentification,
+  area: BoundingBox | string | number,
+): LuaMultiReturn<[surface: LuaSurface, area: BoundingBox]> {
+  ;[surface, area] = getSurfaceAndArea(surface, area)
   for (const entity of surface.find_entities(area)) {
     if (!entity.active) {
       error("Entity was already active before test run")
     }
     entity.active = true
   }
+  return $multi(surface, area)
 }
 
-export function disable_all(surface: LuaSurface, area: BoundingBox | string | number): void {
-  if (typeof area === "string" || typeof area === "number") {
-    area = surface.get_script_area(area).area
-  }
+export function disable_all(
+  surface: SurfaceIdentification,
+  area: BoundingBox | string | number,
+): LuaMultiReturn<[surface: LuaSurface, area: BoundingBox]> {
+  ;[surface, area] = getSurfaceAndArea(surface, area)
   for (const entity of surface.find_entities(area)) {
     entity.active = false
   }
+  return $multi(surface, area)
 }
 
 export function test_area(
-  surfaceId: uint | string,
-  areaId: number | string | BoundingBox,
+  surface: SurfaceIdentification,
+  area: number | string | BoundingBox,
 ): LuaMultiReturn<[surface: LuaSurface, area: BoundingBox]> {
-  const surface = game.get_surface(surfaceId) ?? error(`No surface with id ${surfaceId}`)
-  let area: BoundingBox
-  if (typeof areaId === "string" || typeof areaId === "number") {
-    area = surface.get_script_area(areaId)?.area
-  } else {
-    area = areaId
-  }
-  if (!area) {
-    error(`No area with name/id ${areaId} on surface "${surface.name}"`)
-  }
+  ;[surface, area] = getSurfaceAndArea(surface, area)
   for (const entity of surface.find_entities(area)) {
     if (entity.active) {
       rendering.draw_circle({

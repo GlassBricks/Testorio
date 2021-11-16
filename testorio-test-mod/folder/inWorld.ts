@@ -1,4 +1,4 @@
-import { test_area } from "__testorio__/testUtil/areas"
+import { disable_all, test_area } from "__testorio__/testUtil/areas"
 
 test("inWorld", () => {
   const [surface, area] = test_area(1, "Test1")
@@ -9,6 +9,7 @@ test("inWorld", () => {
   assert.equal(0, chest.get_inventory(defines.inventory.chest)!.get_item_count("iron-plate"))
   async()
   after_ticks(150, () => {
+    disable_all(surface, area)
     assert.equal(5, chest.get_inventory(defines.inventory.chest)!.get_item_count("iron-plate"))
     done()
   })
