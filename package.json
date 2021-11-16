@@ -50,6 +50,7 @@
   "scripts": {
     "build:all": "gulp buildAll",
     "build:package": "gulp buildPackage",
+    "build:mod": "gulp buildMod",
     "clean:mod": "gulp cleanMod",
     "clean": "gulp clean",
     "watch:modfiles": "tstl -p src/tsconfig.json --watch",

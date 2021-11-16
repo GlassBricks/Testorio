@@ -15,7 +15,7 @@
   },
   "tstl": {
     "luaTarget": "5.2",
-    //    "sourceMapTraceback": true,
+    "sourceMapTraceback": true,
     "noImplicitSelf": true,
     "noResolvePaths": ["__testorio__/init"]
   },

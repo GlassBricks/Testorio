@@ -88,6 +88,9 @@ async function buildDefs() {
   const outFile = "index.d.ts"
 
   const fakeSrcDir = path.resolve(__dirname, "__testorio__")
+  try {
+    await fs.unlink(fakeSrcDir)
+  } catch (e) {}
   await fs.symlink(path.resolve(__dirname, "src"), fakeSrcDir)
 
   const { options, fileNames, projectReferences, errors } = ts.parseJsonConfigFileContent(
@@ -140,7 +143,17 @@ function compileTestorio() {
 }
 task("buildTestorio", series(parallel(copyLuassert, buildDefs), compileTestorio))
 
-task("buildMod", parallel(buildModfiles, "buildTestorio"))
+function cleanMod() {
+  return del(["src/**/*.lua", "!**/*.def.lua", "!**/{scenarios,node_modules}/**", "!luassert/**", "!say/**"])
+}
+task("cleanMod", cleanMod)
+
+task("buildMod", series(cleanMod, parallel(buildModfiles, "buildTestorio")))
+
+function compileTestMod() {
+  return compileTstl("testorio-test-mod/tsconfig.json")
+}
+task("buildTestMod", series(buildDefs, compileTestMod))
 
 function buildFml() {
   return src("factorio-mod-linker.ts")
@@ -157,30 +170,9 @@ function buildFml() {
 }
 task(buildFml)
 
-function compileTestMod() {
-  return compileTstl("testorio-test-mod/tsconfig.json")
-}
-
-task("buildTestMod", series(buildDefs, compileTestMod))
 task("buildPackage", series(cleanAll, parallel(buildDefs, buildFml)))
-task(
-  "buildAll",
-  series(
-    cleanAll,
-    parallel(
-      series(parallel(copyLuassert, buildDefs), parallel(compileTestorio, compileTestMod)),
-      buildModfiles,
-      buildFml,
-    ),
-  ),
-)
 
-function cleanMod() {
-  return del(["src/**/*.lua", "!src/say.lua", "**/luassert/**", "!**/*.def.lua", "!**/scenarios/**"])
-}
-task("cleanMod", cleanMod)
-
-function cleanAll() {
+async function cleanAll() {
   return del([
     "**/*.{lua,js}",
     "!**/*.def.lua",
@@ -192,6 +184,17 @@ function cleanAll() {
 }
 task("clean", cleanAll)
 
+task(
+  "buildAll",
+  series(
+    cleanAll,
+    parallel(
+      series(parallel(copyLuassert, buildDefs), parallel(compileTestorio, compileTestMod)),
+      buildModfiles,
+      buildFml,
+    ),
+  ),
+)
 function runFml() {
   return child_process.spawn("node", ["factorio-mod-linker.js"], {
     stdio: "inherit",
