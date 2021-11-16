@@ -1,6 +1,5 @@
 /** @noSelfInFile */
 /// <reference types="luassert-tstl" />
-import TestFn = Testorio.TestFn
 
 declare var test: Testorio.TestCreator
 declare var it: Testorio.TestCreator
@@ -9,13 +8,11 @@ declare var before_all: Testorio.Lifecycle
 declare var after_all: Testorio.Lifecycle
 declare var before_each: Testorio.Lifecycle
 declare var after_each: Testorio.Lifecycle
-declare var after_test: Testorio.Lifecycle
 declare function async(timeout?: number): void
 declare function done(): void
 declare function on_tick(func: Testorio.OnTickFn): void
 declare function after_ticks(ticks: number, func: Testorio.TestFn): void
 declare function ticks_between_tests(ticks: number): void
-declare function part(func: TestFn): void
 
 /** @noSelf */
 declare namespace Testorio {

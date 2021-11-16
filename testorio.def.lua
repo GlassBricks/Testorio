@@ -12,8 +12,6 @@ after_all = nil
 before_each = nil
 ---@type Lifecycle
 after_each = nil
----@type Lifecycle
-after_test = nil
 
 ---@param timeout number|nil
 ---@overload fun()

@@ -209,7 +209,6 @@ const DEFAULT_TIMEOUT = 60 * 60
 
 type Globals =
   | `${"before" | "after"}_${"each" | "all"}`
-  | "after_test"
   | "async"
   | "done"
   | "on_tick"
@@ -218,7 +217,6 @@ type Globals =
   | "test"
   | "it"
   | "describe"
-  | "part"
 
 export const globals: Pick<typeof globalThis, Globals> = {
   test,
@@ -241,10 +239,6 @@ export const globals: Pick<typeof globalThis, Globals> = {
     addHook("afterEach", func)
   },
 
-  after_test(func) {
-    getCurrentTestRun().test.afterTest.push(func)
-  },
-
   async(timeout) {
     const testRun = getCurrentTestRun()
     if (testRun.async) {
@@ -259,7 +253,6 @@ export const globals: Pick<typeof globalThis, Globals> = {
     testRun.timeout = timeout
     testRun.async = true
   },
-
   done() {
     const testRun = getCurrentTestRun()
 
@@ -271,7 +264,6 @@ export const globals: Pick<typeof globalThis, Globals> = {
     }
     testRun.asyncDone = true
   },
-
   on_tick(func) {
     const testRun = getCurrentTestRun()
     if (!testRun.async) {
@@ -279,7 +271,6 @@ export const globals: Pick<typeof globalThis, Globals> = {
     }
     testRun.onTickFuncs.set(func, true)
   },
-
   after_ticks(ticks, func) {
     const testRun = getCurrentTestRun()
     const finishTick = game.tick - testRun.tickStarted + ticks
@@ -298,13 +289,5 @@ export const globals: Pick<typeof globalThis, Globals> = {
       error("ticks between tests must be 0 or greater")
     }
     getCurrentBlock().ticksBetweenTests = ticks
-  },
-  part(func) {
-    const { test, partIndex } = getCurrentTestRun()
-    const source = getCallerSource()
-    table.insert(test.parts, partIndex + 2, {
-      func,
-      source,
-    })
   },
 }

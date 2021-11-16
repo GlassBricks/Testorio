@@ -339,7 +339,7 @@ export function createRunner(state: TestState): TestRunner {
         return hooks
       }
 
-      const afterEach = collectHooks(test.parent, [...test.afterTest])
+      const afterEach = collectHooks(test.parent, [])
 
       for (const hook of afterEach) {
         const [success, error] = xpcall(hook, getErrorWithStacktrace)

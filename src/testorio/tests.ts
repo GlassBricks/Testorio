@@ -29,7 +29,6 @@ export interface Test {
     func: TestFn
     source: Source
   }[]
-  readonly afterTest: TestFn[]
 
   readonly mode: TestMode
   readonly ticksBefore: number
@@ -51,7 +50,6 @@ export function addTest(parent: DescribeBlock, name: string, source: Source, fun
         source,
       },
     ],
-    afterTest: [],
     errors: [],
     mode,
     ticksBefore: parent.ticksBetweenTests,

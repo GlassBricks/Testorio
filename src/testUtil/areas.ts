@@ -33,9 +33,6 @@ export function test_area(
   if (!area) {
     error(`No area with name/id ${areaId} on surface "${surface.name}"`)
   }
-  after_test(() => {
-    disable_all(surface, area)
-  })
   for (const entity of surface.find_entities(area)) {
     if (entity.active) {
       rendering.draw_circle({
@@ -47,7 +44,7 @@ export function test_area(
       })
       error(
         "Not all entities were inactive in area before test run.\n" +
-          "This may cause inconsistent behavior if other tests are also running.\n" +
+          "This may cause inconsistent behavior if other tests run before this one.\n" +
           "You can use the enabler tool in-game to deactivate all entities in the area.",
       )
     }

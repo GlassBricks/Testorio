@@ -177,17 +177,6 @@ describe("hooks", () => {
     assert.are_same(["beforeEach", "test", "afterEach"], actions)
   })
 
-  test("finally", () => {
-    test("", () => {
-      actions.push("test")
-      after_test(() => {
-        actions.push("afterTest")
-      })
-    })
-    runTestSync()
-    assert.same(["test", "afterTest"], actions)
-  })
-
   test("nested", () => {
     before_all(() => actions.push("1 - beforeAll"))
     after_all(() => actions.push("1 - afterAll"))
@@ -195,9 +184,6 @@ describe("hooks", () => {
     after_each(() => actions.push("1 - afterEach"))
     test("test1", () => {
       actions.push("1 - test")
-      after_test(() => {
-        actions.push("1 - afterTest")
-      })
     })
     describe("Scoped / Nested scope", () => {
       before_all(() => actions.push("2 - beforeAll"))
@@ -212,7 +198,6 @@ describe("hooks", () => {
         "1 - beforeAll",
         "1 - beforeEach",
         "1 - test",
-        "1 - afterTest",
         "1 - afterEach",
         "2 - beforeAll",
         "1 - beforeEach",
@@ -299,16 +284,6 @@ describe("failing tests", () => {
     const theTest = runTestSync()
     assert.are_equal(1, theTest.errors.length)
     assert.matches(failMessage, mockTestState.suppressedErrors[0], undefined, true)
-  })
-
-  test("afterTest", () => {
-    test("test", () => {
-      after_test(fail)
-      error("first error")
-    })
-    const theTest = runTestSync()
-    assert.are_equal(2, theTest.errors.length)
-    assert.matches(failMessage, theTest.errors[1], undefined, true)
   })
 
   test("Error stacktrace is clean", () => {
@@ -701,71 +676,6 @@ describe("after_ticks", () => {
     runTestAsync((test) => {
       assert.not_same([], test.errors)
     })
-  })
-})
-
-describe("multi-part tests", () => {
-  test("simple", () => {
-    test("some test", () => {
-      actions.push(1)
-      part(() => {
-        actions.push(2)
-      })
-    })
-
-    runTestSync()
-    assert.same([1, 2], actions)
-  })
-
-  test("async", () => {
-    test("some test", () => {
-      async()
-      after_ticks(2, () => {
-        actions.push(1)
-        done()
-      })
-      part(() => {
-        async()
-        after_ticks(2, () => {
-          actions.push(2)
-          done()
-        })
-      })
-    })
-    runTestAsync(() => {
-      assert.same([1, 2], actions)
-    })
-  })
-
-  it("clears on_tick between parts", () => {
-    test("some test", () => {
-      async()
-      on_tick((tick) => {
-        actions.push(tick)
-      })
-      after_ticks(2, done)
-      part(() => {
-        async()
-        after_ticks(3, () => {
-          actions.push("done")
-          done()
-        })
-      })
-    })
-    runTestAsync(() => {
-      assert.same([1, 2, "done"], actions)
-    })
-  })
-
-  test("error stops multi-part test", () => {
-    test("some test", () => {
-      error("oh no")
-      part(() => {
-        actions.push("should not run")
-      })
-    })
-    runTestSync()
-    assert.same([], actions)
   })
 })
 
