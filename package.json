@@ -1,14 +1,18 @@
 {
   "name": "testorio",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Utilities for Testorio, a test framework for factorio.",
   "keywords": [
-    "factorio", "test", "testing"
+    "factorio",
+    "test",
+    "testing"
   ],
   "homepage": "https://github.com/GlassBricks/Testorio#readme",
   "license": "MIT",
   "files": [
-    "*.d.ts", "factorio-mod-linker/index.js"
+    "index.d.ts",
+    "testorio.d.ts",
+    "factorio-mod-linker.js"
   ],
   "bin": {
     "fml": "./factorio-mod-linker.js"
@@ -57,6 +61,7 @@
     "watch:testorio": "tstl -p src/testorio/tsconfig.json --watch",
     "watch:test-mod": "tstl -p testorio-test-mod/tsconfig.json --watch",
     "prepareTest": "gulp prepareTest",
+    "prepublishOnly": "yarn run build:package",
     "fml": "node factorio-mod-linker.js",
     "lint": "eslint **/*.{ts,tsx}",
     "lint:fix": "eslint **/*{ts,tsx} --fix"
