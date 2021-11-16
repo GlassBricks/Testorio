@@ -162,7 +162,7 @@ function compileTestMod() {
 }
 
 task("buildTestMod", series(buildDefs, compileTestMod))
-task("buildPackage", series(cleanAll, parallel("buildMod", buildFml)))
+task("buildPackage", series(cleanAll, parallel(buildDefs, buildFml)))
 task(
   "buildAll",
   series(
