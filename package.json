@@ -1,6 +1,6 @@
 {
   "name": "testorio",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Utilities for Testorio, a test framework for factorio.",
   "keywords": [
     "factorio",
@@ -23,6 +23,7 @@
     "commander": "^8.3.0",
     "cosmiconfig": "^7.0.1",
     "globby": "^11.0.4",
+    "luassert-tstl": "^0.2.2",
     "rimraf": "^3.0.2"
   },
   "devDependencies": {
@@ -42,7 +43,6 @@
     "gulp": "^4.0.2",
     "gulp-typescript": "^6.0.0-alpha.1",
     "lua-types": "^2.11.0",
-    "luassert-tstl": "^0.2.2",
     "prettier": "^2.4.1",
     "prettier-plugin-jsdoc": "^0.3.30",
     "ts-node": "^10.4.0",
@@ -61,7 +61,7 @@
     "watch:testorio": "tstl -p src/testorio/tsconfig.json --watch",
     "watch:test-mod": "tstl -p testorio-test-mod/tsconfig.json --watch",
     "prepareTest": "gulp prepareTest",
-    "prepublishOnly": "yarn run build:package",
+    "prepublishOnly": "yarn run build:package && yarn run lint",
     "fml": "node factorio-mod-linker.js",
     "lint": "eslint **/*.{ts,tsx}",
     "lint:fix": "eslint **/*{ts,tsx} --fix"

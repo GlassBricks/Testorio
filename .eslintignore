@@ -1,3 +1,4 @@
 *.d.ts
 factorio-mod-linker/
-*.ts
+gulpfile.ts
+factorio-mod-linker.ts
