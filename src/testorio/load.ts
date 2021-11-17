@@ -6,25 +6,26 @@ import { globals } from "./setup"
 import { addTestListeners } from "./testEvents"
 import { builtinTestListeners } from "./builtinTestListeners"
 import { progressGuiListener, progressGuiLogger } from "./progressGui"
-import { addLogHandlers, debugAdapterEnabled, debugAdapterLogger, gameLogger, LogLevel, setLogLevel } from "./log"
+import { addLogHandler, debugAdapterEnabled, debugAdapterLogger, gameLogger, LogLevel, setLogLevel } from "./log"
+import { assertNever } from "./util"
+import { fillConfig } from "./config"
 import _require_ = require("./require/_require_")
 import Config = Testorio.Config
 
-export function load(this: unknown, files: string[], config: Config): void {
+export function load(this: unknown, files: string[], config: Partial<Config>): void {
   loadTests(files, config)
   remote.add_interface(Remote.RunTests, { runTests, modName: () => script.mod_name })
   addOnEvent(defines.events.on_game_created_from_scenario, runTests)
   addOnEvent(defines.events.on_tick, tryContinueTests)
 }
 
-function loadTests(files: string[], config: Config): TestState {
+function loadTests(files: string[], partialConfig: Partial<Config>): TestState {
+  const config = fillConfig(partialConfig)
   Object.assign(globalThis, globals)
   resetTestState(config)
   const state = getTestState()
 
-  if (config.default_ticks_between_tests) {
-    ticks_between_tests(config.default_ticks_between_tests)
-  }
+  ticks_between_tests(config.default_ticks_between_tests)
   for (const file of files) {
     describe(file, () => {
       _require_(file)
@@ -52,16 +53,18 @@ function runTests() {
 
   const state = getTestState()
   const { config } = state
-  if (config.show_progress_gui !== false) {
+  if (config.show_progress_gui) {
     addTestListeners(progressGuiListener)
-    addLogHandlers(progressGuiLogger)
-  } else {
-    addLogHandlers(gameLogger)
+    addLogHandler(progressGuiLogger)
   }
-  if (debugAdapterEnabled) {
-    addLogHandlers(debugAdapterLogger)
-  } else {
-    addLogHandlers((_, message) => {
+  if (config.log_to_game) {
+    addLogHandler(gameLogger)
+  }
+  if (config.log_to_DA && debugAdapterEnabled) {
+    addLogHandler(debugAdapterLogger)
+  }
+  if (config.log_to_log || (config.log_to_DA && !debugAdapterEnabled)) {
+    addLogHandler((_, message) => {
       log(message)
     })
   }
@@ -71,10 +74,8 @@ function runTests() {
     setLogLevel(LogLevel.Debug)
   } else if (config.log_level === "basic") {
     setLogLevel(LogLevel.Info)
-  } else if (debugAdapterEnabled) {
-    setLogLevel(LogLevel.Debug)
   } else {
-    setLogLevel(LogLevel.Debug)
+    assertNever(config.log_level)
   }
 
   config.before_test_run?.()

@@ -205,8 +205,6 @@ const describe = createDescribeEach(undefined) as DescribeCreator
 describe.skip = createDescribeEach("skip")
 describe.only = createDescribeEach("only")
 
-const DEFAULT_TIMEOUT = 60 * 60
-
 type Globals =
   | `${"before" | "after"}_${"each" | "all"}`
   | "async"
@@ -245,7 +243,7 @@ export const globals: Pick<typeof globalThis, Globals> = {
       error("test is already async")
     }
     if (!timeout) {
-      timeout = getTestState().config.default_timeout ?? DEFAULT_TIMEOUT
+      timeout = getTestState().config.default_timeout
     }
     if (timeout < 1) {
       error("test timeout must be greater than 0")

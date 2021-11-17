@@ -5,7 +5,7 @@ import { TestState } from "./state"
 
 export function setupListener(event: TestEvent, state: TestState): void {
   if (event.type === "startTestRun") {
-    game.speed = state.config.game_speed ?? 1000
+    game.speed = state.config.game_speed
     game.autosave_enabled = false
   } else if (event.type === "finishTestRun") {
     game.speed = 1

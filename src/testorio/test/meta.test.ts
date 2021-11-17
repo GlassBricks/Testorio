@@ -4,6 +4,7 @@ import { DescribeBlock, Test } from "../tests"
 import { TestStage } from "../../shared-constants"
 import { TestEvent } from "../testEvents"
 import { resultCollector } from "../result"
+import { fillConfig } from "../config"
 
 // simulated test environment
 let actions: unknown[] = []
@@ -15,7 +16,7 @@ before_each(() => {
   actions = []
   events = []
   originalTestState = getTestState()
-  resetTestState({})
+  resetTestState(fillConfig({}))
   mockTestState = getTestState()
 
   let testStage = TestStage.NotRun
@@ -917,9 +918,9 @@ describe("test events", () => {
 })
 
 test("Test pattern", () => {
-  mockTestState.config = {
+  mockTestState.config = fillConfig({
     test_pattern: "foo",
-  }
+  })
   test("bar", () => {
     actions.push("no")
   })

@@ -21,8 +21,8 @@ export type LogHandler = (color: LogColor, message: string, source: Source | und
 
 const logHandlers: LogHandler[] = []
 
-export function addLogHandlers(...handlers: LogHandler[]): void {
-  logHandlers.push(...handlers)
+export function addLogHandler(handler: LogHandler): void {
+  logHandlers.push(handler)
 }
 
 export function doLog(level: LogLevel, message: string, color: LogColor = level as number, source?: Source): void {
@@ -35,7 +35,7 @@ export function doLog(level: LogLevel, message: string, color: LogColor = level 
 
 export const debugAdapterEnabled = script.active_mods.debugadapter !== undefined
 
-let currentLevel: LogLevel = debugAdapterEnabled ? LogLevel.Debug : LogLevel.Info
+let currentLevel: LogLevel = LogLevel.Info
 
 export function setLogLevel(level: LogLevel): void {
   currentLevel = level

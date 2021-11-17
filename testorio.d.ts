@@ -17,14 +17,17 @@ declare function ticks_between_tests(ticks: number): void
 /** @noSelf */
 declare namespace Testorio {
   interface Config {
-    show_progress_gui?: boolean
+    show_progress_gui: boolean
 
-    default_timeout?: number
-    default_ticks_between_tests?: number
+    default_timeout: number
+    default_ticks_between_tests: number
 
-    game_speed?: number
+    game_speed: number
 
-    log_level?: "basic" | "debug" | "trace"
+    log_level: "basic" | "debug" | "trace"
+    log_to_game: boolean
+    log_to_DA: boolean
+    log_to_log: boolean
 
     test_pattern?: string
 

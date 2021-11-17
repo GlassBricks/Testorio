@@ -3,8 +3,13 @@
 import Config = Testorio.Config
 
 let initCalled = false
-function init(this: void, files: string[] | undefined, config?: Config): void
-function init(this: void, a: string[] | undefined, b: string[] | Config | undefined, c?: Config): void {
+function init(this: void, files: string[], config?: Partial<Config>): void
+function init(
+  this: void,
+  a: string[] | undefined,
+  b: string[] | Partial<Config> | undefined,
+  c?: Partial<Config>,
+): void {
   const files = (a ?? b ?? error("Files must be specified")) as string[]
   const config = ((a ? b : c) ?? {}) as Config
   if (initCalled) {
