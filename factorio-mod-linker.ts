@@ -15,7 +15,7 @@ program.showHelpAfterError()
 
 const factoriorcHelp =
   "A .factoriorc(.json, .yml) config file should be present in this or any parent directory. " +
-  "It should have the field mods_path with the path to the (destination) factorio mods folder. "
+  "It should have the field factorio_mods_path with the path to the (destination) factorio mods folder. "
 program
   .description("Creates symlinks for factorio mods for development.")
   .addHelpText(
