@@ -1,14 +1,18 @@
 {
   "name": "testorio",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Utilities for Testorio, a test framework for factorio.",
   "keywords": [
-    "factorio", "test", "testing"
+    "factorio",
+    "test",
+    "testing"
   ],
   "homepage": "https://github.com/GlassBricks/Testorio#readme",
   "license": "MIT",
   "files": [
-    "index.d.ts", "testorio.d.ts", "factorio-mod-linker.js"
+    "index.d.ts",
+    "testorio.d.ts",
+    "factorio-mod-linker.js"
   ],
   "bin": {
     "fml": "./factorio-mod-linker.js"
@@ -19,8 +23,9 @@
     "commander": "^8.3.0",
     "cosmiconfig": "^7.0.1",
     "globby": "^11.0.4",
-    "luassert-tstl": "^0.2.2",
-    "rimraf": "^3.0.2"
+    "luassert-tstl": ">=0.2.2",
+    "rimraf": "^3.0.2",
+    "typed-factorio": ">=0.12.0"
   },
   "devDependencies": {
     "@types/gulp": "^4.0.9",
@@ -42,7 +47,6 @@
     "prettier": "^2.4.1",
     "prettier-plugin-jsdoc": "^0.3.30",
     "ts-node": "^10.4.0",
-    "typed-factorio": "^0.11.1",
     "typescript": "^4.4.4",
     "typescript-to-lua": "^1.1.1",
     "typescript-tstl-plugin": "^0.3.2"
