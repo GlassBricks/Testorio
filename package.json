@@ -3,16 +3,12 @@
   "version": "0.1.4",
   "description": "Utilities for Testorio, a test framework for factorio.",
   "keywords": [
-    "factorio",
-    "test",
-    "testing"
+    "factorio", "test", "testing"
   ],
   "homepage": "https://github.com/GlassBricks/Testorio#readme",
   "license": "MIT",
   "files": [
-    "index.d.ts",
-    "testorio.d.ts",
-    "factorio-mod-linker.js"
+    "index.d.ts", "testorio.d.ts", "factorio-mod-linker.js"
   ],
   "bin": {
     "fml": "./factorio-mod-linker.js"
@@ -23,7 +19,7 @@
     "commander": "^8.3.0",
     "cosmiconfig": "^7.0.1",
     "globby": "^11.0.4",
-    "luassert-tstl": ">=0.2.2",
+    "luassert-tstl": ">=0.2.3",
     "rimraf": "^3.0.2",
     "typed-factorio": ">=0.12.0"
   },
