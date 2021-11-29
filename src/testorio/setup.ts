@@ -135,16 +135,16 @@ function createEachItems(
 function createTestEach(mode: TestMode): TestCreatorBase {
   const eachFn: TestCreatorBase["each"] = (values: unknown[][], name: string, func: (...values: any[]) => void) => {
     const items = createEachItems(values, name)
-    const testBuilders = items.map(({ row, name }) => {
+    const testBuilders = items.map((item) => {
       const test = createTest(
-        name,
+        item.name,
         () => {
-          func(...row)
+          func(...item.row)
         },
         mode,
         2,
       )
-      return { test, row }
+      return { test, row: item.row }
     })
     return createTestBuilder<(...args: unknown[]) => void>((func) => {
       for (const { test, row } of testBuilders) {
