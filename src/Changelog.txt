@@ -1,0 +1,5 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.2.0
+Date: 2021-11-28
+  Changes:
+    - Update to TypescriptToLua 1.2.0. This brings very minor performance improvements, and fixes some minor compatibility issues
