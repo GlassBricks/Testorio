@@ -1,18 +1,14 @@
 {
   "name": "testorio",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Utilities for Testorio, a test framework for factorio.",
   "keywords": [
-    "factorio",
-    "test",
-    "testing"
+    "factorio", "test", "testing"
   ],
   "homepage": "https://github.com/GlassBricks/Testorio#readme",
   "license": "MIT",
   "files": [
-    "index.d.ts",
-    "testorio.d.ts",
-    "factorio-mod-linker.js"
+    "index.d.ts", "testorio.d.ts", "factorio-mod-linker.js"
   ],
   "bin": {
     "fml": "./factorio-mod-linker.js"
@@ -23,32 +19,32 @@
     "commander": "^8.3.0",
     "cosmiconfig": "^7.0.1",
     "globby": "^11.0.4",
-    "luassert-tstl": ">=0.2.3",
+    "luassert-tstl": "^0.2.3",
     "rimraf": "^3.0.2",
-    "typed-factorio": ">=0.12.0"
+    "typed-factorio": "^0.12.0"
   },
   "devDependencies": {
     "@types/gulp": "^4.0.9",
-    "@types/node": "^16.11.7",
-    "@typescript-eslint/eslint-plugin": "^5.3.1",
-    "@typescript-eslint/parser": "^5.3.1",
+    "@types/node": "^16.11.10",
+    "@typescript-eslint/eslint-plugin": "^5.4.0",
+    "@typescript-eslint/parser": "^5.4.0",
     "del": "^5.1.0",
-    "eslint": "^8.2.0",
+    "eslint": "^8.3.0",
     "eslint-config-esnext": "^4.1.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-config-recommended": "^4.1.0",
     "eslint-import-resolver-typescript": "^2.5.0",
     "eslint-plugin-eslint-comments": "^3.2.0",
-    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-prettier": "^4.0.0",
     "gulp": "^4.0.2",
     "gulp-typescript": "^6.0.0-alpha.1",
     "lua-types": "^2.11.0",
-    "prettier": "^2.4.1",
+    "prettier": "^2.5.0",
     "prettier-plugin-jsdoc": "^0.3.30",
     "ts-node": "^10.4.0",
-    "typescript": "^4.4.4",
-    "typescript-to-lua": "^1.1.1",
+    "typescript": "^4.5.2",
+    "typescript-to-lua": "^1.2.0",
     "typescript-tstl-plugin": "^0.3.2"
   },
   "scripts": {
