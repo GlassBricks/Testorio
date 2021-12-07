@@ -4,6 +4,7 @@ import { countRunningTests } from "./tests"
 import { TestState } from "./state"
 import { RunResults } from "./result"
 import { logColors, LogHandler } from "./log"
+import ProgressGui = Locale.ProgressGui
 
 namespace Colors {
   export const Red: Color = { r: 255, g: 40, b: 40 }
@@ -129,7 +130,7 @@ function createTestProgressGui(state: TestState): TestProgressGui {
   screen[TestProgressName]?.destroy()
   const frame = screen.add<"frame">({
     type: "frame",
-    caption: [Locale.TestProgressGuiTitle, getTestMod()],
+    caption: [ProgressGui.Title, getTestMod()],
     direction: "vertical",
     name: TestProgressName,
   })
@@ -150,10 +151,10 @@ function updateStatus(gui: TestProgressGui, results: RunResults) {
 
   const testCounts = gui.testCounts.children
 
-  testCounts[0].caption = [Locale.Passed, results.passed]
-  if (results.failed > 0) testCounts[1].caption = [Locale.Failed, results.failed]
-  if (results.skipped > 0) testCounts[2].caption = [Locale.Skipped, results.skipped]
-  if (results.todo > 0) testCounts[3].caption = [Locale.Todo, results.todo]
+  testCounts[0].caption = [ProgressGui.NPassed, results.passed]
+  if (results.failed > 0) testCounts[1].caption = [ProgressGui.NFailed, results.failed]
+  if (results.skipped > 0) testCounts[2].caption = [ProgressGui.NSkipped, results.skipped]
+  if (results.todo > 0) testCounts[3].caption = [ProgressGui.NTodo, results.todo]
 }
 
 export const progressGuiListener: TestListener = (event, state) => {
@@ -165,42 +166,59 @@ export const progressGuiListener: TestListener = (event, state) => {
     }
     case "enterDescribeBlock": {
       const { block } = event
-      gui.statusText.caption = [Locale.RunningTest, block.path]
+      gui.statusText.caption = [ProgressGui.RunningTest, block.path]
       break
     }
     case "testStarted": {
       const { test } = event
-      gui.statusText.caption = [Locale.RunningTest, test.path]
+      gui.statusText.caption = [ProgressGui.RunningTest, test.path]
       break
     }
     case "testFailed": {
       updateStatus(gui, state.results)
-      gui.statusText.caption = [Locale.RunningTest, event.test.parent.path]
+      gui.statusText.caption = [ProgressGui.RunningTest, event.test.parent.path]
       break
     }
     case "testPassed": {
       updateStatus(gui, state.results)
-      gui.statusText.caption = [Locale.RunningTest, event.test.parent.path]
+      gui.statusText.caption = [ProgressGui.RunningTest, event.test.parent.path]
       break
     }
     case "testSkipped": {
       updateStatus(gui, state.results)
-      gui.statusText.caption = [Locale.RunningTest, event.test.parent.path]
+      gui.statusText.caption = [ProgressGui.RunningTest, event.test.parent.path]
       break
     }
     case "testTodo": {
       updateStatus(gui, state.results)
-      gui.statusText.caption = [Locale.RunningTest, event.test.parent.path]
+      gui.statusText.caption = [ProgressGui.RunningTest, event.test.parent.path]
       break
     }
     case "exitDescribeBlock": {
       const { block } = event
-      if (block.parent) gui.statusText.caption = [Locale.RunningTest, block.parent.path]
+      if (block.parent) gui.statusText.caption = [ProgressGui.RunningTest, block.parent.path]
       break
     }
-    case "finishTestRun":
+    case "finishTestRun": {
+      let message: string
+      switch (state.results.status) {
+        case "passed":
+          message = ProgressGui.Pass
+          break
+        case "failed":
+          message = ProgressGui.Fail
+          break
+        case "todo":
+          message = ProgressGui.PassWithTodo
+          break
+        case "not completed":
+          error("finishTestRun emitted without test result")
+      }
+      gui.statusText.caption = [ProgressGui.TestRunCompleted, [message]]
+      break
+    }
     case "loadError": {
-      gui.statusText.caption = [Locale.TestsCompleted]
+      gui.statusText.caption = [ProgressGui.TestRunCompleted, [ProgressGui.LoadError]]
       break
     }
   }

@@ -26,7 +26,7 @@ before_each(() => {
   }
   mockTestState.raiseTestEvent = (event) => {
     events.push(event)
-    if (event.type !== "finishTestRun" && event.type !== "loadError") resultCollector(event, mockTestState)
+    resultCollector(event, mockTestState)
   }
 })
 
@@ -145,7 +145,7 @@ describe("setup", () => {
       // nothing
     })
     runTestSync()
-    assert.not_same(mockTestState.suppressedErrors, [])
+    assert.not_same(mockTestState.results.suppressedErrors, [])
   })
 })
 
@@ -284,7 +284,7 @@ describe("failing tests", () => {
     })
     const theTest = runTestSync()
     assert.are_equal(1, theTest.errors.length)
-    assert.matches(failMessage, mockTestState.suppressedErrors[0], undefined, true)
+    assert.matches(failMessage, mockTestState.results.suppressedErrors[0], undefined, true)
   })
 
   test("Error stacktrace is clean", () => {
@@ -826,9 +826,9 @@ describe("reload state", () => {
       async()
     })
     reloadAndTick()
-    assert.same(mockTestState.suppressedErrors, [])
+    assert.same(mockTestState.results.suppressedErrors, [])
     reloadAndTick()
-    assert.not_same(mockTestState.suppressedErrors, [])
+    assert.not_same(mockTestState.results.suppressedErrors, [])
     assert.equal(TestStage.LoadError, mockTestState.getTestStage())
   })
 

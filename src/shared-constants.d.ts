@@ -9,31 +9,37 @@ export const enum Prototypes {
   TestTubeSprite = "testorio:test-tube-sprite",
 }
 
-export const enum Locale {
-  Tests = "testorio.tests",
-  TestConfigTitle = "testorio.test-config-title",
-  LoadTestsFor = "testorio.load-tests-for",
-  NoMod = "testorio.no-mod",
-  OtherMod = "testorio.other-mod",
-  ReloadMods = "testorio.reload-mods",
-  ModNotRegisteredTests = "testorio.mod-not-registered-tests",
-  ModNotLoadedTests = "testorio.mod-not-loaded-tests",
-  TestsNotRun = "testorio.tests-not-run",
-  TestsRunning = "testorio.tests-running",
-  TestLoadError = "testorio.test-load-error",
-  TestsCompleted = "testorio.tests-completed",
-  RunNow = "testorio.run-now",
-  ReloadAndRunTests = "testorio.reload-and-run-tests",
-
-  TestProgressGuiTitle = "testorio.test-progress-gui-title",
-  RunningTest = "testorio.running-test",
-  Passed = "testorio.n-passed",
-  Failed = "testorio.n-failed",
-  Skipped = "testorio.n-skipped",
-  Todo = "testorio.n-todo",
+export namespace Locale {
+  export const enum Testorio {
+    Tests = "testorio.tests",
+  }
+  export const enum ConfigGui {
+    Title = "testorio.config-gui.title",
+    LoadTestsFor = "testorio.config-gui.load-tests-for",
+    NoMod = "testorio.config-gui.none",
+    OtherMod = "testorio.config-gui.other",
+    ReloadMods = "testorio.config-gui.reload-mods",
+    ModNotRegisteredTests = "testorio.config-gui.mod-not-registered",
+    TestsNotRun = "testorio.config-gui.tests-not-run",
+    TestsAlreadyStarted = "testorio.config-gui.tests-already-started",
+    RunNow = "testorio.config-gui.run-now",
+    ReloadAndRunTests = "testorio.config-gui.reload-and-run",
+  }
+  export const enum ProgressGui {
+    Title = "testorio.progress-gui.title",
+    RunningTest = "testorio.progress-gui.running-test",
+    NPassed = "testorio.progress-gui.n-passed",
+    NFailed = "testorio.progress-gui.n-failed",
+    NSkipped = "testorio.progress-gui.n-skipped",
+    NTodo = "testorio.progress-gui.n-todo",
+    TestRunCompleted = "testorio.progress-gui.test-run-completed",
+    Pass = "testorio.progress-gui.pass",
+    Fail = "testorio.progress-gui.fail",
+    PassWithTodo = "testorio.progress-gui.pass-with-todo",
+    LoadError = "testorio.progress-gui.load-error",
+  }
 }
 
-// test state that is persistent across game reload. Stored in global.settings
 export const enum TestStage {
   NotRun = "NotRun",
   Running = "Running",

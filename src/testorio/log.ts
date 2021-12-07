@@ -97,7 +97,7 @@ export const loggingListener: TestListener = (event, state) => {
       doLog(LogLevel.Trace, `BLOCK: ${block.name}`, undefined, block.source)
       break
     }
-    case "testStarted": {
+    case "testEntered": {
       const { test } = event
       doLog(LogLevel.Trace, `TEST:  ${test.path}`, undefined, test.source)
       break

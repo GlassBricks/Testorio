@@ -15,7 +15,11 @@ declare const ____originalRequire: typeof require
 
 export function load(this: unknown, files: string[], config: Partial<Config>): void {
   loadTests(files, config)
-  remote.add_interface(Remote.RunTests, { runTests, modName: () => script.mod_name })
+  remote.add_interface(Remote.RunTests, {
+    runTests,
+    modName: () => script.mod_name,
+    currentTestStage: () => getTestState().getTestStage(),
+  })
   addOnEvent(defines.events.on_game_created_from_scenario, runTests)
   addOnEvent(defines.events.on_tick, tryContinueTests)
 }

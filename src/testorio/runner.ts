@@ -245,7 +245,7 @@ export function createRunner(state: TestState): TestRunner {
     })
 
     if (block.children.length === 0) {
-      state.suppressedErrors.push(`${block.path} has no tests defined.\n${formatSource(block.source)}`)
+      state.results.suppressedErrors.push(`${block.path} has no tests defined.\n${formatSource(block.source)}`)
     } else if (hasAnyTest(block)) {
       const hooks = block.hooks.filter((x) => x.type === "beforeAll")
       for (const hook of hooks) {
@@ -381,7 +381,7 @@ export function createRunner(state: TestState): TestRunner {
       for (const hook of hooks) {
         const [success, message] = xpcall(hook.func, getErrorWithStacktrace)
         if (!success) {
-          state.suppressedErrors.push(`Error running ${hook.type}: ${message}`)
+          state.results.suppressedErrors.push(`Error running ${hook.type}: ${message}`)
         }
       }
     }

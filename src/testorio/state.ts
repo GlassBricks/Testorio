@@ -1,6 +1,6 @@
 /** @noSelfInFile */
 import { createRootDescribeBlock, DescribeBlock, Test } from "./tests"
-import { TestStage } from "../shared-constants"
+import { Remote, TestStage } from "../shared-constants"
 import { _raiseTestEvent, TestEvent } from "./testEvents"
 import { createRunResult, RunResults } from "./result"
 import OnTickFn = Testorio.OnTickFn
@@ -16,7 +16,6 @@ export interface TestState {
 
   // run
   currentTestRun?: TestRun
-  suppressedErrors: string[]
 
   results: RunResults
 
@@ -61,6 +60,7 @@ export function getGlobalTestStage(): TestStage {
 
 function setGlobalTestStage(stage: TestStage): void {
   global.__testorioTestStage = stage
+  script.raise_event(remote.call(Remote.Testorio, "onTestStageChanged"), { stage })
 }
 
 export function resetTestState(config: Config): void {
@@ -70,7 +70,6 @@ export function resetTestState(config: Config): void {
     rootBlock,
     currentBlock: rootBlock,
     hasFocusedTests: false,
-    suppressedErrors: [],
     getTestStage: getGlobalTestStage,
     setTestStage: setGlobalTestStage,
     raiseTestEvent(event) {
@@ -85,7 +84,7 @@ export function makeLoadError(state: TestState, error: string): void {
   state.rootBlock = createRootDescribeBlock()
   state.currentBlock = undefined
   state.currentTestRun = undefined
-  state.suppressedErrors = [error]
+  state.results.suppressedErrors = [error]
 }
 
 export function getCurrentBlock(): DescribeBlock {

@@ -4,6 +4,7 @@ import { GuiAction, guiAction } from "./guiAction"
 import { postLoadAction } from "./postLoadAction"
 import { Settings } from "../constants"
 import { onTestStageChanged } from "../remote"
+import ConfigGui = Locale.ConfigGui
 
 const TestConfigName = "testorio:test-config"
 const ModSelectWidth = 150
@@ -25,7 +26,7 @@ function configGuiValid(): boolean {
 
 function getModSelectItems(): LocalisedString[] {
   const mods = Object.keys(script.active_mods).filter((mod) => remote.interfaces[Remote.TestsAvailableFor + mod])
-  return [[Locale.NoMod], ...mods, [Locale.OtherMod]]
+  return [[ConfigGui.NoMod], ...mods, [ConfigGui.OtherMod]]
 }
 
 function DragHandle(parent: LuaGuiElement) {
@@ -92,7 +93,7 @@ function ModSelect(parent: LuaGuiElement) {
   mainFlow.add({
     type: "label",
     style: "caption_label",
-    caption: [Locale.LoadTestsFor],
+    caption: [ConfigGui.LoadTestsFor],
   })
 
   const selectFlow = mainFlow.add({
@@ -119,7 +120,7 @@ function ModSelect(parent: LuaGuiElement) {
     type: "sprite-button",
     style: "tool_button",
     sprite: "utility/refresh",
-    tooltip: [Locale.ReloadMods],
+    tooltip: [ConfigGui.ReloadMods],
     tags: {
       modName,
       on_gui_click: Refresh,
@@ -251,18 +252,12 @@ function updateTestStageGui() {
 
   let runTestsButtons = false
   let message: LocalisedString
-  const stage = settings.global[Settings.TestStage].value as TestStage
+  const stage = remote.interfaces[Remote.RunTests] ? remote.call(Remote.RunTests, "currentTestStage") : TestStage.NotRun
   if (stage === TestStage.NotRun) {
-    message = [Locale.TestsNotRun]
+    message = [ConfigGui.TestsNotRun]
     runTestsButtons = true
-  } else if (stage === TestStage.Running || stage === TestStage.ToReload) {
-    message = [Locale.TestsRunning]
-  } else if (stage === TestStage.Completed) {
-    message = [Locale.TestsCompleted]
-  } else if (stage === TestStage.LoadError) {
-    message = [Locale.TestLoadError]
   } else {
-    message = [Locale.TestsCompleted]
+    message = [ConfigGui.TestsAlreadyStarted]
   }
 
   mainFlow.add({
@@ -280,13 +275,13 @@ function updateTestStageGui() {
 
     buttonFlow.add({
       type: "button",
-      caption: [Locale.RunNow],
+      caption: [ConfigGui.RunNow],
       tags: {
         modName,
         on_gui_click: StartTests,
       },
       enabled: runEnabled,
-      tooltip: !runEnabled ? [Locale.ModNotRegisteredTests] : undefined,
+      tooltip: !runEnabled ? [ConfigGui.ModNotRegisteredTests] : undefined,
     })
     const spacer = buttonFlow.add({
       type: "empty-widget",
@@ -295,13 +290,13 @@ function updateTestStageGui() {
     buttonFlow.add({
       type: "button",
       style: "green_button",
-      caption: [Locale.ReloadAndRunTests],
+      caption: [ConfigGui.ReloadAndRunTests],
       tags: {
         modName,
         on_gui_click: ReloadAndStartTests,
       },
       enabled: runEnabled,
-      tooltip: !runEnabled ? [Locale.ModNotRegisteredTests] : undefined,
+      tooltip: !runEnabled ? [ConfigGui.ModNotRegisteredTests] : undefined,
     })
   }
 
@@ -325,7 +320,7 @@ function createConfigGui(player: LuaPlayer): FrameGuiElement {
   })
   frame.auto_center = true
 
-  TitleBar(frame, [Locale.TestConfigTitle])
+  TitleBar(frame, [ConfigGui.Title])
   ModSelect(frame)
   frame.add({
     type: "line",
@@ -368,7 +363,7 @@ function createModButton(player: LuaPlayer) {
     name: TestConfigName,
     style: modGui.button_style,
     sprite: Prototypes.TestTubeSprite,
-    tooltip: [Locale.Tests],
+    tooltip: [Locale.Testorio.Tests],
     tags: {
       modName,
       on_gui_click: ToggleConfigGui,
