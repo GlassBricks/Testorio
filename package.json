@@ -1,26 +1,18 @@
 {
   "name": "testorio",
   "version": "0.2.0",
-  "description": "Utilities for Testorio, a test framework for factorio.",
+  "description": "Type definitions for Testorio, a test framework for factorio. For use with TypescriptToLua",
   "keywords": [
     "factorio", "test", "testing"
   ],
   "homepage": "https://github.com/GlassBricks/Testorio#readme",
   "license": "MIT",
   "files": [
-    "index.d.ts", "testorio.d.ts", "factorio-mod-linker.js"
+    "index.d.ts", "testorio.d.ts"
   ],
-  "bin": {
-    "fml": "./factorio-mod-linker.js"
-  },
   "repository": "https://github.com/GlassBricks/Testorio.git",
   "dependencies": {
-    "@types/rimraf": "^3.0.2",
-    "commander": "^8.3.0",
-    "cosmiconfig": "^7.0.1",
-    "globby": "^11.0.4",
     "luassert-tstl": "^0.2.3",
-    "rimraf": "^3.0.2",
     "typed-factorio": "^0.12.0"
   },
   "devDependencies": {

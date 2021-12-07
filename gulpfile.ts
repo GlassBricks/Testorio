@@ -1,11 +1,10 @@
-import { dest, parallel, series, src, task } from "gulp"
+import { parallel, series, src, task } from "gulp"
 import * as ts from "typescript"
 import * as tstl from "typescript-to-lua"
 import * as path from "path"
 import del from "del"
 import * as fs from "fs/promises"
 import globby from "globby"
-import gulpTs from "gulp-typescript"
 import * as child_process from "child_process"
 
 function logDiagnostics(diagnostics: readonly ts.Diagnostic[]) {
@@ -160,22 +159,7 @@ function compileTestMod() {
 }
 task("buildTestMod", series(buildDefs, compileTestMod))
 
-function buildFml() {
-  return src("factorio-mod-linker.ts")
-    .pipe(
-      gulpTs({
-        target: "ES2019",
-        module: "commonjs",
-        moduleResolution: "node",
-        strict: true,
-        esModuleInterop: true,
-      }),
-    )
-    .pipe(dest("."))
-}
-task(buildFml)
-
-task("buildPackage", series(cleanAll, parallel(buildDefs, buildFml)))
+task("buildPackage", series(cleanAll, buildDefs))
 
 async function cleanAll() {
   return del([
@@ -196,12 +180,11 @@ task(
     parallel(
       series(parallel(copyLuassert, buildDefs), parallel(compileTestorioWithTests, compileTestMod)),
       buildModfiles,
-      buildFml,
     ),
   ),
 )
 function runFml() {
-  return child_process.spawn("node", ["factorio-mod-linker.js"], {
+  return child_process.spawn("node", ["fml/factorio-mod-linker.js"], {
     stdio: "inherit",
     cwd: __dirname,
   })
