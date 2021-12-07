@@ -9,8 +9,9 @@ import { progressGuiListener, progressGuiLogger } from "./progressGui"
 import { addLogHandler, debugAdapterEnabled, debugAdapterLogger, gameLogger, LogLevel, setLogLevel } from "./log"
 import { assertNever } from "./util"
 import { fillConfig } from "./config"
-import _require_ = require("./require/_require_")
 import Config = Testorio.Config
+
+declare const ____originalRequire: typeof require
 
 export function load(this: unknown, files: string[], config: Partial<Config>): void {
   loadTests(files, config)
@@ -26,9 +27,10 @@ function loadTests(files: string[], partialConfig: Partial<Config>): TestState {
   const state = getTestState()
 
   ticks_between_tests(config.default_ticks_between_tests)
+  const _require = settings.global["testorio:test-mod"].value === "testorio" ? require : ____originalRequire
   for (const file of files) {
     describe(file, () => {
-      _require_(file)
+      _require(file)
     })
   }
   state.currentBlock = undefined

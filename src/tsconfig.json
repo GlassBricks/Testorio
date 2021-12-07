@@ -4,6 +4,7 @@
     "module": "none",
     "moduleResolution": "node",
     "types": ["typed-factorio/runtime"],
+    "lib": ["esnext"],
     "plugins": [
       {
         "name": "typescript-tstl-plugin"

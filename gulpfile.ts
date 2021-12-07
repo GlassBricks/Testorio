@@ -139,9 +139,14 @@ task(buildDefs)
 
 // files intended to be used by other mods.
 function compileTestorio() {
-  return compileTstl("src/testorio/tsconfig.json")
+  return compileTstl("src/testorio/tsconfig-release.json")
 }
 task("buildTestorio", series(parallel(copyLuassert, buildDefs), compileTestorio))
+
+function compileTestorioWithTests() {
+  return compileTstl("src/testorio/tsconfig.json")
+}
+task("buildTestorioTest", series(parallel(copyLuassert, buildDefs), compileTestorioWithTests))
 
 function cleanMod() {
   return del(["src/**/*.lua", "!**/*.def.lua", "!**/{scenarios,node_modules}/**", "!luassert/**", "!say/**"])
@@ -189,7 +194,7 @@ task(
   series(
     cleanAll,
     parallel(
-      series(parallel(copyLuassert, buildDefs), parallel(compileTestorio, compileTestMod)),
+      series(parallel(copyLuassert, buildDefs), parallel(compileTestorioWithTests, compileTestMod)),
       buildModfiles,
       buildFml,
     ),

@@ -67,9 +67,7 @@ export interface TestRunner {
   isDone(): boolean
 }
 
-let thisFileName = debug.getinfo(1)!.short_src
-assert(thisFileName.endsWith(".lua"))
-thisFileName = "\t" + thisFileName.substr(0, thisFileName.length - 4)
+const thisFileName = "\trunner.ts:"
 
 const enum LoadResult {
   FirstLoad,
@@ -152,7 +150,7 @@ export function createRunner(state: TestState): TestRunner {
     // level: 1 = here, 2 = getErrorWithStackTrace(), 3 = error location
 
     const lines = stacktrace.split("\n")
-    for (let i = 1; i < lines.length; i++) {
+    for (let i = 1, l = lines.length; i < l; i++) {
       if (lines[i - 1].endsWith(": in function 'xpcall'") && lines[i].startsWith(thisFileName)) {
         if (lines[i - 2] === "\t[C]: in function 'rawxpcall'") {
           i--

@@ -3,7 +3,8 @@
     "target": "esnext",
     "module": "none",
     "moduleResolution": "node",
-    "types": ["typed-factorio/runtime"],
+    "types": ["typed-factorio/runtime", "luassert-tstl"],
+    "lib": ["esnext"],
     "plugins": [
       {
         "name": "typescript-tstl-plugin"
@@ -16,7 +17,9 @@
   "tstl": {
     "luaTarget": "5.2",
     "sourceMapTraceback": true,
-    "noImplicitSelf": true
+    "noImplicitSelf": true,
+    "luaBundle": "../_testorio.lua",
+    "luaBundleEntry": "load.ts"
   },
   "include": [
     ".", "../../node_modules/typed-factorio/runtime/index.d.ts", "../../index.d.ts"
