@@ -18,6 +18,11 @@ interface EnterDescribe {
 interface EnterTest {
   type: "enterTest"
   test: Test
+}
+
+interface StartTest {
+  type: "startTest"
+  test: Test
   waitTicks: number
 }
 
@@ -54,6 +59,7 @@ type Task =
   | StartTestRun
   | EnterDescribe
   | EnterTest
+  | StartTest
   | RunTestPart
   | WaitForTestPart
   | LeaveTest
@@ -196,7 +202,6 @@ export function createRunner(state: TestState): TestRunner {
         : {
             type: "enterTest",
             test: item,
-            waitTicks: item.ticksBefore,
           }
     }
     return {
@@ -258,7 +263,20 @@ export function createRunner(state: TestState): TestRunner {
     return nextDescribeBlockItem(block, 0)
   }
 
-  function enterTest({ test }: EnterTest): Task {
+  function enterTest({ test }: EnterTest): StartTest {
+    state.raiseTestEvent({
+      type: "testEntered",
+      test,
+    })
+
+    return {
+      type: "startTest",
+      test,
+      waitTicks: test.ticksBefore,
+    }
+  }
+
+  function startTest({ test }: StartTest): Task {
     // set testRun now, no errors in hooks
     const testRun = newTestRun(test, 0)
     state.currentTestRun = testRun
@@ -404,6 +422,8 @@ export function createRunner(state: TestState): TestRunner {
         return enterDescribe(task)
       case "enterTest":
         return enterTest(task)
+      case "startTest":
+        return startTest(task)
       case "runTestPart":
         return runTestPart(task)
       case "waitForTestPart":
@@ -444,7 +464,7 @@ export function createRunner(state: TestState): TestRunner {
     }
     state.setTestStage(TestStage.Running)
   } else if (resume.result === LoadResult.ConfigChangedAfterReload) {
-    createLoadError(`Tests changed after reloading: ${resume.test.path}. Aborting test run.`)
+    createLoadError(`Mod files/tests changed after reloading. Aborting test run.`)
   } else if (resume.result === LoadResult.AlreadyRunning) {
     createLoadError(
       `Save was unexpectedly reloaded while tests were running. This will cause tests to break. Aborting test run`,

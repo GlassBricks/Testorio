@@ -11,6 +11,10 @@ export interface EnterDescribeBlock extends BaseTestEvent {
   type: "enterDescribeBlock"
   block: DescribeBlock
 }
+export interface TestEntered extends BaseTestEvent {
+  type: "testEntered"
+  test: Test
+}
 export interface TestStarted extends BaseTestEvent {
   type: "testStarted"
   test: Test
@@ -45,6 +49,7 @@ export interface LoadError extends BaseTestEvent {
 export type TestEvent =
   | StartTestRun
   | EnterDescribeBlock
+  | TestEntered
   | TestStarted
   | TestPassed
   | TestFailed

@@ -169,7 +169,7 @@ export const progressGuiListener: TestListener = (event, state) => {
       gui.statusText.caption = [ProgressGui.RunningTest, block.path]
       break
     }
-    case "testStarted": {
+    case "testEntered": {
       const { test } = event
       gui.statusText.caption = [ProgressGui.RunningTest, test.path]
       break

@@ -852,6 +852,7 @@ describe("test events", () => {
       "startTestRun",
       "enterDescribeBlock", // root
       "enterDescribeBlock",
+      "testEntered",
       "testStarted",
       "testPassed",
       "exitDescribeBlock",
@@ -871,6 +872,7 @@ describe("test events", () => {
     const expected: TestEvent["type"][] = [
       "startTestRun",
       "enterDescribeBlock",
+      "testEntered",
       "testStarted",
       "testFailed",
       "exitDescribeBlock",
@@ -889,6 +891,7 @@ describe("test events", () => {
     const expected: TestEvent["type"][] = [
       "startTestRun",
       "enterDescribeBlock",
+      "testEntered",
       "testStarted",
       "testSkipped",
       "exitDescribeBlock",
@@ -905,6 +908,7 @@ describe("test events", () => {
     const expected: TestEvent["type"][] = [
       "startTestRun",
       "enterDescribeBlock",
+      "testEntered",
       "testStarted",
       "testTodo",
       "exitDescribeBlock",

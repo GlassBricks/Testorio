@@ -85,6 +85,7 @@ export function makeLoadError(state: TestState, error: string): void {
   state.currentBlock = undefined
   state.currentTestRun = undefined
   state.results.suppressedErrors = [error]
+  game.speed = 1
 }
 
 export function getCurrentBlock(): DescribeBlock {
