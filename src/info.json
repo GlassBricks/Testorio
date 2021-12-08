@@ -10,7 +10,7 @@
       "prepackage": "yarn run prepackage:mod"
     },
     "git_publish_branch": "main",
-    "ignore": ["**/tsconfig.json", "**/*.ts", "**/*.xcf"],
+    "ignore": ["**/tsconfig*.json", "**/*.ts", "**/*.xcf"],
     "no_git_tag": true,
     "removeZipAfterPackage": true
   }

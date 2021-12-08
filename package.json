@@ -3,15 +3,12 @@
   "version": "0.3.1",
   "description": "Type definitions for Testorio, a test framework for factorio. For use with TypescriptToLua",
   "keywords": [
-    "factorio",
-    "test",
-    "testing"
+    "factorio", "test", "testing"
   ],
   "homepage": "https://github.com/GlassBricks/Testorio#readme",
   "license": "MIT",
   "files": [
-    "index.d.ts",
-    "testorio.d.ts"
+    "index.d.ts", "testorio.d.ts"
   ],
   "repository": "https://github.com/GlassBricks/Testorio.git",
   "dependencies": {
@@ -43,12 +40,11 @@
     "typescript-tstl-plugin": "^0.3.2"
   },
   "scripts": {
-    "build:all": "gulp buildAll",
-    "build:package": "gulp buildPackage",
     "build:defs": "gulp buildDefs",
     "build:mod": "gulp buildMod",
-    "clean:mod": "gulp cleanMod",
+    "build:all": "gulp buildAll",
     "clean": "gulp clean",
+    "clean:mod": "gulp cleanMod",
     "watch:modfiles": "tstl -p src/tsconfig.json --watch",
     "watch:testorio": "tstl -p src/testorio/tsconfig.json --watch",
     "watch:test-mod": "tstl -p testorio-test-mod/tsconfig.json --watch",
