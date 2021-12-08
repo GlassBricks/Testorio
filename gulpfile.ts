@@ -168,7 +168,7 @@ async function cleanAll() {
     "!**/{scenarios,node_modules}/**",
     "!luassert/**",
     "!say/**",
-    "!fml/**",
+    "!testorio-tools/**",
     "index.d.ts",
   ])
 }
@@ -185,7 +185,7 @@ task(
   ),
 )
 function runFml() {
-  return child_process.spawn("node", ["fml/factorio-mod-linker.js"], {
+  return child_process.spawn("node", ["testorio-tools/factorio-mod-linker.js"], {
     stdio: "inherit",
     cwd: __dirname,
   })

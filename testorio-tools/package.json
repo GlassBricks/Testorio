@@ -28,6 +28,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "prepublish": "tsc"
+    "prepublish": "tsc",
+    "run": "node factorio-mod-linker.js"
   }
 }
