@@ -168,6 +168,7 @@ async function cleanAll() {
     "!**/{scenarios,node_modules}/**",
     "!luassert/**",
     "!say/**",
+    "!fml/**",
     "index.d.ts",
   ])
 }
