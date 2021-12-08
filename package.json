@@ -42,6 +42,7 @@
   "scripts": {
     "build:all": "gulp buildAll",
     "build:package": "gulp buildPackage",
+    "build:defs": "gulp buildDefs",
     "build:mod": "gulp buildMod",
     "clean:mod": "gulp cleanMod",
     "clean": "gulp clean",
