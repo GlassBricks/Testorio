@@ -1,6 +1,6 @@
 {
   "name": "testorio-tools",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Utilities supplementing Testorio, a test framework for factorio.",
   "keywords": [
     "factorio", "test", "testing"

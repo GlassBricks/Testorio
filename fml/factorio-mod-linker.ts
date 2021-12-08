@@ -13,6 +13,11 @@ const rimraf = util.promisify(rr)
 
 program.showHelpAfterError()
 
+interface Opts {
+  config: string
+  clear: boolean
+}
+
 const factoriorcHelp =
   "A .factoriorc(.json, .yml) config file should be present in this or any parent directory. " +
   "It should have the field factorio_mods_path with the path to the (destination) factorio mods folder. "
@@ -24,9 +29,10 @@ program
       "Mods are identified by an appropriate info.json file. \n" +
       factoriorcHelp,
   )
-  .option("--config, -c", "manually specify .factoriorc config path")
+  .option("--clear", "remove all existing symlinks instead of adding them")
+  .option("--config, -c [path]", "manually specify .factoriorc config path")
   .argument("[mods-dir]", `Directory to look for mods. Default is current working directory.`)
-  .action((modfilesDir: string, opts) => makeLinks(modfilesDir, opts.config))
+  .action((modfilesDir: string, opts) => main(modfilesDir, opts))
 
 program.parseAsync(process.argv).catch((error) => {
   console.error(error)
@@ -43,8 +49,34 @@ interface FactorioConfig {
   mods_path: string
 }
 
-async function makeLinks(dir: string | undefined, configPath: string | undefined): Promise<void> {
-  const config = getFactorioConfig(configPath)
+async function main(dir: string | undefined, opts: Opts) {
+  if (opts.clear) {
+    return clear(opts)
+  }
+  return makeLinks(dir, opts)
+}
+
+async function clear(opts: Opts) {
+  const modsPath = (await getFactorioConfig(opts.config)).mods_path
+  const dirs = await fs.readdir(modsPath)
+  let clearedAny = false
+  const promises = dirs.map(async (dir) => {
+    const fullPath = path.join(modsPath, dir)
+    const stats = await fs.lstat(fullPath)
+    if (stats.isSymbolicLink()) {
+      console.log(`Removing symlink ${dir}`)
+      clearedAny = true
+      await fs.unlink(fullPath)
+    }
+  })
+  await Promise.all(promises)
+  if (!clearedAny) {
+    console.log("No symlinks found in mods directory")
+  }
+}
+
+async function makeLinks(dir: string | undefined, opts: Opts): Promise<void> {
+  const config = getFactorioConfig(opts.config)
   const existing = new Map<string, string>() // mod_version -> path
   const infoJsons = await globby("**/info.json", {
     cwd: dir,
