@@ -3,6 +3,7 @@
   "exclude": ["test"],
   "tstl": {
     "luaTarget": "5.2",
+    "sourceMapTraceback": true,
     "noImplicitSelf": true,
     "luaBundle": "../_testorio.lua",
     "luaBundleEntry": "load.ts"

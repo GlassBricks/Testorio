@@ -1,6 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.1
+Date: 2021-12-8
+  Bugfixes:
+    - Fix issue with improper stacktrace in test output
+
+---------------------------------------------------------------------------------------------------
 Version: 0.3.0
-Date: ????
+Date: 2021-12-7
   Features:
     - Tags! You can now tag describe block/tests with string tags, and whitelist/blacklist tags in test config. See wiki on GitHub for more details.
   Changes:
