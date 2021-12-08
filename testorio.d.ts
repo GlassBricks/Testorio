@@ -13,6 +13,7 @@ declare function done(): void
 declare function on_tick(func: Testorio.OnTickFn): void
 declare function after_ticks(ticks: number, func: Testorio.TestFn): void
 declare function ticks_between_tests(ticks: number): void
+declare function tags(...tags: string[]): void
 
 /** @noSelf */
 declare namespace Testorio {
@@ -30,6 +31,8 @@ declare namespace Testorio {
     log_to_log: boolean
 
     test_pattern?: string
+    tag_whitelist?: string[]
+    tag_blacklist?: string[]
 
     before_test_run?(): void
     after_test_run?(): void

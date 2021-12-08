@@ -1,5 +1,5 @@
 /** @noSelfInFile */
-import { createRootDescribeBlock, DescribeBlock, Test } from "./tests"
+import { createRootDescribeBlock, DescribeBlock, Tags, Test } from "./tests"
 import { Remote, TestStage } from "../shared-constants"
 import { _raiseTestEvent, TestEvent } from "./testEvents"
 import { createRunResult, RunResults } from "./result"
@@ -12,6 +12,7 @@ export interface TestState {
   rootBlock: DescribeBlock
   // setup
   currentBlock?: DescribeBlock
+  currentTags?: Tags
   hasFocusedTests: boolean
 
   // run

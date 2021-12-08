@@ -5,6 +5,7 @@ import { TestStage } from "../../shared-constants"
 import { TestEvent } from "../testEvents"
 import { resultCollector } from "../result"
 import { fillConfig } from "../config"
+import * as util from "util"
 
 // simulated test environment
 let actions: unknown[] = []
@@ -69,6 +70,10 @@ function runTestAsync<T extends Test | DescribeBlock = Test>(callback: (item: T)
       done()
     }
   })
+}
+
+function skipRun() {
+  mockTestState.setTestStage(TestStage.Completed)
 }
 
 describe("setup", () => {
@@ -938,4 +943,128 @@ test("Test pattern", () => {
   })
   runTestSync()
   assert.are_same(["yes1", "yes2"], actions)
+})
+
+describe("tags", () => {
+  test("Can add tag to describe block", () => {
+    tags("foo", "bar")
+    describe("block", () => {
+      // noop
+    })
+    const result = runTestSync<DescribeBlock>()
+    assert.same(util.list_to_map(["foo", "bar"]), result.tags)
+  })
+
+  test("Can add tag to test", () => {
+    tags("foo", "bar")
+    test("Some test", () => 0)
+    test("Some other test", () => 0)
+    const result = runTestSync()
+    assert.same(util.list_to_map(["foo", "bar"]), result.tags)
+    assert.same([], mockTestState.rootBlock.children[1].tags)
+  })
+
+  test("Lonely tag call is error", () => {
+    describe("", () => {
+      tags("foo", "bar")
+    })
+    runTestSync()
+    assert.not_same([], mockTestState.results.suppressedErrors)
+  })
+
+  test("double tag call is error", () => {
+    tags("foo", "bar")
+    tags("foo", "bar")
+    test("some test", () => 0)
+    runTestSync()
+    assert.not_same([], mockTestState.results.suppressedErrors)
+  })
+
+  test("automatic after_mod_reload tag", () => {
+    tags("tag1")
+    test("foo", () => 0).after_mod_reload(() => 0)
+    skipRun()
+    assert.same(util.list_to_map(["tag1", "after_mod_reload"]), getFirst().tags)
+  })
+
+  test("automatic after_script_reload tag", () => {
+    tags("tag1")
+    test("foo", () => 0).after_mod_reload(() => 0)
+    skipRun()
+    assert.same(util.list_to_map(["tag1", "after_mod_reload"]), getFirst().tags)
+  })
+
+  test("tag whitelist", () => {
+    tags("yes")
+    test("", () => {
+      actions.push("yes1")
+    })
+
+    tags("yes")
+    describe("", () => {
+      test("", () => {
+        actions.push("yes2")
+      })
+    })
+
+    tags("no")
+    test("", () => {
+      actions.push("no")
+    })
+    mockTestState.config = fillConfig({ tag_whitelist: ["yes"] })
+    runTestSync()
+    assert.same(["yes1", "yes2"], actions)
+  })
+
+  test("tag blacklist", () => {
+    tags("yes")
+    test("", () => {
+      actions.push("yes")
+    })
+
+    tags("no")
+    describe("", () => {
+      test("", () => {
+        actions.push("no")
+      })
+    })
+
+    tags("no")
+    test("Goodbye", () => {
+      actions.push("no")
+    })
+
+    mockTestState.config = fillConfig({ tag_blacklist: ["no"] })
+    runTestSync()
+    assert.same(["yes"], actions)
+  })
+
+  test("tag whitelist and blacklist", () => {
+    tags("yes")
+    test("Hello", () => {
+      actions.push("yes")
+    })
+
+    tags("yes", "no")
+    test("Hello", () => {
+      actions.push("no")
+    })
+
+    tags("no")
+    test("Goodbye", () => {
+      actions.push("no")
+    })
+
+    tags("yes")
+    describe("", () => {
+      tags("no")
+      test("", () => {
+        actions.push("no")
+      })
+    })
+
+    mockTestState.config = fillConfig({ tag_whitelist: ["yes"], tag_blacklist: ["no"] })
+    runTestSync()
+    assert.same(["yes"], actions)
+  })
 })

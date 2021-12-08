@@ -35,9 +35,6 @@ export function createRunResult(): RunResults {
 export const resultCollector: TestListener = (event, state) => {
   const results = state.results
   switch (event.type) {
-    case "startTestRun":
-      state.results = createRunResult()
-      break
     case "testPassed": {
       results.ran++
       results.passed++

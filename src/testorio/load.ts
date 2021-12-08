@@ -7,7 +7,7 @@ import { addTestListeners } from "./testEvents"
 import { builtinTestListeners } from "./builtinTestListeners"
 import { progressGuiListener, progressGuiLogger } from "./progressGui"
 import { addLogHandler, debugAdapterEnabled, debugAdapterLogger, gameLogger, LogLevel, setLogLevel } from "./log"
-import { assertNever } from "./util"
+import { assertNever } from "./_util"
 import { fillConfig } from "./config"
 import Config = Testorio.Config
 

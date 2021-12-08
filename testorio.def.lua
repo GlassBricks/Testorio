@@ -13,6 +13,9 @@ before_each = nil
 ---@type Lifecycle
 after_each = nil
 
+---@vararg string
+function tags(...) end
+
 ---@param timeout number|nil
 ---@overload fun()
 function async(timeout) end
@@ -42,7 +45,9 @@ function part(func) end
 ---@field log_to_game boolean | nil
 ---@field log_to_DA boolean | nil
 ---@field log_to_log boolean | nil
--- @field test_pattern string | nil
+---@field test_pattern string | nil
+---@field tag_whitelist string[] | nil
+---@field tag_blacklist string[] | nil
 ---@field before_test_run fun() | nil
 ---@field after_test_run fun() | nil
 

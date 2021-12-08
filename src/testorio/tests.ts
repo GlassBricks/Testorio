@@ -1,7 +1,8 @@
-import { assertNever } from "./util"
+import { assertNever } from "./_util"
 import { TestState } from "./state"
 import HookFn = Testorio.HookFn
 import TestFn = Testorio.TestFn
+import Config = Testorio.Config
 
 export interface Source {
   readonly file?: string
@@ -14,12 +15,14 @@ export function formatSource(source: Source): string {
 }
 
 export type TestMode = undefined | "skip" | "only" | "todo"
+export type Tags = Record<string, true>
 
 export interface Test {
   readonly type: "test"
 
   readonly name: string
   readonly path: string
+  readonly tags: Tags
 
   readonly source: Source
   readonly parent: DescribeBlock
@@ -36,11 +39,19 @@ export interface Test {
   readonly errors: string[]
 }
 
-export function addTest(parent: DescribeBlock, name: string, source: Source, func: TestFn, mode: TestMode): Test {
+export function addTest(
+  parent: DescribeBlock,
+  name: string,
+  source: Source,
+  func: TestFn,
+  mode: TestMode,
+  tags: Tags,
+): Test {
   const test: Test = {
     type: "test",
     name,
     path: parent.path + " > " + name,
+    tags,
     parent,
     source,
     indexInParent: parent.children.length,
@@ -70,6 +81,7 @@ export interface DescribeBlock {
 
   readonly name: string
   readonly path: string
+  readonly tags: Tags
 
   readonly source: Source
 
@@ -84,11 +96,18 @@ export interface DescribeBlock {
   ticksBetweenTests: number
 }
 
-export function addDescribeBlock(parent: DescribeBlock, name: string, source: Source, mode: TestMode): DescribeBlock {
+export function addDescribeBlock(
+  parent: DescribeBlock,
+  name: string,
+  source: Source,
+  mode: TestMode,
+  tags: Tags,
+): DescribeBlock {
   const block: DescribeBlock = {
     type: "describeBlock",
     name,
     path: parent.path !== "" ? parent.path + " > " + name : name,
+    tags,
     parent,
     indexInParent: parent?.children.length ?? -1,
     source,
@@ -106,6 +125,7 @@ export function createRootDescribeBlock(): DescribeBlock {
     type: "describeBlock",
     name: "",
     path: "",
+    tags: {},
     source: {},
     parent: undefined,
     children: [],
@@ -116,12 +136,27 @@ export function createRootDescribeBlock(): DescribeBlock {
   }
 }
 
+function testMatchesWhitelist(test: Test, config: Config): boolean {
+  if (config.tag_whitelist) {
+    for (const tag of config.tag_whitelist) {
+      if (!(tag in test.tags)) return false
+    }
+  }
+  if (config.tag_blacklist) {
+    for (const tag of config.tag_blacklist) {
+      if (tag in test.tags) return false
+    }
+  }
+  return true
+}
+
 export function isSkippedTest(test: Test, state: TestState) {
   return (
     test.mode === "skip" ||
     test.mode === "todo" ||
     (state.hasFocusedTests && test.mode !== "only") ||
-    (state.config.test_pattern !== undefined && !string.match(test.path, state.config.test_pattern)[0])
+    (state.config.test_pattern !== undefined && !string.match(test.path, state.config.test_pattern)[0]) ||
+    !testMatchesWhitelist(test, state.config)
   )
 }
 

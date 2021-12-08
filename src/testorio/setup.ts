@@ -1,9 +1,10 @@
 // noinspection JSUnusedGlobalSymbols
 
-import { addDescribeBlock, addTest, DescribeBlock, HookType, Source, Test, TestMode } from "./tests"
+import { addDescribeBlock, addTest, DescribeBlock, HookType, Source, Tags, Test, TestMode } from "./tests"
 import { prepareReload } from "./resume"
 import { getCurrentBlock, getCurrentTestRun, getTestState } from "./state"
 import { doLog, LogColor, LogLevel } from "./log"
+import * as util from "util"
 import HookFn = Testorio.HookFn
 import TestFn = Testorio.TestFn
 import TestBuilder = Testorio.TestBuilder
@@ -19,6 +20,7 @@ function getCallerSource(upStack: number = 1): Source {
     line: info.currentline,
   }
 }
+
 function addHook(type: HookType, func: HookFn): void {
   const state = getTestState()
   if (state.currentTestRun) {
@@ -29,6 +31,14 @@ function addHook(type: HookType, func: HookFn): void {
     func,
   })
 }
+
+function consumeTags(): Tags {
+  const state = getTestState()
+  const result = state.currentTags
+  state.currentTags = undefined
+  return result ?? {}
+}
+
 function createTest(name: string, func: TestFn, mode: TestMode, upStack: number = 1): Test {
   const state = getTestState()
   if (state.currentTestRun) {
@@ -43,8 +53,9 @@ function createTest(name: string, func: TestFn, mode: TestMode, upStack: number 
   if (mode === "only") {
     state.hasFocusedTests = true
   }
-  return addTest(parent, name, getCallerSource(upStack + 1), func, mode)
+  return addTest(parent, name, getCallerSource(upStack + 1), func, mode, util.merge([consumeTags(), parent.tags]))
 }
+
 // eslint-disable-next-line @typescript-eslint/ban-types
 function addNext(test: Test, func: TestFn, funcForSource: Function = func) {
   const info = debug.getinfo(funcForSource, "Sl")
@@ -57,8 +68,9 @@ function addNext(test: Test, func: TestFn, funcForSource: Function = func) {
     source,
   })
 }
-function createTestBuilder<F extends () => void>(addPart: (func: F) => void) {
-  function reloadFunc(reload: () => void, what: string) {
+
+function createTestBuilder<F extends () => void>(addPart: (func: F) => void, addTag: (tag: string) => void) {
+  function reloadFunc(reload: () => void, what: string, tag: string) {
     return (func: F) => {
       const source = getCallerSource()
       addPart((() => {
@@ -70,13 +82,14 @@ function createTestBuilder<F extends () => void>(addPart: (func: F) => void) {
         })
       }) as F)
       addPart(func)
+      addTag(tag)
       return result
     }
   }
 
   const result: TestBuilder<F> = {
-    after_script_reload: reloadFunc(() => game.reload_script(), "script"),
-    after_mod_reload: reloadFunc(() => game.reload_mods(), "mods"),
+    after_script_reload: reloadFunc(() => game.reload_script(), "script", "after_script_reload"),
+    after_mod_reload: reloadFunc(() => game.reload_mods(), "mods", "after_mod_reload"),
   }
   return result
 }
@@ -98,10 +111,18 @@ function createDescribe(name: string, block: TestFn, mode: TestMode, upStack: nu
   if (mode === "only") {
     state.hasFocusedTests = true
   }
-  const describeBlock = addDescribeBlock(parent, name, source, mode)
+  const describeBlock = addDescribeBlock(parent, name, source, mode, util.merge([parent.tags, consumeTags()]))
   state.currentBlock = describeBlock
   block()
   state.currentBlock = parent
+  if (state.currentTags) {
+    state.results.suppressedErrors.push(
+      `In ${describeBlock.path}: Tags not added to any test or describe block. Tags: ${serpent.line(
+        state.currentTags,
+      )}`,
+    )
+    state.currentTags = undefined
+  }
   return describeBlock
 }
 function setCall<T extends object, F extends (...args: any) => any>(obj: T, func: F): T & F {
@@ -146,17 +167,24 @@ function createTestEach(mode: TestMode): TestCreatorBase {
       )
       return { test, row: item.row }
     })
-    return createTestBuilder<(...args: unknown[]) => void>((func) => {
-      for (const { test, row } of testBuilders) {
-        addNext(
-          test,
-          () => {
-            func(...row)
-          },
-          func,
-        )
-      }
-    })
+    return createTestBuilder<(...args: unknown[]) => void>(
+      (func) => {
+        for (const { test, row } of testBuilders) {
+          addNext(
+            test,
+            () => {
+              func(...row)
+            },
+            func,
+          )
+        }
+      },
+      (tag) => {
+        for (const { test } of testBuilders) {
+          test.tags[tag] = true
+        }
+      },
+    )
   }
   return setCall(
     {
@@ -164,7 +192,10 @@ function createTestEach(mode: TestMode): TestCreatorBase {
     },
     (name, func) => {
       const test = createTest(name, func, mode)
-      return createTestBuilder((func1) => addNext(test, func1))
+      return createTestBuilder(
+        (func1) => addNext(test, func1),
+        (tag) => (test.tags[tag] = true),
+      )
     },
   )
 }
@@ -205,6 +236,15 @@ const describe = createDescribeEach(undefined) as DescribeCreator
 describe.skip = createDescribeEach("skip")
 describe.only = createDescribeEach("only")
 
+function tags(...tags: string[]) {
+  const block = getCurrentBlock()
+  const state = getTestState()
+  if (state.currentTags) {
+    state.results.suppressedErrors.push(`In ${block.path}: double call to 'tags'`)
+  }
+  state.currentTags = util.list_to_map(tags)
+}
+
 type Globals =
   | `${"before" | "after"}_${"each" | "all"}`
   | "async"
@@ -215,11 +255,13 @@ type Globals =
   | "test"
   | "it"
   | "describe"
+  | "tags"
 
 export const globals: Pick<typeof globalThis, Globals> = {
   test,
   it: test,
   describe,
+  tags,
 
   before_all(func) {
     addHook("beforeAll", func)
