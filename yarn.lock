@@ -2886,7 +2886,7 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
-lua-types@^2.10.1, lua-types@^2.11.0:
+lua-types@^2.11.0:
   version "2.11.0"
   resolved "https://registry.yarnpkg.com/lua-types/-/lua-types-2.11.0.tgz#f4ecdc1eb9914a8af996f4aeb51a0e32284e5058"
   integrity sha512-J/8qHrOjkZuPBDhnuAg0DWoaJEImqXNzgEnUigCTVrSVCcchM5Y5zpcI3aWAZPhuZlb0QKC/f3nc7VGmZmBg7w==
@@ -4365,13 +4365,10 @@ type@^2.5.0:
   resolved "https://registry.yarnpkg.com/type/-/type-2.5.0.tgz#0a2e78c2e77907b252abe5f298c1b01c63f0db3d"
   integrity sha512-180WMDQaIMm3+7hGXWf12GtdniDEy7nYcyFMKJn/eZz/6tSLXrUN9V0wKSbMjej0I1WHWbpREDEKHtqPQa9NNw==
 
-typed-factorio@^0.12.0:
-  version "0.12.0"
-  resolved "https://registry.yarnpkg.com/typed-factorio/-/typed-factorio-0.12.0.tgz#8f612be36c008458552acaf01c3155c92bca7a83"
-  integrity sha512-7SeZX7TvWjtO+V5buWEgHUbhi7tSNZsHGveh5uPQ6Vvr7BDEhHre9DP3OrdD+L7cpAtvJ2w9OwaMnDm2P5dvng==
-  dependencies:
-    lua-types "^2.10.1"
-    typescript-to-lua "^1.0.0"
+typed-factorio@^0.13.0:
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/typed-factorio/-/typed-factorio-0.13.0.tgz#2853a7b574ed60113784f7a84e7ff91f6782321a"
+  integrity sha512-a6z8pciAtBQ+FXMJYUI1YqL/zhtFeEW2370rpuxZSaP6RdfWpZ98Vu8Hl19t98h+ULLXnmWsC/g6OW/TJcLbAQ==
 
 typedarray@^0.0.6:
   version "0.0.6"
@@ -4386,16 +4383,6 @@ typescript-to-lua@^0.36.0:
     resolve "^1.15.1"
     source-map "^0.7.3"
     typescript ">=4.0.2"
-
-typescript-to-lua@^1.0.0:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/typescript-to-lua/-/typescript-to-lua-1.0.1.tgz#273b683303dc0a10ed501de1d6419f70d5119860"
-  integrity sha512-j5mb+8HgUUY8hhAKoNy6KUMeamEN1fsTtMvSbPaxmVkWw40pHdLi3umsQG+Qo7wM6IK+RQffFxbIWEjleF+xpw==
-  dependencies:
-    enhanced-resolve "^5.8.2"
-    resolve "^1.15.1"
-    source-map "^0.7.3"
-    typescript "~4.3.5"
 
 typescript-to-lua@^1.2.0:
   version "1.2.0"
@@ -4426,11 +4413,6 @@ typescript@^4.5.2:
   version "4.5.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.5.2.tgz#8ac1fba9f52256fdb06fb89e4122fa6a346c2998"
   integrity sha512-5BlMof9H1yGt0P8/WF+wPNw6GfctgGjXp5hkblpyT+8rkASSmkUKMXrxR0Xg8ThVCi/JnHQiKXeBaEwCeQwMFw==
-
-typescript@~4.3.5:
-  version "4.3.5"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.3.5.tgz#4d1c37cc16e893973c45a06886b7113234f119f4"
-  integrity sha512-DqQgihaQ9cUrskJo9kIyW/+g0Vxsk8cDtZ52a3NGh0YNTfpUSArXSohyUGnvbPazEPLu398C0UxmKSOrPumUzA==
 
 unbox-primitive@^1.0.1:
   version "1.0.1"
