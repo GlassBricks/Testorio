@@ -17,7 +17,7 @@ end)
 
 ```
 
-Run automated and configurable tests. Test real apparatuses and setups in-game, no mocking or manual testing necessary!
+Run automated and configurable tests. Test real setups in-game, no mocking testing necessary!
 
 Features include:
 
@@ -28,7 +28,7 @@ Features include:
 
 ## Getting started
 
-See the [Getting started](https://github.com/GlassBricks/Testorio/wiki/Getting-Started) wiki page for installation and setup instructions.
+See the [Getting started](https://github.com/GlassBricks/Testorio/wiki/Getting-Started) wiki page for setup instructions.
 
 ---- 
 
