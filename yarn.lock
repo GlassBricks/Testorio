@@ -2891,7 +2891,7 @@ lua-types@^2.11.0:
   resolved "https://registry.yarnpkg.com/lua-types/-/lua-types-2.11.0.tgz#f4ecdc1eb9914a8af996f4aeb51a0e32284e5058"
   integrity sha512-J/8qHrOjkZuPBDhnuAg0DWoaJEImqXNzgEnUigCTVrSVCcchM5Y5zpcI3aWAZPhuZlb0QKC/f3nc7VGmZmBg7w==
 
-luassert-tstl@^0.2.3:
+luassert-tstl@>=0.2.3:
   version "0.2.3"
   resolved "https://registry.yarnpkg.com/luassert-tstl/-/luassert-tstl-0.2.3.tgz#e4baaac364a57dd3ef33045c519f8c02cec76cdb"
   integrity sha512-/aNU9hmTaxcFPrb8q1/4XUxbC0WPOKPS+dy1Z7/pG6xIZrTs4Y/eSrxhzbmruYswuszQAWZmy2QH2Mlfe3bNGQ==
@@ -4365,7 +4365,7 @@ type@^2.5.0:
   resolved "https://registry.yarnpkg.com/type/-/type-2.5.0.tgz#0a2e78c2e77907b252abe5f298c1b01c63f0db3d"
   integrity sha512-180WMDQaIMm3+7hGXWf12GtdniDEy7nYcyFMKJn/eZz/6tSLXrUN9V0wKSbMjej0I1WHWbpREDEKHtqPQa9NNw==
 
-typed-factorio@^0.13.0:
+typed-factorio@>=0.12.0:
   version "0.13.0"
   resolved "https://registry.yarnpkg.com/typed-factorio/-/typed-factorio-0.13.0.tgz#2853a7b574ed60113784f7a84e7ff91f6782321a"
   integrity sha512-a6z8pciAtBQ+FXMJYUI1YqL/zhtFeEW2370rpuxZSaP6RdfWpZ98Vu8Hl19t98h+ULLXnmWsC/g6OW/TJcLbAQ==
