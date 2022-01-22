@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 function getSurfaceAndArea(
   surface: SurfaceIdentification,
   area: number | string | BoundingBox,

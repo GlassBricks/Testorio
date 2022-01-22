@@ -1,6 +1,6 @@
 import { Data } from "typed-factorio/data/types"
-import { Prototypes } from "./shared-constants"
 import { Colors, Graphics } from "./constants"
+import { Prototypes } from "./shared-constants"
 
 declare const data: Data
 
@@ -8,7 +8,7 @@ data.extend([
   {
     type: "selection-tool",
     name: Prototypes.EnablerTool,
-    subgoup: "tool",
+    subgroup: "tool",
     order: "z[testorio]-[enabler-tool]",
     icon: Graphics.EnablerTool,
     icon_size: 32,

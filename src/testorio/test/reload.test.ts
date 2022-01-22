@@ -1,5 +1,5 @@
-import { getTestState } from "../state"
 import { TestStage } from "../../shared-constants"
+import { getTestState } from "../state"
 
 declare const global: {
   foo?: () => 0

@@ -1,17 +1,17 @@
 // noinspection JSUnusedGlobalSymbols
 
-import { addDescribeBlock, addTest, DescribeBlock, HookType, Source, Tags, Test, TestMode } from "./tests"
+import * as util from "util"
+import { doLog, LogColor, LogLevel } from "./log"
 import { prepareReload } from "./resume"
 import { getCurrentBlock, getCurrentTestRun, getTestState } from "./state"
-import { doLog, LogColor, LogLevel } from "./log"
-import * as util from "util"
-import HookFn = Testorio.HookFn
-import TestFn = Testorio.TestFn
-import TestBuilder = Testorio.TestBuilder
-import TestCreatorBase = Testorio.TestCreatorBase
-import DescribeCreatorBase = Testorio.DescribeCreatorBase
-import TestCreator = Testorio.TestCreator
+import { addDescribeBlock, addTest, DescribeBlock, HookType, Source, Tags, Test, TestMode } from "./tests"
 import DescribeCreator = Testorio.DescribeCreator
+import DescribeCreatorBase = Testorio.DescribeCreatorBase
+import HookFn = Testorio.HookFn
+import TestBuilder = Testorio.TestBuilder
+import TestCreator = Testorio.TestCreator
+import TestCreatorBase = Testorio.TestCreatorBase
+import TestFn = Testorio.TestFn
 
 function getCallerSource(upStack: number = 1): Source {
   const info = debug.getinfo(upStack + 2, "Sl") || {}

@@ -1,10 +1,10 @@
 /** @noSelfInFile */
-import { createRootDescribeBlock, DescribeBlock, Tags, Test } from "./tests"
 import { Remote, TestStage } from "../shared-constants"
-import { _raiseTestEvent, TestEvent } from "./testEvents"
 import { createRunResult, RunResults } from "./result"
-import OnTickFn = Testorio.OnTickFn
+import { _raiseTestEvent, TestEvent } from "./testEvents"
+import { createRootDescribeBlock, DescribeBlock, Tags, Test } from "./tests"
 import Config = Testorio.Config
+import OnTickFn = Testorio.OnTickFn
 
 /** @noSelf */
 export interface TestState {

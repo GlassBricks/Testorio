@@ -1,8 +1,8 @@
 import { assertNever } from "./_util"
 import { TestState } from "./state"
+import Config = Testorio.Config
 import HookFn = Testorio.HookFn
 import TestFn = Testorio.TestFn
-import Config = Testorio.Config
 
 export interface Source {
   readonly file?: string

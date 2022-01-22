@@ -1,14 +1,14 @@
 import "__testorio__/luassert/init"
-import { createRunner, TestRunner } from "./runner"
-import { getTestState, resetTestState, TestState } from "./state"
 import { Remote, TestStage } from "../shared-constants"
-import { globals } from "./setup"
-import { addTestListeners } from "./testEvents"
-import { builtinTestListeners } from "./builtinTestListeners"
-import { progressGuiListener, progressGuiLogger } from "./progressGui"
-import { addLogHandler, debugAdapterEnabled, debugAdapterLogger, gameLogger, LogLevel, setLogLevel } from "./log"
 import { assertNever } from "./_util"
+import { builtinTestListeners } from "./builtinTestListeners"
 import { fillConfig } from "./config"
+import { addLogHandler, debugAdapterEnabled, debugAdapterLogger, gameLogger, LogLevel, setLogLevel } from "./log"
+import { progressGuiListener, progressGuiLogger } from "./progressGui"
+import { createRunner, TestRunner } from "./runner"
+import { globals } from "./setup"
+import { getTestState, resetTestState, TestState } from "./state"
+import { addTestListeners } from "./testEvents"
 import Config = Testorio.Config
 
 declare const ____originalRequire: typeof require

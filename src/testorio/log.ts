@@ -1,5 +1,5 @@
-import { Source } from "./tests"
 import { TestListener } from "./testEvents"
+import { Source } from "./tests"
 
 export enum LogLevel {
   Trace = 1,

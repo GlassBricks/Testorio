@@ -1,7 +1,7 @@
-import { TestEvent, TestListener } from "./testEvents"
 import { loggingListener } from "./log"
 import { resultCollector } from "./result"
 import { TestState } from "./state"
+import { TestEvent, TestListener } from "./testEvents"
 
 export function setupListener(event: TestEvent, state: TestState): void {
   if (event.type === "startTestRun") {

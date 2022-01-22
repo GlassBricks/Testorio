@@ -20,8 +20,6 @@
     "noImplicitSelf": true,
     "noResolvePaths": ["__testorio__/init"]
   },
-  "include": [
-    ".", "../node_modules/typed-factorio/runtime/index.d.ts", "../index.d.ts"
-  ],
+  "include": [".", "../node_modules/typed-factorio/runtime/index.d.ts", "../index.d.ts"],
   "exclude": ["testorio/**/*"]
 }

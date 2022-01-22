@@ -22,7 +22,6 @@ Run automated tests. Test real setups in-game, no mocking necessary!
 
 See the [Getting started](https://github.com/GlassBricks/Testorio/wiki/Getting-Started) wiki page for a quick start.
 
----- 
+---
 
 Have any questions or comments? Feel free to start a [discussion on GitHub](https://github.com/GlassBricks/Testorio/discussions). Want to report a bug or request a feature? You can open an [issue](https://github.com/GlassBricks/Testorio/issues).
-

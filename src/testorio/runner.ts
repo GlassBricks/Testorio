@@ -1,10 +1,10 @@
+import { Remote, TestStage } from "../shared-constants"
+import { assertNever } from "./_util"
 import { resumeAfterReload } from "./resume"
 import { makeLoadError, TestRun, TestState } from "./state"
 import { DescribeBlock, formatSource, Hook, isSkippedTest, Test } from "./tests"
-import { assertNever } from "./_util"
-import { Remote, TestStage } from "../shared-constants"
-import TestFn = Testorio.TestFn
 import OnTickFn = Testorio.OnTickFn
+import TestFn = Testorio.TestFn
 
 interface StartTestRun {
   type: "startTestRun"

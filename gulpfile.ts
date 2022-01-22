@@ -1,11 +1,10 @@
-import { parallel, series, src, task } from "gulp"
-import * as ts from "typescript"
-import * as tstl from "typescript-to-lua"
-import * as path from "path"
+import * as child_process from "child_process"
 import del from "del"
 import * as fs from "fs/promises"
 import globby from "globby"
-import * as child_process from "child_process"
+import { parallel, series, src, task } from "gulp"
+import * as path from "path"
+import * as ts from "typescript"
 
 function logDiagnostics(diagnostics: readonly ts.Diagnostic[]) {
   if (!diagnostics.length) return
@@ -25,9 +24,10 @@ function logDiagnostics(diagnostics: readonly ts.Diagnostic[]) {
 }
 
 function compileTstl(configFile: string) {
-  return child_process.spawn("tstl", ["-p", configFile], {
+  return child_process.spawn("npx", ["tstl", "-p", configFile], {
     stdio: "inherit",
     cwd: __dirname,
+    shell: true,
   })
 }
 
@@ -59,9 +59,10 @@ async function copyLuassert() {
       cwd: repoSrc,
     })) {
       const fileContents = await fs.readFile(path.join(repoSrc, file.toString()), "utf-8")
-      const newContents = fileContents.replace(/((?:^|\s|;|=)require ?\(?['"])(.+?['"]\)?)/gm, (str, first, second) => {
-        return first + "__testorio__." + second
-      })
+      const newContents = fileContents.replace(
+        /((?:^|\s|;|=)require ?\(?['"])(.+?['"]\)?)/gm,
+        (str, first, second) => first + "__testorio__." + second,
+      )
       const outFile = path.join(destination, file.toString())
       await fs.mkdir(path.dirname(outFile), {
         recursive: true,
@@ -90,7 +91,7 @@ async function buildDefs() {
   try {
     await fs.unlink(fakeSrcDir)
   } catch (e) {}
-  await fs.symlink(path.resolve(__dirname, "src"), fakeSrcDir)
+  await fs.symlink(path.resolve(__dirname, "src"), fakeSrcDir, "dir")
 
   const { options, fileNames, projectReferences, errors } = ts.parseJsonConfigFileContent(
     {

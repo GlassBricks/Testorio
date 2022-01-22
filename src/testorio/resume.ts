@@ -1,7 +1,7 @@
-import type { TestState } from "./state"
-import { DescribeBlock, Test } from "./tests"
 import { TestStage } from "../shared-constants"
 import { RunResults } from "./result"
+import type { TestState } from "./state"
+import { DescribeBlock, Test } from "./tests"
 
 declare const global: {
   __testResume?: {

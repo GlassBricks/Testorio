@@ -1,5 +1,5 @@
-import { DescribeBlock, Test } from "./tests"
 import { TestState } from "./state"
+import { DescribeBlock, Test } from "./tests"
 
 interface BaseTestEvent {
   type: string

@@ -1,5 +1,5 @@
-import "./remote"
 import "./control/index"
+import "./remote"
 
 // Only load self-tests when testorio-test-mod is also present
 // so users get less confused

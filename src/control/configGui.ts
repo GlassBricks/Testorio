@@ -1,9 +1,9 @@
-import { Locale, Prototypes, Remote, TestStage } from "../shared-constants"
 import * as modGui from "mod-gui"
-import { GuiAction, guiAction } from "./guiAction"
-import { postLoadAction } from "./postLoadAction"
 import { Settings } from "../constants"
 import { onTestStageChanged } from "../remote"
+import { Locale, Prototypes, Remote, TestStage } from "../shared-constants"
+import { GuiAction, guiAction } from "./guiAction"
+import { postLoadAction } from "./postLoadAction"
 import ConfigGui = Locale.ConfigGui
 
 const TestConfigName = "testorio:test-config"
@@ -16,7 +16,7 @@ declare const global: {
     player: LuaPlayer
     modSelect: DropDownGuiElement
     refreshButton: SpriteButtonGuiElement
-    modTextField?: TextfieldGuiElement
+    modTextField?: TextFieldGuiElement
     testStageFlow: FlowGuiElement
   }
 }
@@ -141,7 +141,7 @@ function ModSelect(parent: LuaGuiElement) {
   }
   modSelect.items = modSelectItems
   modSelect.selected_index = modSelectedIndex
-  let modTextField: TextfieldGuiElement | undefined
+  let modTextField: TextFieldGuiElement | undefined
   if (modSelectedIndex === modSelectItems.length) {
     modTextField = createModTextField()
     modTextField.text = testMod
@@ -174,7 +174,7 @@ const OnModSelectionChanged = guiAction("OnModSelectionChanged", () => {
   updateTestStageGui()
 })
 
-function createModTextField(): TextfieldGuiElement {
+function createModTextField(): TextFieldGuiElement {
   if (global.configGui!.modTextField?.valid) {
     return global.configGui!.modTextField
   }
@@ -195,7 +195,7 @@ function createModTextField(): TextfieldGuiElement {
 }
 
 const OnModTextfieldChanged = guiAction("OnModTextfieldChanged", (e: OnGuiTextChangedEvent) => {
-  const element = e.element as TextfieldGuiElement
+  const element = e.element as TextFieldGuiElement
   setTestMod(element.text)
 })
 

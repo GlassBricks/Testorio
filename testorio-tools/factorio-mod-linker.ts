@@ -3,11 +3,11 @@
 import { program } from "commander"
 import { cosmiconfig } from "cosmiconfig"
 import * as fs from "fs/promises"
-import * as process from "process"
+import globby from "globby"
 import * as path from "path"
+import * as process from "process"
 import rr from "rimraf"
 import * as util from "util"
-import globby from "globby"
 
 const rimraf = util.promisify(rr)
 
@@ -106,7 +106,7 @@ async function makeLinks(dir: string | undefined, opts: Opts): Promise<void> {
       const target = path.dirname(infoJsonPath)
       console.log(`Creating symlink from ${destination} to ${path.relative(".", target)}`)
       await rimraf(destination)
-      await fs.symlink(target, destination)
+      await fs.symlink(target, destination, "dir")
     })
   await Promise.all(promises)
 }

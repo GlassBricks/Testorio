@@ -1,9 +1,9 @@
 import { Locale, Remote } from "../shared-constants"
+import { logColors, LogHandler } from "./log"
+import { RunResults } from "./result"
+import { TestState } from "./state"
 import { TestListener } from "./testEvents"
 import { countRunningTests } from "./tests"
-import { TestState } from "./state"
-import { RunResults } from "./result"
-import { logColors, LogHandler } from "./log"
 import ProgressGui = Locale.ProgressGui
 
 namespace Colors {
@@ -16,7 +16,7 @@ namespace Colors {
 interface TestProgressGui {
   player: LuaPlayer
   statusText: LabelGuiElement
-  progressBar: ProgressbarGuiElement
+  progressBar: ProgressBarGuiElement
   progressLabel: LabelGuiElement
   testCounts: TableGuiElement
   testOutput: TextBoxGuiElement

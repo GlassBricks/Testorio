@@ -3,15 +3,12 @@
   "version": "0.3.4",
   "description": "Type definitions for Testorio, a test framework for factorio. For use with TypescriptToLua",
   "keywords": [
-    "factorio",
-    "test",
-    "testing"
+    "factorio", "test", "testing"
   ],
   "homepage": "https://github.com/GlassBricks/Testorio#readme",
   "license": "MIT",
   "files": [
-    "index.d.ts",
-    "testorio.d.ts"
+    "index.d.ts", "testorio.d.ts"
   ],
   "repository": "https://github.com/GlassBricks/Testorio.git",
   "peerDependencies": {
@@ -20,27 +17,28 @@
   },
   "devDependencies": {
     "@types/gulp": "^4.0.9",
-    "@types/node": "^16.11.10",
-    "@typescript-eslint/eslint-plugin": "^5.4.0",
-    "@typescript-eslint/parser": "^5.4.0",
+    "@types/node": "^16.11.21",
+    "@typescript-eslint/eslint-plugin": "^5.10.0",
+    "@typescript-eslint/parser": "^5.10.0",
     "del": "^5.1.0",
-    "eslint": "^8.3.0",
+    "eslint": "^8.7.0",
     "eslint-config-esnext": "^4.1.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-config-recommended": "^4.1.0",
     "eslint-import-resolver-typescript": "^2.5.0",
     "eslint-plugin-eslint-comments": "^3.2.0",
-    "eslint-plugin-import": "^2.25.3",
+    "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-prettier": "^4.0.0",
     "gulp": "^4.0.2",
     "gulp-typescript": "^6.0.0-alpha.1",
     "lua-types": "^2.11.0",
-    "prettier": "^2.5.0",
+    "luassert-tstl": "^0.2.3",
+    "prettier": "^2.5.1",
     "prettier-plugin-jsdoc": "^0.3.30",
     "ts-node": "^10.4.0",
     "typed-factorio": "^0.17.0",
-    "typescript": "^4.5.2",
-    "typescript-to-lua": "^1.2.0",
+    "typescript": "^4.5.5",
+    "typescript-to-lua": "^1.3.3",
     "typescript-tstl-plugin": "^0.3.2"
   },
   "scripts": {
@@ -52,6 +50,7 @@
     "watch:modfiles": "tstl -p src/tsconfig.json --watch",
     "watch:testorio": "tstl -p src/testorio/tsconfig.json --watch",
     "watch:test-mod": "tstl -p testorio-test-mod/tsconfig.json --watch",
+    "install": "yarn run build:defs",
     "prepareTest": "gulp prepareTest",
     "prepublishOnly": "yarn run lint && gulp buildPackage",
     "prepackage:mod": "yarn run lint && gulp buildMod",
