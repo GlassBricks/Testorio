@@ -303,6 +303,14 @@ describe("failing tests", () => {
   })
 })
 
+test("Failing describe", () => {
+  describe("Foo", () => {
+    error("on no")
+  })
+  runTestSync()
+  assert.matches("on no", mockTestState.results.suppressedErrors[0])
+})
+
 describe("skipped tests", () => {
   function setupActionHooks() {
     before_all(() => actions.push("beforeAll"))

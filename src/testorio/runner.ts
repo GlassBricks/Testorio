@@ -1,5 +1,5 @@
 import { Remote, TestStage } from "../shared-constants"
-import { assertNever } from "./_util"
+import { assertNever, pcallWithStacktrace } from "./_util"
 import { resumeAfterReload } from "./resume"
 import { makeLoadError, TestRun, TestState } from "./state"
 import { DescribeBlock, formatSource, Hook, isSkippedTest, Test } from "./tests"
@@ -72,8 +72,6 @@ export interface TestRunner {
 
   isDone(): boolean
 }
-
-const thisFileName = "\trunner.ts:"
 
 const enum LoadResult {
   FirstLoad,
@@ -149,22 +147,6 @@ export function createRunner(state: TestState): TestRunner {
         child.errors.push(error)
       }
     }
-  }
-
-  function getErrorWithStacktrace(error: unknown): string {
-    const stacktrace = error instanceof Error ? error.toString() : debug.traceback(tostring(error), 3)
-    // level: 1 = here, 2 = getErrorWithStackTrace(), 3 = error location
-
-    const lines = stacktrace.split("\n")
-    for (let i = 1, l = lines.length; i < l; i++) {
-      if (lines[i - 1].endsWith(": in function 'xpcall'") && lines[i].startsWith(thisFileName)) {
-        if (lines[i - 2] === "\t[C]: in function 'rawxpcall'") {
-          i--
-        }
-        return table.concat(lines, "\n", 1, i - 1)
-      }
-    }
-    return stacktrace
   }
 
   function startTestRun(): Task {
@@ -254,7 +236,7 @@ export function createRunner(state: TestState): TestRunner {
     } else if (hasAnyTest(block)) {
       const hooks = block.hooks.filter((x) => x.type === "beforeAll")
       for (const hook of hooks) {
-        const [success, message] = xpcall(hook.func, getErrorWithStacktrace)
+        const [success, message] = pcallWithStacktrace(hook.func)
         if (!success) {
           addErrorToAllTests(block, `Error running ${hook.type}: ${message}`)
         }
@@ -295,7 +277,7 @@ export function createRunner(state: TestState): TestRunner {
       const beforeEach = collectHooks(test.parent, [])
       for (const hook of beforeEach) {
         if (test.errors.length !== 0) break
-        const [success, error] = xpcall(hook.func, getErrorWithStacktrace)
+        const [success, error] = pcallWithStacktrace(hook.func)
         if (!success) {
           test.errors.push(error as string)
         }
@@ -314,7 +296,7 @@ export function createRunner(state: TestState): TestRunner {
     state.currentTestRun = testRun
     if (!isSkippedTest(test, state)) {
       if (test.errors.length === 0) {
-        const [success, error] = xpcall(part.func, getErrorWithStacktrace)
+        const [success, error] = pcallWithStacktrace(part.func)
         if (!success) {
           test.errors.push(error as string)
         }
@@ -333,7 +315,7 @@ export function createRunner(state: TestState): TestRunner {
     }
 
     for (const func of Object.keys(testRun.onTickFuncs) as unknown as OnTickFn[]) {
-      const [success, result] = xpcall(func, getErrorWithStacktrace, tickNumber)
+      const [success, result] = pcallWithStacktrace(func, tickNumber)
       if (!success) {
         test.errors.push(result as string)
         break
@@ -358,7 +340,7 @@ export function createRunner(state: TestState): TestRunner {
       const afterEach = collectHooks(test.parent, [])
 
       for (const hook of afterEach) {
-        const [success, error] = xpcall(hook, getErrorWithStacktrace)
+        const [success, error] = pcallWithStacktrace(hook)
         if (!success) {
           test.errors.push(error as string)
         }
@@ -397,7 +379,7 @@ export function createRunner(state: TestState): TestRunner {
     if (hasTests) {
       const hooks = block.hooks.filter((x) => x.type === "afterAll")
       for (const hook of hooks) {
-        const [success, message] = xpcall(hook.func, getErrorWithStacktrace)
+        const [success, message] = pcallWithStacktrace(hook.func)
         if (!success) {
           state.results.suppressedErrors.push(`Error running ${hook.type}: ${message}`)
         }

@@ -1,6 +1,7 @@
 // noinspection JSUnusedGlobalSymbols
 
 import * as util from "util"
+import { pcallWithStacktrace } from "./_util"
 import { doLog, LogColor, LogLevel } from "./log"
 import { prepareReload } from "./resume"
 import { getCurrentBlock, getCurrentTestRun, getTestState } from "./state"
@@ -113,7 +114,10 @@ function createDescribe(name: string, block: TestFn, mode: TestMode, upStack: nu
   }
   const describeBlock = addDescribeBlock(parent, name, source, mode, util.merge([parent.tags, consumeTags()]))
   state.currentBlock = describeBlock
-  block()
+  const [success, msg] = pcallWithStacktrace(block)
+  if (!success) {
+    state.results.suppressedErrors.push(`In ${describeBlock.path}: error in test definition\n${msg}`)
+  }
   state.currentBlock = parent
   if (state.currentTags) {
     state.results.suppressedErrors.push(
