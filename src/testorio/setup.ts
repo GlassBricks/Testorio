@@ -2,7 +2,6 @@
 
 import * as util from "util"
 import { pcallWithStacktrace } from "./_util"
-import { doLog, LogColor, LogLevel } from "./log"
 import { prepareReload } from "./resume"
 import { getCurrentBlock, getCurrentTestRun, getTestState } from "./state"
 import { addDescribeBlock, addTest, DescribeBlock, HookType, Source, Tags, Test, TestMode } from "./tests"
@@ -73,10 +72,8 @@ function addNext(test: Test, func: TestFn, funcForSource: Function = func) {
 function createTestBuilder<F extends () => void>(addPart: (func: F) => void, addTag: (tag: string) => void) {
   function reloadFunc(reload: () => void, what: string, tag: string) {
     return (func: F) => {
-      const source = getCallerSource()
       addPart((() => {
         async(1)
-        doLog(LogLevel.Info, `${getCurrentTestRun().test.path}: reloading ${what}`, LogColor.White, source)
         on_tick(() => {
           prepareReload(getTestState())
           reload()
@@ -116,11 +113,11 @@ function createDescribe(name: string, block: TestFn, mode: TestMode, upStack: nu
   state.currentBlock = describeBlock
   const [success, msg] = pcallWithStacktrace(block)
   if (!success) {
-    state.results.suppressedErrors.push(`In ${describeBlock.path}: error in test definition\n${msg}`)
+    state.results.additionalErrors.push(`In ${describeBlock.path}: error in test definition\n${msg}`)
   }
   state.currentBlock = parent
   if (state.currentTags) {
-    state.results.suppressedErrors.push(
+    state.results.additionalErrors.push(
       `In ${describeBlock.path}: Tags not added to any test or describe block. Tags: ${serpent.line(
         state.currentTags,
       )}`,
@@ -167,7 +164,7 @@ function createTestEach(mode: TestMode): TestCreatorBase {
           func(...item.row)
         },
         mode,
-        2,
+        3,
       )
       return { test, row: item.row }
     })
@@ -244,7 +241,7 @@ function tags(...tags: string[]) {
   const block = getCurrentBlock()
   const state = getTestState()
   if (state.currentTags) {
-    state.results.suppressedErrors.push(`In ${block.path}: double call to 'tags'`)
+    state.results.additionalErrors.push(`In ${block.path}: double call to 'tags'`)
   }
   state.currentTags = util.list_to_map(tags)
 }

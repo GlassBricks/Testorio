@@ -41,7 +41,6 @@ function part(func) end
 ---@field default_timeout number | nil
 ---@field default_ticks_between_tests number | nil
 ---@field game_speed number | nil
----@field log_level "basic" | "debug" | "trace" | nil
 ---@field log_to_game boolean | nil
 ---@field log_to_DA boolean | nil
 ---@field log_to_log boolean | nil

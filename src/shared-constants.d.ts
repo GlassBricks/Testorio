@@ -7,6 +7,7 @@ export const enum Remote {
 export const enum Prototypes {
   EnablerTool = "testorio:enabler-tool",
   TestTubeSprite = "testorio:test-tube-sprite",
+  TestOutputBoxStyle = "testorio:test-output-box-style",
 }
 
 export namespace Locale {
@@ -33,9 +34,6 @@ export namespace Locale {
     NSkipped = "testorio.progress-gui.n-skipped",
     NTodo = "testorio.progress-gui.n-todo",
     TestRunCompleted = "testorio.progress-gui.test-run-completed",
-    Pass = "testorio.progress-gui.pass",
-    Fail = "testorio.progress-gui.fail",
-    PassWithTodo = "testorio.progress-gui.pass-with-todo",
     LoadError = "testorio.progress-gui.load-error",
   }
 }

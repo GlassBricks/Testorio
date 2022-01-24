@@ -1,24 +1,29 @@
-export function assertNever(value: never): never {
-  error(`value ${value} should be never`)
+export function pcallWithStacktrace<A extends any[], R>(
+  fn: (...args: A) => R,
+  ...args: A
+): LuaMultiReturn<[boolean, R | string]> {
+  // prevent tail call optimization, which messes with stacktrace
+  const [success, result] = xpcall(fn, getErrorWithStacktrace, ...args)
+  return $multi(success, result)
 }
 
-const thisFileTracebackPrefix = "\t_util.ts:"
 function getErrorWithStacktrace(error: unknown) {
-  const stacktrace = error instanceof Error ? error.toString() : debug.traceback(tostring(error), 3)
   // level: 1 = here, 2 = getErrorWithStackTrace(), 3 = error location
+  const stacktrace = error instanceof Error ? error.toString() : debug.traceback(tostring(error), 3)
 
   const lines = stacktrace.split("\n")
-  for (let i = 1, l = lines.length; i < l; i++) {
-    if (lines[i - 1].endsWith(": in function 'xpcall'") && lines[i].startsWith(thisFileTracebackPrefix)) {
-      if (lines[i - 2] === "\t[C]: in function 'rawxpcall'") {
+  for (let i = 1, l = lines.length; i <= l; i++) {
+    if (lines[i - 1].startsWith("\t_util.ts:") && lines[i - 1].endsWith(": in function 'pcallWithStacktrace'")) {
+      if (lines[i - 3] === "\t[C]: in function 'rawxpcall'") {
         i--
       }
-      return table.concat(lines, "\n", 1, i - 1)
+      return table.concat(lines, "\n", 1, i - 2)
     }
   }
   return stacktrace
 }
 
-export function pcallWithStacktrace<A extends any[], T>(fn: (...args: A) => T, ...args: A) {
-  return xpcall(fn, getErrorWithStacktrace, ...args)
+export const debugAdapterEnabled = script.active_mods.debugadapter !== undefined
+export function assertNever(value: never): never {
+  return error(`value ${value} should be never`)
 }

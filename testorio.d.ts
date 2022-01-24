@@ -25,7 +25,6 @@ declare namespace Testorio {
 
     game_speed: number
 
-    log_level: "basic" | "debug" | "trace"
     log_to_game: boolean
     log_to_DA: boolean
     log_to_log: boolean

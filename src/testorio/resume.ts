@@ -23,34 +23,34 @@ export function prepareReload(testState: TestState): void {
   testState.setTestStage(TestStage.ToReload)
 }
 
-const mutableTestState: Partial<Record<keyof Test, true>> = {
+const copiedTestState: Partial<Record<keyof Test, true>> = {
   errors: true,
 }
 
 function compareAndFindTest(current: unknown, stored: unknown, storedTest: Test): Test | undefined {
   const seen = new LuaTable<AnyNotNil, AnyNotNil>()
 
-  function compare(a: any, b: any): boolean {
+  function compareAndCopy(cur: any, old: any): boolean {
     // ignore functions
-    if (typeof a === "function") return true
-    if (typeof a !== "object" || typeof b !== "object") {
-      return a === b
+    if (typeof cur === "function") return true
+    if (typeof cur !== "object" || typeof old !== "object") {
+      return cur === old
     }
-    if (seen.get(b) === a) return true
-    seen.set(b, a)
-    for (const [k, v] of pairs(a)) {
-      if (a.type === "test" && k in mutableTestState) {
-        a[k] = b[k]
+    if (seen.get(old) === cur) return true
+    seen.set(old, cur)
+    for (const [k, v] of pairs(cur)) {
+      if (cur.type === "test" && k in copiedTestState) {
+        cur[k] = old[k]
         continue
       }
-      if (!compare(v, b[k])) {
+      if (!compareAndCopy(v, old[k])) {
         return false
       }
     }
-    for (const [k, v] of pairs(b)) {
-      if (a[k] === undefined) {
-        if (a.type === "test" && k in mutableTestState) {
-          a[k] = v
+    for (const [k, v] of pairs(old)) {
+      if (cur[k] === undefined) {
+        if (cur.type === "test" && k in copiedTestState) {
+          cur[k] = v
         } else {
           return false
         }
@@ -59,7 +59,7 @@ function compareAndFindTest(current: unknown, stored: unknown, storedTest: Test)
     return true
   }
 
-  if (compare(current, stored)) {
+  if (compareAndCopy(current, stored)) {
     return seen.get(storedTest) as Test
   }
   return undefined

@@ -2,7 +2,7 @@ import * as util from "util"
 import { TestStage } from "../../shared-constants"
 import { fillConfig } from "../config"
 import { resultCollector } from "../result"
-import { createRunner } from "../runner"
+import { createTestRunner } from "../runner"
 import { _setTestState, getTestState, resetTestState, TestState } from "../state"
 import { TestEvent } from "../testEvents"
 import { DescribeBlock, Test } from "../tests"
@@ -17,7 +17,11 @@ before_each(() => {
   actions = []
   events = []
   originalTestState = getTestState()
-  resetTestState(fillConfig({}))
+  resetTestState(
+    fillConfig({
+      default_ticks_between_tests: 0,
+    }),
+  )
   mockTestState = getTestState()
 
   let testStage = TestStage.NotRun
@@ -45,7 +49,7 @@ function getFirst<T extends Test | DescribeBlock = Test>(): T {
 
 function runTestSync<T extends Test | DescribeBlock = Test>(): T {
   if (mockTestState.getTestStage() === TestStage.NotRun) {
-    const runner = createRunner(mockTestState)
+    const runner = createTestRunner(mockTestState)
     runner.tick()
     if (!runner.isDone()) {
       error("Tests not completed in one tick")
@@ -58,7 +62,7 @@ function runTestAsync<T extends Test | DescribeBlock = Test>(callback: (item: T)
   if (mockTestState.getTestStage() !== TestStage.NotRun) {
     error("duplicate call to runTestAsync/cannot re-run mock test async")
   }
-  const runner = createRunner(mockTestState)
+  const runner = createTestRunner(mockTestState)
   _setTestState(originalTestState)
   async()
   on_tick(() => {
@@ -150,7 +154,7 @@ describe("setup", () => {
       // nothing
     })
     runTestSync()
-    assert.not_same(mockTestState.results.suppressedErrors, [])
+    assert.not_same(mockTestState.results.additionalErrors, [])
   })
 })
 
@@ -289,7 +293,7 @@ describe("failing tests", () => {
     })
     const theTest = runTestSync()
     assert.are_equal(1, theTest.errors.length)
-    assert.matches(failMessage, mockTestState.results.suppressedErrors[0], undefined, true)
+    assert.matches(failMessage, mockTestState.results.additionalErrors[0], undefined, true)
   })
 
   test("Error stacktrace is clean", () => {
@@ -299,7 +303,11 @@ describe("failing tests", () => {
     const t = runTestSync()
     assert.equals(1, t.errors.length)
     // 2 stack frames: the test function, error()
-    assert.equals(2, runTestSync().errors[0].split("\n\t").length - 1)
+    const errorMsg = runTestSync().errors[0]
+    const frames = errorMsg.split("\n\t").length - 1
+    if (frames !== 2) {
+      error("Not two stack frames:\n" + errorMsg + "\n")
+    }
   })
 })
 
@@ -308,7 +316,7 @@ test("Failing describe", () => {
     error("on no")
   })
   runTestSync()
-  assert.matches("on no", mockTestState.results.suppressedErrors[0])
+  assert.matches("on no", mockTestState.results.additionalErrors[0])
 })
 
 describe("skipped tests", () => {
@@ -472,7 +480,7 @@ describe("async tests", () => {
       runTestAsync((test) => {
         assert.is_false(failedToTimeOut, "Test failed to time out.")
         assert.not_same([], test.errors)
-        assert.equal(tick, 31)
+        assert.equal(30, tick)
       })
     })
 
@@ -756,6 +764,13 @@ describe("ticks between tests", () => {
     })
   })
 
+  it("does not wait for skipped tests", () => {
+    test("1", () => 0)
+    ticks_between_tests(2)
+    test.skip("1", () => 0)
+    runTestSync() // gives error if not run in 1 tick
+  })
+
   it("does not accept negative value", () => {
     assert.error(() => {
       ticks_between_tests(-1)
@@ -817,7 +832,7 @@ describe.each(["test", "describe"], "%s.each", (funcName) => {
 
 describe("reload state", () => {
   function reloadAndTick(): void {
-    const runner = createRunner(mockTestState)
+    const runner = createTestRunner(mockTestState)
     runner.tick()
   }
 
@@ -828,7 +843,7 @@ describe("reload state", () => {
     test("", () => {
       // empty
     })
-    const runner = createRunner(mockTestState)
+    const runner = createTestRunner(mockTestState)
     assert.equal(TestStage.Running, mockTestState.getTestStage())
     runner.tick()
     assert.equal(TestStage.Completed, mockTestState.getTestStage())
@@ -839,16 +854,16 @@ describe("reload state", () => {
       async()
     })
     reloadAndTick()
-    assert.same(mockTestState.results.suppressedErrors, [])
+    assert.same(mockTestState.results.additionalErrors, [])
     reloadAndTick()
-    assert.not_same(mockTestState.results.suppressedErrors, [])
+    assert.not_same(mockTestState.results.additionalErrors, [])
     assert.equal(TestStage.LoadError, mockTestState.getTestStage())
   })
 
   test.each([TestStage.LoadError], "should not run with state %s", (state) => {
     mockTestState.setTestStage(state)
     assert.error(() => {
-      createRunner(mockTestState)
+      createTestRunner(mockTestState)
     })
   })
 })
@@ -862,7 +877,7 @@ describe("test events", () => {
     })
     runTestSync()
     const expected: TestEvent["type"][] = [
-      "startTestRun",
+      "testRunStarted",
       "enterDescribeBlock", // root
       "enterDescribeBlock",
       "testEntered",
@@ -870,7 +885,7 @@ describe("test events", () => {
       "testPassed",
       "exitDescribeBlock",
       "exitDescribeBlock",
-      "finishTestRun",
+      "testRunFinished",
     ]
     assert.same(
       expected,
@@ -883,13 +898,13 @@ describe("test events", () => {
     })
     runTestSync()
     const expected: TestEvent["type"][] = [
-      "startTestRun",
+      "testRunStarted",
       "enterDescribeBlock",
       "testEntered",
       "testStarted",
       "testFailed",
       "exitDescribeBlock",
-      "finishTestRun",
+      "testRunFinished",
     ]
     assert.same(
       expected,
@@ -902,13 +917,12 @@ describe("test events", () => {
     })
     runTestSync()
     const expected: TestEvent["type"][] = [
-      "startTestRun",
+      "testRunStarted",
       "enterDescribeBlock",
       "testEntered",
-      "testStarted",
       "testSkipped",
       "exitDescribeBlock",
-      "finishTestRun",
+      "testRunFinished",
     ]
     assert.same(
       expected,
@@ -919,13 +933,12 @@ describe("test events", () => {
     test.todo("todo")
     runTestSync()
     const expected: TestEvent["type"][] = [
-      "startTestRun",
+      "testRunStarted",
       "enterDescribeBlock",
       "testEntered",
-      "testStarted",
       "testTodo",
       "exitDescribeBlock",
-      "finishTestRun",
+      "testRunFinished",
     ]
     assert.same(
       expected,
@@ -977,7 +990,7 @@ describe("tags", () => {
       tags("foo", "bar")
     })
     runTestSync()
-    assert.not_same([], mockTestState.results.suppressedErrors)
+    assert.not_same([], mockTestState.results.additionalErrors)
   })
 
   test("double tag call is error", () => {
@@ -985,7 +998,7 @@ describe("tags", () => {
     tags("foo", "bar")
     test("some test", () => 0)
     runTestSync()
-    assert.not_same([], mockTestState.results.suppressedErrors)
+    assert.not_same([], mockTestState.results.additionalErrors)
   })
 
   test("automatic after_mod_reload tag", () => {

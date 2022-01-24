@@ -6,8 +6,8 @@ import { DescribeBlock, formatSource, Hook, isSkippedTest, Test } from "./tests"
 import OnTickFn = Testorio.OnTickFn
 import TestFn = Testorio.TestFn
 
-interface StartTestRun {
-  type: "startTestRun"
+interface TestRunStarted {
+  type: "testRunStarted"
 }
 
 interface EnterDescribe {
@@ -47,8 +47,8 @@ interface LeaveDescribe {
   block: DescribeBlock
 }
 
-interface FinishTestRun {
-  type: "finishTestRun"
+interface TestRunFinished {
+  type: "testRunFinished"
 }
 
 interface ReportLoadError {
@@ -56,7 +56,7 @@ interface ReportLoadError {
 }
 
 type Task =
-  | StartTestRun
+  | TestRunStarted
   | EnterDescribe
   | EnterTest
   | StartTest
@@ -64,7 +64,7 @@ type Task =
   | WaitForTestPart
   | LeaveTest
   | LeaveDescribe
-  | FinishTestRun
+  | TestRunFinished
   | ReportLoadError
 
 export interface TestRunner {
@@ -81,7 +81,7 @@ const enum LoadResult {
   AlreadyRan,
 }
 
-function onLoad(testState: TestState):
+function onLoad(state: TestState):
   | {
       result: LoadResult.FirstLoad
     }
@@ -103,14 +103,14 @@ function onLoad(testState: TestState):
   if (game.is_multiplayer()) {
     error("Tests cannot be in run in multiplayer")
   }
-  const testStage = testState.getTestStage()
-  switch (testStage) {
+  const stage = state.getTestStage()
+  switch (stage) {
     case TestStage.NotRun:
       return remote.interfaces[Remote.RunTests]
         ? { result: LoadResult.FirstLoad }
         : error("Test runner trying to be created when tests not loaded")
     case TestStage.ToReload: {
-      const { test, partIndex } = resumeAfterReload(testState)
+      const { test, partIndex } = resumeAfterReload(state)
       return partIndex
         ? {
             result: LoadResult.ResumeAfterReload,
@@ -127,14 +127,14 @@ function onLoad(testState: TestState):
     case TestStage.Completed:
       return { result: LoadResult.AlreadyRan }
     case TestStage.LoadError:
-      return error("Unexpected reload state when test runner loaded: " + testStage)
+      return error("Unexpected reload state when test runner loaded: " + stage)
     default:
-      assertNever(testStage)
+      assertNever(stage)
       break
   }
 }
 
-export function createRunner(state: TestState): TestRunner {
+export function createTestRunner(state: TestState): TestRunner {
   function hasAnyTest(block: DescribeBlock): boolean {
     return block.children.some((child) => (child.type === "test" ? !isSkippedTest(child, state) : hasAnyTest(child)))
   }
@@ -149,9 +149,9 @@ export function createRunner(state: TestState): TestRunner {
     }
   }
 
-  function startTestRun(): Task {
+  function testRunStarted(): Task {
     state.raiseTestEvent({
-      type: "startTestRun",
+      type: "testRunStarted",
     })
     return {
       type: "enterDescribe",
@@ -159,9 +159,9 @@ export function createRunner(state: TestState): TestRunner {
     }
   }
 
-  function finishTestRun(): undefined {
+  function testRunFinished(): undefined {
     state.raiseTestEvent({
-      type: "finishTestRun",
+      type: "testRunFinished",
     })
     return
   }
@@ -232,7 +232,7 @@ export function createRunner(state: TestState): TestRunner {
     })
 
     if (block.children.length === 0) {
-      state.results.suppressedErrors.push(`${block.path} has no tests defined.\n${formatSource(block.source)}`)
+      state.results.additionalErrors.push(`${block.path} has no tests defined.\n${formatSource(block.source)}`)
     } else if (hasAnyTest(block)) {
       const hooks = block.hooks.filter((x) => x.type === "beforeAll")
       for (const hook of hooks) {
@@ -245,11 +245,25 @@ export function createRunner(state: TestState): TestRunner {
     return nextDescribeBlockItem(block, 0)
   }
 
-  function enterTest({ test }: EnterTest): StartTest {
+  function enterTest({ test }: EnterTest): Task {
     state.raiseTestEvent({
       type: "testEntered",
       test,
     })
+    if (isSkippedTest(test, state)) {
+      if (test.mode === "todo") {
+        state.raiseTestEvent({
+          type: "testTodo",
+          test,
+        })
+      } else {
+        state.raiseTestEvent({
+          type: "testSkipped",
+          test,
+        })
+      }
+      return nextDescribeBlockItem(test.parent, test.indexInParent + 1)
+    }
 
     return {
       type: "startTest",
@@ -267,20 +281,18 @@ export function createRunner(state: TestState): TestRunner {
       test,
     })
 
-    if (!isSkippedTest(test, state)) {
-      function collectHooks(block: DescribeBlock, hooks: Hook[]) {
-        if (block.parent) collectHooks(block.parent, hooks)
-        hooks.push(...block.hooks.filter((x) => x.type === "beforeEach"))
-        return hooks
-      }
+    function collectHooks(block: DescribeBlock, hooks: Hook[]) {
+      if (block.parent) collectHooks(block.parent, hooks)
+      hooks.push(...block.hooks.filter((x) => x.type === "beforeEach"))
+      return hooks
+    }
 
-      const beforeEach = collectHooks(test.parent, [])
-      for (const hook of beforeEach) {
-        if (test.errors.length !== 0) break
-        const [success, error] = pcallWithStacktrace(hook.func)
-        if (!success) {
-          test.errors.push(error as string)
-        }
+    const beforeEach = collectHooks(test.parent, [])
+    for (const hook of beforeEach) {
+      if (test.errors.length !== 0) break
+      const [success, error] = pcallWithStacktrace(hook.func)
+      if (!success) {
+        test.errors.push(error as string)
       }
     }
     return {
@@ -294,12 +306,10 @@ export function createRunner(state: TestState): TestRunner {
     const { test, partIndex } = testRun
     const part = test.parts[partIndex]
     state.currentTestRun = testRun
-    if (!isSkippedTest(test, state)) {
-      if (test.errors.length === 0) {
-        const [success, error] = pcallWithStacktrace(part.func)
-        if (!success) {
-          test.errors.push(error as string)
-        }
+    if (test.errors.length === 0) {
+      const [success, error] = pcallWithStacktrace(part.func)
+      if (!success) {
+        test.errors.push(error as string)
       }
     }
     return nextTestTask(task)
@@ -314,13 +324,15 @@ export function createRunner(state: TestState): TestRunner {
       test.errors.push(`Test timed out after ${testRun.timeout} ticks:\n${formatSource(test.parts[partIndex].source)}`)
     }
 
-    for (const func of Object.keys(testRun.onTickFuncs) as unknown as OnTickFn[]) {
-      const [success, result] = pcallWithStacktrace(func, tickNumber)
-      if (!success) {
-        test.errors.push(result as string)
-        break
-      } else if (result === false) {
-        testRun.onTickFuncs.delete(func)
+    if (test.errors.length === 0) {
+      for (const func of Object.keys(testRun.onTickFuncs) as unknown as OnTickFn[]) {
+        const [success, result] = pcallWithStacktrace(func, tickNumber)
+        if (!success) {
+          test.errors.push(result as string)
+          break
+        } else if (result === false) {
+          testRun.onTickFuncs.delete(func)
+        }
       }
     }
     return nextTestTask(task)
@@ -328,38 +340,23 @@ export function createRunner(state: TestState): TestRunner {
 
   function leaveTest({ testRun }: LeaveTest): Task {
     const { test } = testRun
-    const isSkipped = isSkippedTest(test, state)
 
-    if (!isSkipped) {
-      function collectHooks(block: DescribeBlock, hooks: TestFn[]) {
-        hooks.push(...block.hooks.filter((x) => x.type === "afterEach").map((x) => x.func))
-        if (block.parent) collectHooks(block.parent, hooks)
-        return hooks
-      }
+    function collectHooks(block: DescribeBlock, hooks: TestFn[]) {
+      hooks.push(...block.hooks.filter((x) => x.type === "afterEach").map((x) => x.func))
+      if (block.parent) collectHooks(block.parent, hooks)
+      return hooks
+    }
 
-      const afterEach = collectHooks(test.parent, [])
+    const afterEach = collectHooks(test.parent, [])
 
-      for (const hook of afterEach) {
-        const [success, error] = pcallWithStacktrace(hook)
-        if (!success) {
-          test.errors.push(error as string)
-        }
+    for (const hook of afterEach) {
+      const [success, error] = pcallWithStacktrace(hook)
+      if (!success) {
+        test.errors.push(error as string)
       }
     }
     state.currentTestRun = undefined
-    if (isSkipped) {
-      if (test.mode === "todo") {
-        state.raiseTestEvent({
-          type: "testTodo",
-          test,
-        })
-      } else {
-        state.raiseTestEvent({
-          type: "testSkipped",
-          test,
-        })
-      }
-    } else if (test.errors.length > 0) {
+    if (test.errors.length > 0) {
       state.raiseTestEvent({
         type: "testFailed",
         test,
@@ -381,7 +378,7 @@ export function createRunner(state: TestState): TestRunner {
       for (const hook of hooks) {
         const [success, message] = pcallWithStacktrace(hook.func)
         if (!success) {
-          state.results.suppressedErrors.push(`Error running ${hook.type}: ${message}`)
+          state.results.additionalErrors.push(`Error running ${hook.type}: ${message}`)
         }
       }
     }
@@ -392,14 +389,14 @@ export function createRunner(state: TestState): TestRunner {
     return block.parent
       ? nextDescribeBlockItem(block.parent, block.indexInParent + 1)
       : {
-          type: "finishTestRun",
+          type: "testRunFinished",
         }
   }
 
   function runTask(task: Task): Task | undefined {
     switch (task.type) {
-      case "startTestRun":
-        return startTestRun()
+      case "testRunStarted":
+        return testRunStarted()
       case "enterDescribe":
         return enterDescribe(task)
       case "enterTest":
@@ -414,8 +411,8 @@ export function createRunner(state: TestState): TestRunner {
         return leaveTest(task)
       case "leaveDescribe":
         return leaveDescribe(task)
-      case "finishTestRun":
-        return finishTestRun()
+      case "testRunFinished":
+        return testRunFinished()
       case "reportLoadError":
         return reportLoadError()
       default:
@@ -436,7 +433,7 @@ export function createRunner(state: TestState): TestRunner {
   const resume = onLoad(state)
   if (resume.result === LoadResult.FirstLoad) {
     nextTask = {
-      type: "startTestRun",
+      type: "testRunStarted",
     }
     state.setTestStage(TestStage.Running)
   } else if (resume.result === LoadResult.ResumeAfterReload) {

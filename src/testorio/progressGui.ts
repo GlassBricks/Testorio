@@ -1,17 +1,10 @@
-import { Locale, Remote } from "../shared-constants"
-import { logColors, LogHandler } from "./log"
+import { Locale, Prototypes, Remote } from "../shared-constants"
+import { Colors, joinToRichText, LogHandler, MessageColor } from "./output"
 import { RunResults } from "./result"
 import { TestState } from "./state"
 import { TestListener } from "./testEvents"
-import { countRunningTests } from "./tests"
+import { countActiveTests } from "./tests"
 import ProgressGui = Locale.ProgressGui
-
-namespace Colors {
-  export const Red: Color = { r: 255, g: 40, b: 40 }
-  export const Green: Color = { r: 155, g: 255, b: 122 }
-  export const Yellow: Color = { r: 255, g: 204, b: 20 }
-  export const Purple: Color = { r: 240, g: 20, b: 220 }
-}
 
 interface TestProgressGui {
   player: LuaPlayer
@@ -19,7 +12,7 @@ interface TestProgressGui {
   progressBar: ProgressBarGuiElement
   progressLabel: LabelGuiElement
   testCounts: TableGuiElement
-  testOutput: TextBoxGuiElement
+  testOutput: LuaGuiElement
 
   totalTests: number
 }
@@ -35,12 +28,9 @@ function getTestMod(): string {
 }
 
 function StatusText(parent: LuaGuiElement, gui: TestProgressGui) {
-  const message = "Running __something__"
-
-  gui.statusText = parent.add({
-    type: "label",
-    caption: message,
-  })
+  const statusText = parent.add({ type: "label" })
+  statusText.style.font = "default-large"
+  gui.statusText = statusText
 }
 
 function ProgressBar(parent: LuaGuiElement, gui: TestProgressGui) {
@@ -83,26 +73,30 @@ function TestCount(parent: LuaGuiElement, gui: TestProgressGui) {
     style.horizontal_align = "center"
     return result
   }
-  const colors = [Colors.Green, Colors.Red, Colors.Yellow, Colors.Purple]
+  const colors = [MessageColor.Red, MessageColor.Yellow, MessageColor.Purple, MessageColor.Green]
   for (let i = 0; i < 4; i++) {
     const label = addLabel()
     const color = colors[i]
-    if (color) label.style.font_color = color
+    if (color) label.style.font_color = Colors[color]
   }
   gui.testCounts = table
 }
 
 function TestOutput(parent: LuaGuiElement, gui: TestProgressGui) {
-  const box = parent.add<"text-box">({
-    type: "text-box",
+  const frame = parent.add({
+    type: "frame",
+    style: "inside_shallow_frame",
+    direction: "vertical",
   })
-  box.read_only = true
-  box.style.height = 250
-  box.style.horizontally_stretchable = true
-  box.style.natural_width = 1000
-  box.style.maximal_width = 1000
 
-  gui.testOutput = box
+  const pane = frame.add({
+    type: "scroll-pane",
+    style: "scroll_pane_in_shallow_frame",
+  })
+  pane.style.height = 600
+  pane.style.horizontally_stretchable = true
+
+  gui.testOutput = pane
 }
 
 function getPlayer(): LuaPlayer {
@@ -115,7 +109,7 @@ function getPlayer(): LuaPlayer {
 
 function createTestProgressGui(state: TestState): TestProgressGui {
   const player = getPlayer()
-  const totalTests = countRunningTests(state.rootBlock, state)
+  const totalTests = countActiveTests(state.rootBlock, state)
   const gui: TestProgressGui = {
     player,
     progressBar: undefined!,
@@ -128,19 +122,24 @@ function createTestProgressGui(state: TestState): TestProgressGui {
 
   const screen = player.gui.screen
   screen[TestProgressName]?.destroy()
-  const frame = screen.add<"frame">({
+  const mainFrame = screen.add<"frame">({
     type: "frame",
     caption: [ProgressGui.Title, getTestMod()],
-    direction: "vertical",
     name: TestProgressName,
+    direction: "vertical",
   })
-  frame.auto_center = true
-  frame.style.width = 600
+  mainFrame.auto_center = true
+  mainFrame.style.width = 1000
+  const contentFrame = mainFrame.add({
+    type: "frame",
+    style: "inside_shallow_frame_with_padding",
+    direction: "vertical",
+  })
 
-  StatusText(frame, gui)
-  ProgressBar(frame, gui)
-  TestCount(frame, gui)
-  TestOutput(frame, gui)
+  StatusText(contentFrame, gui)
+  ProgressBar(contentFrame, gui)
+  TestCount(contentFrame, gui)
+  TestOutput(mainFrame, gui)
   updateStatus(gui, state.results)
   return gui
 }
@@ -151,16 +150,16 @@ function updateStatus(gui: TestProgressGui, results: RunResults) {
 
   const testCounts = gui.testCounts.children
 
-  testCounts[0].caption = [ProgressGui.NPassed, results.passed]
-  if (results.failed > 0) testCounts[1].caption = [ProgressGui.NFailed, results.failed]
-  if (results.skipped > 0) testCounts[2].caption = [ProgressGui.NSkipped, results.skipped]
-  if (results.todo > 0) testCounts[3].caption = [ProgressGui.NTodo, results.todo]
+  if (results.failed > 0) testCounts[0].caption = [ProgressGui.NFailed, results.failed]
+  if (results.skipped > 0) testCounts[1].caption = [ProgressGui.NSkipped, results.skipped]
+  if (results.todo > 0) testCounts[2].caption = [ProgressGui.NTodo, results.todo]
+  if (results.passed > 0) testCounts[3].caption = [ProgressGui.NPassed, results.passed]
 }
 
 export const progressGuiListener: TestListener = (event, state) => {
   const gui = global.__testProgressGui
   switch (event.type) {
-    case "startTestRun": {
+    case "testRunStarted": {
       global.__testProgressGui = createTestProgressGui(state)
       break
     }
@@ -199,36 +198,32 @@ export const progressGuiListener: TestListener = (event, state) => {
       if (block.parent) gui.statusText.caption = [ProgressGui.RunningTest, block.parent.path]
       break
     }
-    case "finishTestRun": {
-      let message: string
-      switch (state.results.status) {
-        case "passed":
-          message = ProgressGui.Pass
-          break
-        case "failed":
-          message = ProgressGui.Fail
-          break
-        case "todo":
-          message = ProgressGui.PassWithTodo
-          break
-        case "not completed":
-          error("finishTestRun emitted without test result")
-      }
-      gui.statusText.caption = [ProgressGui.TestRunCompleted, [message]]
+    case "testRunFinished": {
+      gui.statusText.caption = [ProgressGui.TestRunCompleted]
       break
     }
     case "loadError": {
-      gui.statusText.caption = [ProgressGui.TestRunCompleted, [ProgressGui.LoadError]]
+      gui.statusText.caption = [ProgressGui.LoadError]
       break
     }
   }
 }
 
-const colors = logColors.map((x) => x.join())
-
-export const progressGuiLogger: LogHandler = (level, message) => {
+export const progressGuiLogger: LogHandler = (message) => {
   const gui = global.__testProgressGui
   if (!gui || !gui.progressBar.valid) return
-  const color = colors[level - 1]
-  gui.testOutput.text += table.concat(["[color=", color, "]", message, "[/color]\n"])
+  const textBox = gui.testOutput.add({
+    type: "text-box",
+    style: Prototypes.TestOutputBoxStyle,
+  })
+  textBox.read_only = true
+  const caption = joinToRichText(message)
+  let count: number
+  if (typeof caption === "string") {
+    ;[, count] = string.gsub(caption, "\n", "")
+  } else {
+    count = 1
+  }
+  textBox.style.height = (count + 1) * 20
+  textBox.caption = caption
 }

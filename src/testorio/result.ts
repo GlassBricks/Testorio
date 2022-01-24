@@ -14,9 +14,9 @@ export interface RunResults {
     errors: string[]
     result: "passed" | "failed" | "skipped" | "todo"
   }[]
-  suppressedErrors: string[]
+  additionalErrors: string[]
 
-  status: "not completed" | "passed" | "failed" | "todo"
+  status?: "passed" | "failed" | "todo"
 }
 
 export function createRunResult(): RunResults {
@@ -26,8 +26,7 @@ export function createRunResult(): RunResults {
     ran: 0,
     skipped: 0,
     todo: 0,
-    status: "not completed",
-    suppressedErrors: [],
+    additionalErrors: [],
     tests: [],
   }
 }
@@ -81,10 +80,8 @@ export const resultCollector: TestListener = (event, state) => {
       })
       break
     }
-    case "exitDescribeBlock":
-      break
-    case "finishTestRun":
-      if (results.failed !== 0 || results.suppressedErrors.length !== 0) {
+    case "testRunFinished":
+      if (results.failed !== 0 || results.additionalErrors.length !== 0) {
         results.status = "failed"
       } else if (results.todo !== 0) {
         results.status = "todo"

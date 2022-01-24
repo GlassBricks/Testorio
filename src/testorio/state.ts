@@ -38,14 +38,11 @@ export interface TestRun {
   onTickFuncs: LuaTable<OnTickFn, true>
 }
 
-declare global {
-  let TESTORIO_TEST_STATE: TestState | undefined
-}
+let TESTORIO_TEST_STATE: TestState | undefined
 declare const global: {
   __testorioTestStage?: TestStage
 }
 
-// stored in settings so can be accessed even when global table is not yet loaded
 export function getTestState(): TestState {
   return TESTORIO_TEST_STATE ?? error("Tests are not configured to be run")
 }
@@ -65,7 +62,7 @@ function setGlobalTestStage(stage: TestStage): void {
 }
 
 export function resetTestState(config: Config): void {
-  const rootBlock = createRootDescribeBlock()
+  const rootBlock = createRootDescribeBlock(config)
   _setTestState({
     config,
     rootBlock,
@@ -82,10 +79,10 @@ export function resetTestState(config: Config): void {
 
 export function makeLoadError(state: TestState, error: string): void {
   state.setTestStage(TestStage.LoadError)
-  state.rootBlock = createRootDescribeBlock()
+  state.rootBlock = createRootDescribeBlock(state.config)
   state.currentBlock = undefined
   state.currentTestRun = undefined
-  state.results.suppressedErrors = [error]
+  state.results.additionalErrors = [error]
   game.speed = 1
 }
 

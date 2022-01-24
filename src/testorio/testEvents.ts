@@ -4,8 +4,8 @@ import { DescribeBlock, Test } from "./tests"
 interface BaseTestEvent {
   type: string
 }
-export interface StartTestRun extends BaseTestEvent {
-  type: "startTestRun"
+export interface TestRunStarted extends BaseTestEvent {
+  type: "testRunStarted"
 }
 export interface EnterDescribeBlock extends BaseTestEvent {
   type: "enterDescribeBlock"
@@ -39,15 +39,15 @@ export interface ExitDescribeBlock extends BaseTestEvent {
   type: "exitDescribeBlock"
   block: DescribeBlock
 }
-export interface FinishTestRun extends BaseTestEvent {
-  type: "finishTestRun"
+export interface TestRunFinished extends BaseTestEvent {
+  type: "testRunFinished"
 }
 export interface LoadError extends BaseTestEvent {
   type: "loadError"
 }
 
 export type TestEvent =
-  | StartTestRun
+  | TestRunStarted
   | EnterDescribeBlock
   | TestEntered
   | TestStarted
@@ -56,7 +56,7 @@ export type TestEvent =
   | TestSkipped
   | TestTodo
   | ExitDescribeBlock
-  | FinishTestRun
+  | TestRunFinished
   | LoadError
 
 export type TestListener = (event: TestEvent, state: TestState) => void

@@ -120,7 +120,7 @@ export function addDescribeBlock(
   return block
 }
 
-export function createRootDescribeBlock(): DescribeBlock {
+export function createRootDescribeBlock(config: Config): DescribeBlock {
   return {
     type: "describeBlock",
     name: "",
@@ -132,7 +132,7 @@ export function createRootDescribeBlock(): DescribeBlock {
     indexInParent: -1,
     hooks: [],
     mode: undefined,
-    ticksBetweenTests: 0,
+    ticksBetweenTests: config.default_ticks_between_tests,
   }
 }
 
@@ -160,11 +160,11 @@ export function isSkippedTest(test: Test, state: TestState) {
   )
 }
 
-export function countRunningTests(block: DescribeBlock, state: TestState): number {
+export function countActiveTests(block: DescribeBlock, state: TestState): number {
   if (block.mode === "skip") return 0
   let result = 0
   for (const child of block.children) {
-    if (child.type === "describeBlock") result += countRunningTests(child, state)
+    if (child.type === "describeBlock") result += countActiveTests(child, state)
     else if (child.type === "test") {
       if (!isSkippedTest(child, state)) result++
     } else {
