@@ -7,6 +7,7 @@ declare const global: {
   __testResume?: {
     rootBlock: DescribeBlock
     results: RunResults
+    profiler: LuaProfiler
     test: Test
     partIndex: number
   }
@@ -19,12 +20,14 @@ export function prepareReload(testState: TestState): void {
     results: testState.results,
     test: currentRun.test,
     partIndex: currentRun.partIndex + 1,
+    profiler: testState.profiler!,
   }
   testState.setTestStage(TestStage.ToReload)
 }
 
 const copiedTestState: Partial<Record<keyof Test, true>> = {
   errors: true,
+  profiler: true,
 }
 
 function compareAndFindTest(current: unknown, stored: unknown, storedTest: Test): Test | undefined {
@@ -75,6 +78,8 @@ export function resumeAfterReload(state: TestState): {
   const stored = testResume.rootBlock
   const test = compareAndFindTest(state.rootBlock, stored, testResume.test)
   state.results = testResume.results
+  state.profiler = testResume.profiler
+  state.reloaded = true
   return test
     ? {
         test,

@@ -19,6 +19,8 @@ export interface TestState {
   currentTestRun?: TestRun
 
   results: RunResults
+  profiler?: LuaProfiler
+  reloaded?: boolean
 
   // state that is persistent across game reload
   // here as a function so is mock-able in meta test

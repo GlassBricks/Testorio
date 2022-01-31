@@ -222,7 +222,7 @@ export const progressGuiLogger: LogHandler = (message) => {
   if (typeof caption === "string") {
     ;[, count] = string.gsub(caption, "\n", "")
   } else {
-    count = 1
+    count = 0
   }
   textBox.style.height = (count + 1) * 20
   textBox.caption = caption

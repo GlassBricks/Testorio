@@ -1,3 +1,4 @@
+/** @noSelfInFile */
 import { Remote, TestStage } from "../shared-constants"
 import { assertNever, pcallWithStacktrace } from "./_util"
 import { resumeAfterReload } from "./resume"
@@ -150,6 +151,7 @@ export function createTestRunner(state: TestState): TestRunner {
   }
 
   function testRunStarted(): Task {
+    state.profiler = game.create_profiler()
     state.raiseTestEvent({
       type: "testRunStarted",
     })
@@ -160,6 +162,7 @@ export function createTestRunner(state: TestState): TestRunner {
   }
 
   function testRunFinished(): undefined {
+    state.profiler!.stop()
     state.raiseTestEvent({
       type: "testRunFinished",
     })
@@ -274,6 +277,7 @@ export function createTestRunner(state: TestState): TestRunner {
 
   function startTest({ test }: StartTest): Task {
     // set testRun now, no errors in hooks
+    test.profiler = game.create_profiler()
     const testRun = newTestRun(test, 0)
     state.currentTestRun = testRun
     state.raiseTestEvent({
@@ -356,6 +360,7 @@ export function createTestRunner(state: TestState): TestRunner {
       }
     }
     state.currentTestRun = undefined
+    test.profiler!.stop()
     if (test.errors.length > 0) {
       state.raiseTestEvent({
         type: "testFailed",

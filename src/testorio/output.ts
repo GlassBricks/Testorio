@@ -62,7 +62,10 @@ function purple(text: string): MessagePart {
   }
 }
 
-function m(strings: TemplateStringsArray, ...substitutions: (string | number | LuaProfiler | MessagePart)[]) {
+function m(
+  strings: TemplateStringsArray,
+  ...substitutions: (string | number | LuaProfiler | MessagePart)[]
+): MessagePart[] {
   const result: MessagePart[] = []
   for (const i of $range(1, strings.length * 2 - 1)) {
     const item = i % 2 === 0 ? strings[i / 2] : substitutions[(i - 1) / 2]
@@ -132,6 +135,7 @@ const daTranslate: typeof import("__debugadapter__/variables").translate = !debu
       return (message) => {
         const translationID = id++
         const [success, result] = pcall(localised_print, [
+          "",
           "***DebugAdapterBlockPrint***\nDBGtranslate: ",
           translationID,
           "\n",
@@ -214,12 +218,17 @@ export const logListener: TestListener = (event, state) => {
   switch (event.type) {
     case "testPassed": {
       const { test } = event
-      testLog(m`${bold(test.path)}: ${green("passed")}`, test.source)
+      testLog(
+        m`${bold(test.path)} ${green("passed")} (${test.profiler!}${
+          test.tags.after_mod_reload || test.tags.after_script_reload ? " after reload" : ""
+        })`,
+        test.source,
+      )
       break
     }
     case "testFailed": {
       const { test } = event
-      testLog(m`${bold(test.path)}: ${red("failed")}`, test.source)
+      testLog(m`${bold(test.path)} ${red("failed")}`, test.source)
       for (const error of test.errors) {
         testLog([red(error)])
       }
@@ -227,7 +236,7 @@ export const logListener: TestListener = (event, state) => {
     }
     case "testTodo": {
       const { test } = event
-      testLog(m`${bold(test.path)}: ${purple("todo")}`, test.source)
+      testLog(m`${bold(test.path)}: ${purple("TODO")}`, test.source)
       break
     }
     case "testRunFinished": {
@@ -246,9 +255,9 @@ export const logListener: TestListener = (event, state) => {
       }
       const status = results.status
 
-      const endReport = [
+      testLog([
         {
-          text: `\nTest run finished: ${status === "todo" ? "passed with todo items" : status}\n`,
+          text: `\nTest run finished: ${status === "todo" ? "passed with todo tests" : status}`,
           bold: true,
           color:
             status === "passed"
@@ -259,44 +268,48 @@ export const logListener: TestListener = (event, state) => {
               ? MessageColor.Purple
               : MessageColor.White,
         },
-        bold(`Ran ${results.ran} tests\n`),
-      ]
+      ])
+
+      testLog(m`${bold(`Ran ${results.ran} tests`)} (${state.profiler!}${state.reloaded ? " since last reload" : ""})`)
+
+      const testListing: MessagePart[] = []
+
       if (results.failed > 0) {
-        endReport.push({
+        testListing.push({
           text: `${results.failed} failed\n`,
           color: MessageColor.Red,
           bold: true,
         })
       }
       if (results.additionalErrors.length > 0) {
-        endReport.push({
+        testListing.push({
           text: `${results.additionalErrors.length} additional errors\n`,
           color: MessageColor.Red,
           bold: true,
         })
       }
       if (results.skipped > 0) {
-        endReport.push({
+        testListing.push({
           text: `${results.skipped} skipped\n`,
           color: MessageColor.Yellow,
           bold: true,
         })
       }
       if (results.todo > 0) {
-        endReport.push({
+        testListing.push({
           text: `${results.todo} todo\n`,
           color: MessageColor.Purple,
           bold: true,
         })
       }
       if (results.passed > 0) {
-        endReport.push({
+        testListing.push({
           text: `${results.passed} passed\n`,
           color: MessageColor.Green,
           bold: true,
         })
       }
-      testLog(endReport)
+      testLog(testListing)
       break
     }
     case "loadError": {

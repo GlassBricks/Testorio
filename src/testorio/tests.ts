@@ -37,6 +37,7 @@ export interface Test {
   readonly ticksBefore: number
 
   readonly errors: string[]
+  profiler?: LuaProfiler
 }
 
 export function addTest(
