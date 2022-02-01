@@ -29,6 +29,9 @@ declare namespace Testorio {
     log_to_DA: boolean
     log_to_log: boolean
 
+    log_passed_tests: boolean
+    log_skipped_tests: boolean
+
     test_pattern?: string
     tag_whitelist?: string[]
     tag_blacklist?: string[]

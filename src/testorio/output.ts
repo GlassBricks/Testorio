@@ -217,13 +217,15 @@ export const gameLogger: LogHandler = (message) => {
 export const logListener: TestListener = (event, state) => {
   switch (event.type) {
     case "testPassed": {
-      const { test } = event
-      testLog(
-        m`${bold(test.path)} ${green("passed")} (${test.profiler!}${
-          test.tags.after_mod_reload || test.tags.after_script_reload ? " after reload" : ""
-        })`,
-        test.source,
-      )
+      if (state.config.log_passed_tests) {
+        const { test } = event
+        testLog(
+          m`${bold(test.path)} ${green("passed")} (${test.profiler!}${
+            test.tags.after_mod_reload || test.tags.after_script_reload ? " after reload" : ""
+          })`,
+          test.source,
+        )
+      }
       break
     }
     case "testFailed": {
@@ -237,6 +239,13 @@ export const logListener: TestListener = (event, state) => {
     case "testTodo": {
       const { test } = event
       testLog(m`${bold(test.path)}: ${purple("todo")}`, test.source)
+      break
+    }
+    case "testSkipped": {
+      if (state.config.log_skipped_tests) {
+        const { test } = event
+        testLog(m`${bold(test.path)}: ${yellow("skipped")}`, test.source)
+      }
       break
     }
     case "describeBlockFailed": {

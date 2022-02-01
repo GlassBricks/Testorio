@@ -44,6 +44,8 @@ function part(func) end
 ---@field log_to_game boolean | nil
 ---@field log_to_DA boolean | nil
 ---@field log_to_log boolean | nil
+-- @field log_passed_tests boolean | nil
+-- @field log_skipped_tests boolean | nil
 ---@field test_pattern string | nil
 ---@field tag_whitelist string[] | nil
 ---@field tag_blacklist string[] | nil
