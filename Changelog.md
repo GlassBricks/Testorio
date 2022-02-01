@@ -2,6 +2,10 @@
 
 **NOTE**: changes on the _mod/library_ past version 0.3.0 will be documented only in [src/Changelog.txt](src/Changelog.txt). This changelog will only be for the NPM package(s).
 
+## 0.4.0
+
+- Updated definitions to Testorio 0.4.0
+
 ## 0.3.4
 
 - Use peer dependencies on package instead of normal dependencies. This should hopefully help with package resolution issues.

@@ -1,4 +1,16 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.4.0
+Date: ????
+  Features:
+    - New and improved in-game test run GUI.
+    - Improved test output.
+    - Test duration is now also reported.
+    - Error in test definitions (in describe blocks) are now caught and reported.
+    - If using a TypescriptToLua project with the compiler option "sourceMapTraceback" enabled, debugadapter console links now use the soucemap.
+  Changes:
+    - the test config option "log_level" was removed and no longer has any effect. Use "log_passed_tests" instead.   
+
+---------------------------------------------------------------------------------------------------
 Version: 0.3.1
 Date: 2021-12-8
   Bugfixes:
