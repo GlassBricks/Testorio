@@ -4,7 +4,7 @@ import * as util from "util"
 import { pcallWithStacktrace } from "./_util"
 import { prepareReload } from "./resume"
 import { getCurrentBlock, getCurrentTestRun, getTestState } from "./state"
-import { addDescribeBlock, addTest, DescribeBlock, HookType, Source, Tags, Test, TestMode } from "./tests"
+import { addDescribeBlock, addTest, createSource, DescribeBlock, HookType, Source, Tags, Test, TestMode } from "./tests"
 import DescribeCreator = Testorio.DescribeCreator
 import DescribeCreatorBase = Testorio.DescribeCreatorBase
 import HookFn = Testorio.HookFn
@@ -15,10 +15,7 @@ import TestFn = Testorio.TestFn
 
 function getCallerSource(upStack: number = 1): Source {
   const info = debug.getinfo(upStack + 2, "Sl") || {}
-  return {
-    file: info.source,
-    line: info.currentline,
-  }
+  return createSource(info.source, info.currentline)
 }
 
 function addHook(type: HookType, func: HookFn): void {
@@ -59,10 +56,7 @@ function createTest(name: string, func: TestFn, mode: TestMode, upStack: number 
 // eslint-disable-next-line @typescript-eslint/ban-types
 function addNext(test: Test, func: TestFn, funcForSource: Function = func) {
   const info = debug.getinfo(funcForSource, "Sl")
-  const source: Source = {
-    file: info.source,
-    line: info.linedefined,
-  }
+  const source = createSource(info.source, info.linedefined)
   test.parts.push({
     func,
     source,

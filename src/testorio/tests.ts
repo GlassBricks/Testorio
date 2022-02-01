@@ -13,6 +13,23 @@ export function formatSource(source: Source): string {
   if (!source.file) return "<unknown source>"
   return `${source.file}:${source.line ?? 1}`
 }
+declare global {
+  let __TS__sourcemap: Record<string, Record<string, number | Source> | undefined> | undefined
+}
+
+function tryUseSourcemap(rawFile: string | undefined, line: number | undefined): Source | undefined {
+  if (!rawFile || !line || !__TS__sourcemap) return undefined
+  const [fileName] = string.match(rawFile, "@?(%S+)%.lua")
+  if (!fileName) return undefined
+  const fileSourceMap = __TS__sourcemap[fileName + ".lua"]
+  if (!fileSourceMap) return undefined
+  const data = fileSourceMap[tostring(line)]
+  if (!data) return undefined
+  return typeof data === "number" ? { file: fileName + ".ts", line: data } : data
+}
+export function createSource(file: string | undefined, line: number | undefined): Source {
+  return tryUseSourcemap(file, line) ?? { file, line }
+}
 
 export type TestMode = undefined | "skip" | "only" | "todo"
 export type Tags = Record<string, true>

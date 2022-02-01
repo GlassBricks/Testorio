@@ -16,7 +16,8 @@
   "tstl": {
     "luaTarget": "5.2",
     "noImplicitSelf": true,
-    "noResolvePaths": ["__testorio__/init"]
+    "noResolvePaths": ["__testorio__/init"],
+    "sourceMapTraceback": true
   },
   "include": [".", "../node_modules/typed-factorio/runtime/index.d.ts", "../index.d.ts"],
   "exclude": []
