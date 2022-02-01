@@ -113,15 +113,11 @@ function createDescribe(name: string, block: TestFn, mode: TestMode, upStack: nu
   state.currentBlock = describeBlock
   const [success, msg] = pcallWithStacktrace(block)
   if (!success) {
-    state.results.additionalErrors.push(`In ${describeBlock.path}: error in test definition\n${msg}`)
+    describeBlock.errors.push(`Error in definition: ${msg}`)
   }
   state.currentBlock = parent
   if (state.currentTags) {
-    state.results.additionalErrors.push(
-      `In ${describeBlock.path}: Tags not added to any test or describe block. Tags: ${serpent.line(
-        state.currentTags,
-      )}`,
-    )
+    describeBlock.errors.push(`Tags not added to any test or describe block: ${serpent.line(state.currentTags)}`)
     state.currentTags = undefined
   }
   return describeBlock
@@ -241,7 +237,7 @@ function tags(...tags: string[]) {
   const block = getCurrentBlock()
   const state = getTestState()
   if (state.currentTags) {
-    state.results.additionalErrors.push(`In ${block.path}: double call to 'tags'`)
+    block.errors.push(`Double call to tags()`)
   }
   state.currentTags = util.list_to_map(tags)
 }

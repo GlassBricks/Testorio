@@ -99,7 +99,7 @@ function DescribeCreatorBase.each(values, name, func) end
 
 ---@class DescribeCreator : DescribeCreatorBase
 ---@overload fun(name: string, func: TestFn): void
----@field skip: DescribeCreator
----@field only: DescribeCreator
+---@field skip DescribeCreator
+---@field only DescribeCreator
 
 ---@alias Lifecycle fun(func: HookFn): void

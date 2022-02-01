@@ -153,8 +153,17 @@ describe("setup", () => {
     describe("empty", () => {
       // nothing
     })
-    runTestSync()
-    assert.not_same(mockTestState.results.additionalErrors, [])
+    const block = runTestSync<DescribeBlock>()
+    assert.not_same([], block.errors)
+  })
+
+  test("Failing describe does not report empty describe", () => {
+    describe("empty", () => {
+      error("fail")
+    })
+    const block = runTestSync<DescribeBlock>()
+    assert.not_same([], block.errors)
+    assert.same(1, block.errors.length)
   })
 })
 
@@ -236,13 +245,13 @@ test("passing test", () => {
 
   const result = runTestSync()
   assert.are_same([], result.errors)
-  assert.are_equal("passed", mockTestState.results.tests[0].result)
+  // assert.are_equal("passed", mockTestState.results.tests[0].result)
 })
 
 describe("failing tests", () => {
-  after_each(() => {
-    assert.are_equal("failed", mockTestState.results.tests[0].result)
-  })
+  // after_each(() => {
+  //   assert.are_equal("failed", mockTestState.results.tests[0].result)
+  // })
 
   const failMessage = "FAIL: 238472"
 
@@ -260,20 +269,21 @@ describe("failing tests", () => {
   test("beforeEach", () => {
     before_each(fail)
     test("test", () => {
-      error("Should not have second error")
+      error("Should not run")
     })
     const theTest = runTestSync()
     assert.are_equal(1, theTest.errors.length)
     assert.matches(failMessage, theTest.errors[0], undefined, true)
   })
+
   test("beforeAll", () => {
     before_all(fail)
     test("test", () => {
-      error("Should not have second error")
+      error("Should not run")
     })
     const theTest = runTestSync()
-    assert.are_equal(1, theTest.errors.length)
-    assert.matches(failMessage, theTest.errors[0], undefined, true)
+    assert.are_same([], theTest.errors)
+    assert.matches(failMessage, mockTestState.rootBlock.errors[0], undefined, true)
   })
 
   test("afterEach", () => {
@@ -293,7 +303,20 @@ describe("failing tests", () => {
     })
     const theTest = runTestSync()
     assert.are_equal(1, theTest.errors.length)
-    assert.matches(failMessage, mockTestState.results.additionalErrors[0], undefined, true)
+    assert.matches(failMessage, mockTestState.rootBlock.errors[0], undefined, true)
+  })
+
+  test("failure in describe definition", () => {
+    describe("foo", () => {
+      test("foo", () => {
+        error("should not run")
+      })
+
+      error("fail")
+    })
+    const block = runTestSync<DescribeBlock>()
+    assert.not_same([], block.errors)
+    assert.same([], block.children[0].errors)
   })
 
   test("Error stacktrace is clean", () => {
@@ -311,14 +334,6 @@ describe("failing tests", () => {
   })
 })
 
-test("Failing describe", () => {
-  describe("Foo", () => {
-    error("on no")
-  })
-  runTestSync()
-  assert.matches("on no", mockTestState.results.additionalErrors[0])
-})
-
 describe("skipped tests", () => {
   function setupActionHooks() {
     before_all(() => actions.push("beforeAll"))
@@ -333,7 +348,7 @@ describe("skipped tests", () => {
       actions.push("run")
     })
     const first = runTestSync()
-    assert.are_equal("skipped", mockTestState.results.tests[0].result)
+    // assert.are_equal("skipped", mockTestState.results.tests[0].result)
     assert.is_same([], first.errors)
     assert.same([], actions, "no actions should be taken on skipped test")
   })
@@ -346,7 +361,7 @@ describe("skipped tests", () => {
       })
     })
     const first = runTestSync<DescribeBlock>().children[0] as Test
-    assert.are_equal("skipped", mockTestState.results.tests[0].result)
+    // assert.are_equal("skipped", mockTestState.results.tests[0].result)
     assert.is_same([], first.errors)
     assert.same([], actions, "no actions should be taken on skipped test")
   })
@@ -355,7 +370,7 @@ describe("skipped tests", () => {
     setupActionHooks()
     test.todo("skipped test")
     const first = runTestSync()
-    assert.are_equal("todo", mockTestState.results.tests[0].result)
+    // assert.are_equal("todo", mockTestState.results.tests[0].result)
     assert.is_same([], first.errors)
   })
 
@@ -854,9 +869,9 @@ describe("reload state", () => {
       async()
     })
     reloadAndTick()
-    assert.same(mockTestState.results.additionalErrors, [])
+    assert.same([], mockTestState.rootBlock.errors)
     reloadAndTick()
-    assert.not_same(mockTestState.results.additionalErrors, [])
+    assert.not_same([], mockTestState.rootBlock.errors)
     assert.equal(TestStage.LoadError, mockTestState.getTestStage())
   })
 
@@ -878,13 +893,13 @@ describe("test events", () => {
     runTestSync()
     const expected: TestEvent["type"][] = [
       "testRunStarted",
-      "enterDescribeBlock", // root
-      "enterDescribeBlock",
+      "describeBlockEntered", // root
+      "describeBlockEntered",
       "testEntered",
       "testStarted",
       "testPassed",
-      "exitDescribeBlock",
-      "exitDescribeBlock",
+      "describeBlockFinished",
+      "describeBlockFinished",
       "testRunFinished",
     ]
     assert.same(
@@ -899,11 +914,11 @@ describe("test events", () => {
     runTestSync()
     const expected: TestEvent["type"][] = [
       "testRunStarted",
-      "enterDescribeBlock",
+      "describeBlockEntered",
       "testEntered",
       "testStarted",
       "testFailed",
-      "exitDescribeBlock",
+      "describeBlockFinished",
       "testRunFinished",
     ]
     assert.same(
@@ -918,10 +933,10 @@ describe("test events", () => {
     runTestSync()
     const expected: TestEvent["type"][] = [
       "testRunStarted",
-      "enterDescribeBlock",
+      "describeBlockEntered",
       "testEntered",
       "testSkipped",
-      "exitDescribeBlock",
+      "describeBlockFinished",
       "testRunFinished",
     ]
     assert.same(
@@ -934,10 +949,80 @@ describe("test events", () => {
     runTestSync()
     const expected: TestEvent["type"][] = [
       "testRunStarted",
-      "enterDescribeBlock",
+      "describeBlockEntered",
       "testEntered",
       "testTodo",
-      "exitDescribeBlock",
+      "describeBlockFinished",
+      "testRunFinished",
+    ]
+    assert.same(
+      expected,
+      events.map((x) => x.type),
+    )
+  })
+
+  test("failing describe block", () => {
+    describe("describe", () => {
+      error("error")
+    })
+    runTestSync()
+    const expected: TestEvent["type"][] = [
+      "testRunStarted",
+      "describeBlockEntered",
+      "describeBlockEntered",
+      "describeBlockFailed",
+      "describeBlockFinished",
+      "testRunFinished",
+    ]
+    assert.same(
+      expected,
+      events.map((x) => x.type),
+    )
+  })
+
+  test("Failing before_all hook", () => {
+    describe("describe", () => {
+      before_all(() => {
+        error("error")
+      })
+      test("test", () => {
+        // noop
+      })
+    })
+    runTestSync()
+    const expected: TestEvent["type"][] = [
+      "testRunStarted",
+      "describeBlockEntered",
+      "describeBlockEntered",
+      "describeBlockFailed",
+      "describeBlockFinished",
+      "testRunFinished",
+    ]
+    assert.same(
+      expected,
+      events.map((x) => x.type),
+    )
+  })
+
+  test("Failing after_all hook", () => {
+    describe("describe", () => {
+      after_all(() => {
+        error("error")
+      })
+      test("test", () => {
+        // noop
+      })
+    })
+    runTestSync()
+    const expected: TestEvent["type"][] = [
+      "testRunStarted",
+      "describeBlockEntered",
+      "describeBlockEntered",
+      "testEntered",
+      "testStarted",
+      "testPassed",
+      "describeBlockFailed",
+      "describeBlockFinished",
       "testRunFinished",
     ]
     assert.same(
@@ -989,8 +1074,8 @@ describe("tags", () => {
     describe("", () => {
       tags("foo", "bar")
     })
-    runTestSync()
-    assert.not_same([], mockTestState.results.additionalErrors)
+    const block = runTestSync<DescribeBlock>()
+    assert.not_same([], block.errors)
   })
 
   test("double tag call is error", () => {
@@ -998,7 +1083,7 @@ describe("tags", () => {
     tags("foo", "bar")
     test("some test", () => 0)
     runTestSync()
-    assert.not_same([], mockTestState.results.additionalErrors)
+    assert.not_same([], mockTestState.rootBlock.errors)
   })
 
   test("automatic after_mod_reload tag", () => {

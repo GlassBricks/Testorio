@@ -7,8 +7,8 @@ interface BaseTestEvent {
 export interface TestRunStarted extends BaseTestEvent {
   type: "testRunStarted"
 }
-export interface EnterDescribeBlock extends BaseTestEvent {
-  type: "enterDescribeBlock"
+export interface DescribeBlockEntered extends BaseTestEvent {
+  type: "describeBlockEntered"
   block: DescribeBlock
 }
 export interface TestEntered extends BaseTestEvent {
@@ -35,8 +35,12 @@ export interface TestTodo extends BaseTestEvent {
   type: "testTodo"
   test: Test
 }
-export interface ExitDescribeBlock extends BaseTestEvent {
-  type: "exitDescribeBlock"
+export interface DescribeBlockFinished extends BaseTestEvent {
+  type: "describeBlockFinished"
+  block: DescribeBlock
+}
+export interface DescribeBlockFailed extends BaseTestEvent {
+  type: "describeBlockFailed"
   block: DescribeBlock
 }
 export interface TestRunFinished extends BaseTestEvent {
@@ -48,14 +52,15 @@ export interface LoadError extends BaseTestEvent {
 
 export type TestEvent =
   | TestRunStarted
-  | EnterDescribeBlock
+  | DescribeBlockEntered
   | TestEntered
   | TestStarted
   | TestPassed
   | TestFailed
   | TestSkipped
   | TestTodo
-  | ExitDescribeBlock
+  | DescribeBlockFinished
+  | DescribeBlockFailed
   | TestRunFinished
   | LoadError
 

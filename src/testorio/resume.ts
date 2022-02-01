@@ -29,6 +29,9 @@ const copiedTestState: Partial<Record<keyof Test, true>> = {
   errors: true,
   profiler: true,
 }
+const copiedDescribeBlockState: Partial<Record<keyof DescribeBlock, true>> = {
+  errors: true,
+}
 
 function compareAndFindTest(current: unknown, stored: unknown, storedTest: Test): Test | undefined {
   const seen = new LuaTable<AnyNotNil, AnyNotNil>()
@@ -46,6 +49,10 @@ function compareAndFindTest(current: unknown, stored: unknown, storedTest: Test)
         cur[k] = old[k]
         continue
       }
+      if (cur.type === "describeBlock" && k in copiedDescribeBlockState) {
+        cur[k] = old[k]
+        continue
+      }
       if (!compareAndCopy(v, old[k])) {
         return false
       }
@@ -53,6 +60,8 @@ function compareAndFindTest(current: unknown, stored: unknown, storedTest: Test)
     for (const [k, v] of pairs(old)) {
       if (cur[k] === undefined) {
         if (cur.type === "test" && k in copiedTestState) {
+          cur[k] = v
+        } else if (cur.type === "describeBlock" && k in copiedDescribeBlockState) {
           cur[k] = v
         } else {
           return false

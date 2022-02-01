@@ -84,7 +84,7 @@ export function makeLoadError(state: TestState, error: string): void {
   state.rootBlock = createRootDescribeBlock(state.config)
   state.currentBlock = undefined
   state.currentTestRun = undefined
-  state.results.additionalErrors = [error]
+  state.rootBlock.errors = [error]
   game.speed = 1
 }
 

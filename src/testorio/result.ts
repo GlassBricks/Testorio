@@ -1,5 +1,4 @@
 import { TestListener } from "./testEvents"
-import { Source } from "./tests"
 
 export interface RunResults {
   ran: number
@@ -7,14 +6,14 @@ export interface RunResults {
   failed: number
   skipped: number
   todo: number
+  describeBlockErrors: number
 
-  tests: {
-    path: string
-    source: Source
-    errors: string[]
-    result: "passed" | "failed" | "skipped" | "todo"
-  }[]
-  additionalErrors: string[]
+  // tests: {
+  //   path: string
+  //   source: Source
+  //   errors: string[]
+  //   result: "passed" | "failed" | "skipped" | "todo"
+  // }[]
 
   status?: "passed" | "failed" | "todo"
 }
@@ -26,8 +25,8 @@ export function createRunResult(): RunResults {
     ran: 0,
     skipped: 0,
     todo: 0,
-    additionalErrors: [],
-    tests: [],
+    describeBlockErrors: 0,
+    // tests: [],
   }
 }
 
@@ -37,51 +36,55 @@ export const resultCollector: TestListener = (event, state) => {
     case "testPassed": {
       results.ran++
       results.passed++
-      const { path, source, errors } = event.test
-      results.tests.push({
-        path,
-        source,
-        errors,
-        result: "passed",
-      })
+      // const { path, source, errors } = event.test
+      // results.tests.push({
+      //   path,
+      //   source,
+      //   errors,
+      //   result: "passed",
+      // })
       break
     }
     case "testFailed": {
       results.ran++
       results.failed++
-      const { path, source, errors } = event.test
-      results.tests.push({
-        path,
-        source,
-        errors,
-        result: "failed",
-      })
+      // const { path, source, errors } = event.test
+      // results.tests.push({
+      //   path,
+      //   source,
+      //   errors,
+      //   result: "failed",
+      // })
       break
     }
     case "testSkipped": {
       results.skipped++
-      const { path, source, errors } = event.test
-      results.tests.push({
-        path,
-        source,
-        errors,
-        result: "skipped",
-      })
+      // const { path, source, errors } = event.test
+      // results.tests.push({
+      //   path,
+      //   source,
+      //   errors,
+      //   result: "skipped",
+      // })
       break
     }
     case "testTodo": {
       results.todo++
-      const { path, source, errors } = event.test
-      results.tests.push({
-        path,
-        source,
-        errors,
-        result: "todo",
-      })
+      // const { path, source, errors } = event.test
+      // results.tests.push({
+      //   path,
+      //   source,
+      //   errors,
+      //   result: "todo",
+      // })
+      break
+    }
+    case "describeBlockFailed": {
+      results.describeBlockErrors += event.block.errors.length
       break
     }
     case "testRunFinished":
-      if (results.failed !== 0 || results.additionalErrors.length !== 0) {
+      if (results.failed !== 0 || results.describeBlockErrors !== 0) {
         results.status = "failed"
       } else if (results.todo !== 0) {
         results.status = "todo"

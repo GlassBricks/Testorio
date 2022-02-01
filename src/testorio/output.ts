@@ -41,13 +41,13 @@ function red(text: string): MessagePart {
   }
 }
 
-// function yellow(text: string): MessagePart {
-//   return {
-//     text,
-//     color: MessageColor.Yellow,
-//   }
-// }
-//
+function yellow(text: string): MessagePart {
+  return {
+    text,
+    color: MessageColor.Yellow,
+  }
+}
+
 function green(text: string): MessagePart {
   return {
     text,
@@ -236,28 +236,24 @@ export const logListener: TestListener = (event, state) => {
     }
     case "testTodo": {
       const { test } = event
-      testLog(m`${bold(test.path)}: ${purple("TODO")}`, test.source)
+      testLog(m`${bold(test.path)}: ${purple("todo")}`, test.source)
+      break
+    }
+    case "describeBlockFailed": {
+      const { block } = event
+      testLog(m`${bold(block.path)} ${red("error")}`, block.source)
+      for (const error of block.errors) {
+        testLog([red(error)])
+      }
       break
     }
     case "testRunFinished": {
       const results = state.results
-      if (results.additionalErrors.length > 0) {
-        testLog([
-          {
-            text: `There are ${results.additionalErrors.length} additional errors:\n`,
-            color: MessageColor.Red,
-            bold: true,
-          },
-        ])
-        for (const error of results.additionalErrors) {
-          testLog([red(error)])
-        }
-      }
       const status = results.status
 
       testLog([
         {
-          text: `\nTest run finished: ${status === "todo" ? "passed with todo tests" : status}`,
+          text: `\nTest run finished: ${status === "todo" ? "passed with todo tests" : status}\n`,
           bold: true,
           color:
             status === "passed"
@@ -268,52 +264,35 @@ export const logListener: TestListener = (event, state) => {
               ? MessageColor.Purple
               : MessageColor.White,
         },
+        ...m`${state.profiler!}${state.reloaded ? " since last reload" : ""})`,
       ])
 
-      testLog(m`${bold(`Ran ${results.ran} tests`)} (${state.profiler!}${state.reloaded ? " since last reload" : ""})`)
+      const runSummary: MessagePart[] = []
 
-      const testListing: MessagePart[] = []
-
-      if (results.failed > 0) {
-        testListing.push({
-          text: `${results.failed} failed\n`,
+      if (results.describeBlockErrors > 0) {
+        runSummary.push({
+          text: `${results.describeBlockErrors} describe block errors\n`,
           color: MessageColor.Red,
           bold: true,
         })
       }
-      if (results.additionalErrors.length > 0) {
-        testListing.push({
-          text: `${results.additionalErrors.length} additional errors\n`,
-          color: MessageColor.Red,
-          bold: true,
-        })
+      runSummary.push(bold(`Ran ${results.ran} tests total\n`))
+      if (results.failed > 0) {
+        runSummary.push(red(`${results.failed} failed\n`))
       }
       if (results.skipped > 0) {
-        testListing.push({
-          text: `${results.skipped} skipped\n`,
-          color: MessageColor.Yellow,
-          bold: true,
-        })
+        runSummary.push(yellow(`${results.skipped} skipped\n`))
       }
       if (results.todo > 0) {
-        testListing.push({
-          text: `${results.todo} todo\n`,
-          color: MessageColor.Purple,
-          bold: true,
-        })
+        runSummary.push(purple(`${results.todo} todo\n`))
       }
       if (results.passed > 0) {
-        testListing.push({
-          text: `${results.passed} passed\n`,
-          color: MessageColor.Green,
-          bold: true,
-        })
+        runSummary.push(green(`${results.passed} passed\n`))
       }
-      testLog(testListing)
+      testLog(runSummary)
       break
     }
     case "loadError": {
-      const result = state.results
       testLog([
         {
           text: "There was an load error:",
@@ -321,7 +300,7 @@ export const logListener: TestListener = (event, state) => {
           color: MessageColor.Red,
         },
       ])
-      testLog([red(result.additionalErrors[0])])
+      testLog([red(state.rootBlock.errors[0])])
       break
     }
   }

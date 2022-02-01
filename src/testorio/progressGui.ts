@@ -163,7 +163,7 @@ export const progressGuiListener: TestListener = (event, state) => {
       global.__testProgressGui = createTestProgressGui(state)
       break
     }
-    case "enterDescribeBlock": {
+    case "describeBlockEntered": {
       const { block } = event
       gui.statusText.caption = [ProgressGui.RunningTest, block.path]
       break
@@ -193,7 +193,7 @@ export const progressGuiListener: TestListener = (event, state) => {
       gui.statusText.caption = [ProgressGui.RunningTest, event.test.parent.path]
       break
     }
-    case "exitDescribeBlock": {
+    case "describeBlockFinished": {
       const { block } = event
       if (block.parent) gui.statusText.caption = [ProgressGui.RunningTest, block.parent.path]
       break

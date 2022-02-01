@@ -140,16 +140,6 @@ export function createTestRunner(state: TestState): TestRunner {
     return block.children.some((child) => (child.type === "test" ? !isSkippedTest(child, state) : hasAnyTest(child)))
   }
 
-  function addErrorToAllTests(block: DescribeBlock, error: string): void {
-    for (const child of block.children) {
-      if (child.type === "describeBlock") {
-        addErrorToAllTests(block, error)
-      } else if (child.type === "test") {
-        child.errors.push(error)
-      }
-    }
-  }
-
   function testRunStarted(): Task {
     state.profiler = game.create_profiler()
     state.raiseTestEvent({
@@ -177,6 +167,13 @@ export function createTestRunner(state: TestState): TestRunner {
   }
 
   function nextDescribeBlockItem(block: DescribeBlock, index: number): Task {
+    if (block.errors.length > 0) {
+      return {
+        type: "leaveDescribe",
+        block,
+      }
+    }
+
     const item = block.children[index]
     if (item) {
       return item.type === "describeBlock"
@@ -230,18 +227,26 @@ export function createTestRunner(state: TestState): TestRunner {
 
   function enterDescribe({ block }: EnterDescribe): Task {
     state.raiseTestEvent({
-      type: "enterDescribeBlock",
+      type: "describeBlockEntered",
       block,
     })
 
+    if (block.errors.length !== 0) {
+      return {
+        type: "leaveDescribe",
+        block,
+      }
+    }
     if (block.children.length === 0) {
-      state.results.additionalErrors.push(`${block.path} has no tests defined.\n${formatSource(block.source)}`)
-    } else if (hasAnyTest(block)) {
+      block.errors.push("No tests defined")
+    }
+
+    if (hasAnyTest(block)) {
       const hooks = block.hooks.filter((x) => x.type === "beforeAll")
       for (const hook of hooks) {
         const [success, message] = pcallWithStacktrace(hook.func)
         if (!success) {
-          addErrorToAllTests(block, `Error running ${hook.type}: ${message}`)
+          block.errors.push(`Error running ${hook.type}: ${message}`)
         }
       }
     }
@@ -383,14 +388,21 @@ export function createTestRunner(state: TestState): TestRunner {
       for (const hook of hooks) {
         const [success, message] = pcallWithStacktrace(hook.func)
         if (!success) {
-          state.results.additionalErrors.push(`Error running ${hook.type}: ${message}`)
+          block.errors.push(`Error running ${hook.type}: ${message}`)
         }
       }
     }
-    state.raiseTestEvent({
-      type: "exitDescribeBlock",
-      block,
-    })
+    if (block.errors.length > 0) {
+      state.raiseTestEvent({
+        type: "describeBlockFailed",
+        block,
+      })
+    } else {
+      state.raiseTestEvent({
+        type: "describeBlockFinished",
+        block,
+      })
+    }
     return block.parent
       ? nextDescribeBlockItem(block.parent, block.indexInParent + 1)
       : {

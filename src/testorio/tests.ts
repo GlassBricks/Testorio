@@ -95,6 +95,8 @@ export interface DescribeBlock {
   readonly mode: TestMode
 
   ticksBetweenTests: number
+
+  errors: string[]
 }
 
 export function addDescribeBlock(
@@ -116,6 +118,7 @@ export function addDescribeBlock(
     children: [],
     mode,
     ticksBetweenTests: parent.ticksBetweenTests,
+    errors: [],
   }
   parent?.children.push(block)
   return block
@@ -134,6 +137,7 @@ export function createRootDescribeBlock(config: Config): DescribeBlock {
     hooks: [],
     mode: undefined,
     ticksBetweenTests: config.default_ticks_between_tests,
+    errors: [],
   }
 }
 
