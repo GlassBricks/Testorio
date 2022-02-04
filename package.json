@@ -50,7 +50,6 @@
     "watch:modfiles": "tstl -p src/tsconfig.json --watch",
     "watch:testorio": "tstl -p src/testorio/tsconfig.json --watch",
     "watch:test-mod": "tstl -p testorio-test-mod/tsconfig.json --watch",
-    "install": "yarn run build:defs",
     "prepareTest": "gulp prepareTest",
     "prepublishOnly": "yarn run lint && gulp buildPackage",
     "prepackage:mod": "yarn run lint && gulp buildMod",
