@@ -262,7 +262,7 @@ export const logListener: TestListener = (event, state) => {
 
       testLog([
         {
-          text: `\nTest run finished: ${status === "todo" ? "passed with todo tests" : status}\n`,
+          text: `\nTest run finished: ${status === "todo" ? "passed with todo tests" : status}`,
           bold: true,
           color:
             status === "passed"
@@ -273,8 +273,8 @@ export const logListener: TestListener = (event, state) => {
               ? MessageColor.Purple
               : MessageColor.White,
         },
-        ...m`${state.profiler!}${state.reloaded ? " since last reload" : ""})`,
       ])
+      testLog(m`${state.profiler!}${state.reloaded ? " since last reload" : ""}`)
 
       const runSummary: MessagePart[] = []
 
