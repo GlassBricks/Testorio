@@ -1,6 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.4.2
+Date: 2022-02-06
+  Bugfixes:
+    - Fixed an issue with stacktraces in test output.
+    - Fixed an issue with test summary in test output.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.4.0
-Date: ????
+Date: 2021-01-31
   Features:
     - New and improved in-game test run GUI.
     - Improved test output.
