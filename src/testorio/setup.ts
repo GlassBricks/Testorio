@@ -1,7 +1,7 @@
 // noinspection JSUnusedGlobalSymbols
 
 import * as util from "util"
-import { pcallWithStacktrace } from "./_util"
+import { __testorio__pcallWithStacktrace } from "./_util"
 import { prepareReload } from "./resume"
 import { getCurrentBlock, getCurrentTestRun, getTestState } from "./state"
 import { addDescribeBlock, addTest, createSource, DescribeBlock, HookType, Source, Tags, Test, TestMode } from "./tests"
@@ -105,7 +105,7 @@ function createDescribe(name: string, block: TestFn, mode: TestMode, upStack: nu
   }
   const describeBlock = addDescribeBlock(parent, name, source, mode, util.merge([parent.tags, consumeTags()]))
   state.currentBlock = describeBlock
-  const [success, msg] = pcallWithStacktrace(block)
+  const [success, msg] = __testorio__pcallWithStacktrace(block)
   if (!success) {
     describeBlock.errors.push(`Error in definition: ${msg}`)
   }

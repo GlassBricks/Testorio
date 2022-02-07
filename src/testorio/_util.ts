@@ -1,4 +1,4 @@
-export function pcallWithStacktrace<A extends any[], R>(
+export function __testorio__pcallWithStacktrace<A extends any[], R>(
   fn: (...args: A) => R,
   ...args: A
 ): LuaMultiReturn<[boolean, R | string]> {
@@ -13,7 +13,7 @@ function getErrorWithStacktrace(error: unknown) {
 
   const lines = stacktrace.split("\n")
   for (let i = 1, l = lines.length; i <= l; i++) {
-    if (lines[i - 1].startsWith("\t_util.ts:") && lines[i - 1].endsWith(": in function 'pcallWithStacktrace'")) {
+    if (lines[i - 1].endsWith(": in function '__testorio__pcallWithStacktrace'")) {
       if (lines[i - 3] === "\t[C]: in function 'rawxpcall'") {
         i--
       }

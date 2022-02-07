@@ -1,6 +1,6 @@
 /** @noSelfInFile */
 import { Remote, TestStage } from "../shared-constants"
-import { assertNever, pcallWithStacktrace } from "./_util"
+import { __testorio__pcallWithStacktrace, assertNever } from "./_util"
 import { resumeAfterReload } from "./resume"
 import { makeLoadError, TestRun, TestState } from "./state"
 import { DescribeBlock, formatSource, Hook, isSkippedTest, Test } from "./tests"
@@ -244,7 +244,7 @@ export function createTestRunner(state: TestState): TestRunner {
     if (hasAnyTest(block)) {
       const hooks = block.hooks.filter((x) => x.type === "beforeAll")
       for (const hook of hooks) {
-        const [success, message] = pcallWithStacktrace(hook.func)
+        const [success, message] = __testorio__pcallWithStacktrace(hook.func)
         if (!success) {
           block.errors.push(`Error running ${hook.type}: ${message}`)
         }
@@ -299,7 +299,7 @@ export function createTestRunner(state: TestState): TestRunner {
     const beforeEach = collectHooks(test.parent, [])
     for (const hook of beforeEach) {
       if (test.errors.length !== 0) break
-      const [success, error] = pcallWithStacktrace(hook.func)
+      const [success, error] = __testorio__pcallWithStacktrace(hook.func)
       if (!success) {
         test.errors.push(error as string)
       }
@@ -316,7 +316,7 @@ export function createTestRunner(state: TestState): TestRunner {
     const part = test.parts[partIndex]
     state.currentTestRun = testRun
     if (test.errors.length === 0) {
-      const [success, error] = pcallWithStacktrace(part.func)
+      const [success, error] = __testorio__pcallWithStacktrace(part.func)
       if (!success) {
         test.errors.push(error as string)
       }
@@ -335,7 +335,7 @@ export function createTestRunner(state: TestState): TestRunner {
 
     if (test.errors.length === 0) {
       for (const func of Object.keys(testRun.onTickFuncs) as unknown as OnTickFn[]) {
-        const [success, result] = pcallWithStacktrace(func, tickNumber)
+        const [success, result] = __testorio__pcallWithStacktrace(func, tickNumber)
         if (!success) {
           test.errors.push(result as string)
           break
@@ -359,7 +359,7 @@ export function createTestRunner(state: TestState): TestRunner {
     const afterEach = collectHooks(test.parent, [])
 
     for (const hook of afterEach) {
-      const [success, error] = pcallWithStacktrace(hook)
+      const [success, error] = __testorio__pcallWithStacktrace(hook)
       if (!success) {
         test.errors.push(error as string)
       }
@@ -386,7 +386,7 @@ export function createTestRunner(state: TestState): TestRunner {
     if (hasTests) {
       const hooks = block.hooks.filter((x) => x.type === "afterAll")
       for (const hook of hooks) {
-        const [success, message] = pcallWithStacktrace(hook.func)
+        const [success, message] = __testorio__pcallWithStacktrace(hook.func)
         if (!success) {
           block.errors.push(`Error running ${hook.type}: ${message}`)
         }
