@@ -1,5 +1,11 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.4.2
+Date: 2022-02-11
+  Bugfixes:
+    - Added locale for test-mod setting.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.4.1
 Date: 2022-02-06
   Bugfixes:
     - Fixed an issue with stacktraces in test output.
@@ -15,7 +21,7 @@ Date: 2021-01-31
     - Error in test definitions (in describe blocks) are now caught and reported.
     - If using a TypescriptToLua project with the compiler option "sourceMapTraceback" enabled, debugadapter console links now use the soucemap.
   Changes:
-    - the test config option "log_level" was removed and no longer has any effect. Use "log_passed_tests" instead.   
+    - the test config option "log_level" was removed and no longer has any effect. Use "log_passed_tests" instead.
 
 ---------------------------------------------------------------------------------------------------
 Version: 0.3.1
