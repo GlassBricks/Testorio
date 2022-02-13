@@ -120,7 +120,9 @@ async function buildDefs() {
   }
 
   const writeFile: ts.WriteFileCallback = (fileName, data, mark) => {
-    const result = data!.replace(/^declare module /gm, (str) => "/** @noResolution */" + ts.sys.newLine + str)
+    const result =
+      "/** @noSelfInFile */\n" +
+      data!.replace(/^declare module /gm, (str) => "/** @noResolution */" + ts.sys.newLine + str)
     ts.sys.writeFile(fileName, result, mark)
   }
 
