@@ -48,8 +48,8 @@ declare namespace Testorio {
   interface TestCreatorBase {
     (name: string, func: TestFn): TestBuilder
 
-    each<V extends any[]>(values: V[], name: string, func: (...values: V) => void): TestBuilder<typeof func>
-    each<T>(values: T[], name: string, func: (value: T) => void): TestBuilder<typeof func>
+    each<V extends any[]>(values: readonly V[], name: string, func: (...values: V) => void): TestBuilder<typeof func>
+    each<T>(values: readonly T[], name: string, func: (value: T) => void): TestBuilder<typeof func>
   }
 
   /** @noSelf */
@@ -69,8 +69,8 @@ declare namespace Testorio {
   interface DescribeCreatorBase {
     (name: string, func: TestFn): void
 
-    each<V extends any[]>(values: V[], name: string, func: (...values: V) => void): void
-    each<T>(values: T[], name: string, func: (value: T) => void): void
+    each<V extends any[]>(values: readonly V[], name: string, func: (...values: V) => void): void
+    each<T>(values: readonly T[], name: string, func: (value: T) => void): void
   }
 
   /** @noSelf */
