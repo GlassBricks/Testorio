@@ -94,15 +94,15 @@ async function makeLinks(dir: string | undefined, opts: Opts): Promise<void> {
       const modInfo = JSON.parse(await fs.readFile(infoJsonPath, "utf-8")) as InfoJson
       if (!modInfo) return
       const modId = `${modInfo.name}_${modInfo.version}`
-      const destination = path.join(modsPath, modId)
-      const existingModId = existing.get(modId)
-      if (existingModId !== undefined) {
+      const destination = path.join(modsPath, modInfo.name)
+      const existingPath = existing.get(modId)
+      if (existingPath !== undefined) {
         console.warn(
-          `Multiple info.jsons with same mod name and version (${modId}): ${existingModId}, ${infoJsonPath}. Only using ${existingModId}`,
+          `Multiple info.jsons with same mod name (${modId}): ${existingPath}, ${infoJsonPath}. Only using ${existingPath}`,
         )
         return
       }
-      existing.set(modId, infoJsonPath)
+      existing.set(modInfo.name, infoJsonPath)
       const target = path.dirname(infoJsonPath)
       console.log(`Creating symlink from ${destination} to ${path.relative(".", target)}`)
       await rimraf(destination)
