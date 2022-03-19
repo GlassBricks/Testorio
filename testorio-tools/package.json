@@ -1,9 +1,11 @@
 {
   "name": "testorio-tools",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Utilities supplementing Testorio, a test framework for factorio.",
   "keywords": [
-    "factorio", "test", "testing"
+    "factorio",
+    "test",
+    "testing"
   ],
   "homepage": "https://github.com/GlassBricks/Testorio/fml#readme",
   "license": "MIT",
