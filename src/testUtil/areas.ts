@@ -1,6 +1,6 @@
 // noinspection JSUnusedGlobalSymbols
 
-function getSurfaceAndArea(
+export function get_area(
   surface: SurfaceIdentification,
   area: number | string | BoundingBox,
 ): LuaMultiReturn<[surface: LuaSurface, area: BoundingBox]> {
@@ -17,7 +17,7 @@ export function enable_all(
   surface: SurfaceIdentification,
   area: BoundingBox | string | number,
 ): LuaMultiReturn<[surface: LuaSurface, area: BoundingBox]> {
-  ;[surface, area] = getSurfaceAndArea(surface, area)
+  ;[surface, area] = get_area(surface, area)
   for (const entity of surface.find_entities(area)) {
     if (!entity.active) {
       error("Entity was already active before test run")
@@ -31,7 +31,7 @@ export function disable_all(
   surface: SurfaceIdentification,
   area: BoundingBox | string | number,
 ): LuaMultiReturn<[surface: LuaSurface, area: BoundingBox]> {
-  ;[surface, area] = getSurfaceAndArea(surface, area)
+  ;[surface, area] = get_area(surface, area)
   for (const entity of surface.find_entities(area)) {
     entity.active = false
   }
@@ -42,7 +42,7 @@ export function test_area(
   surface: SurfaceIdentification,
   area: number | string | BoundingBox,
 ): LuaMultiReturn<[surface: LuaSurface, area: BoundingBox]> {
-  ;[surface, area] = getSurfaceAndArea(surface, area)
+  ;[surface, area] = get_area(surface, area)
   for (const entity of surface.find_entities(area)) {
     if (entity.active) {
       rendering.draw_circle({
