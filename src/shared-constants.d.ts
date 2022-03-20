@@ -31,6 +31,7 @@ export namespace Locale {
     RunningTest = "testorio.progress-gui.running-test",
     NPassed = "testorio.progress-gui.n-passed",
     NFailed = "testorio.progress-gui.n-failed",
+    NErrors = "testorio.progress-gui.n-errors",
     NSkipped = "testorio.progress-gui.n-skipped",
     NTodo = "testorio.progress-gui.n-todo",
     TestRunCompleted = "testorio.progress-gui.test-run-completed",

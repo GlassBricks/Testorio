@@ -2,7 +2,7 @@ import { debugAdapterEnabled } from "./_util"
 import { TestListener } from "./testEvents"
 import { Source } from "./tests"
 
-export enum MessageColor {
+export const enum MessageColor {
   White = 1,
   Green,
   Yellow,

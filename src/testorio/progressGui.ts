@@ -60,7 +60,7 @@ function ProgressBar(parent: LuaGuiElement, gui: TestProgressGui) {
 function TestCount(parent: LuaGuiElement, gui: TestProgressGui) {
   const table = parent.add<"table">({
     type: "table",
-    column_count: 4,
+    column_count: 5,
     style: "bordered_table",
   })
 
@@ -73,11 +73,10 @@ function TestCount(parent: LuaGuiElement, gui: TestProgressGui) {
     style.horizontal_align = "center"
     return result
   }
-  const colors = [MessageColor.Red, MessageColor.Yellow, MessageColor.Purple, MessageColor.Green]
-  for (let i = 0; i < 4; i++) {
+  const colors = [MessageColor.Red, MessageColor.Red, MessageColor.Yellow, MessageColor.Purple, MessageColor.Green]
+  for (const color of colors) {
     const label = addLabel()
-    const color = colors[i]
-    if (color) label.style.font_color = Colors[color]
+    label.style.font_color = Colors[color]
   }
   gui.testCounts = table
 }
@@ -151,9 +150,10 @@ function updateStatus(gui: TestProgressGui, results: RunResults) {
   const testCounts = gui.testCounts.children
 
   if (results.failed > 0) testCounts[0].caption = [ProgressGui.NFailed, results.failed]
-  if (results.skipped > 0) testCounts[1].caption = [ProgressGui.NSkipped, results.skipped]
-  if (results.todo > 0) testCounts[2].caption = [ProgressGui.NTodo, results.todo]
-  if (results.passed > 0) testCounts[3].caption = [ProgressGui.NPassed, results.passed]
+  if (results.describeBlockErrors > 0) testCounts[1].caption = [ProgressGui.NErrors, results.failed]
+  if (results.skipped > 0) testCounts[2].caption = [ProgressGui.NSkipped, results.skipped]
+  if (results.todo > 0) testCounts[3].caption = [ProgressGui.NTodo, results.todo]
+  if (results.passed > 0) testCounts[4].caption = [ProgressGui.NPassed, results.passed]
 }
 
 export const progressGuiListener: TestListener = (event, state) => {
@@ -194,6 +194,12 @@ export const progressGuiListener: TestListener = (event, state) => {
       break
     }
     case "describeBlockFinished": {
+      const { block } = event
+      if (block.parent) gui.statusText.caption = [ProgressGui.RunningTest, block.parent.path]
+      break
+    }
+    case "describeBlockFailed": {
+      updateStatus(gui, state.results)
       const { block } = event
       if (block.parent) gui.statusText.caption = [ProgressGui.RunningTest, block.parent.path]
       break
