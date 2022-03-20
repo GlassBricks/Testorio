@@ -36,7 +36,7 @@ const copiedDescribeBlockState: Partial<Record<keyof DescribeBlock, true>> = {
 function compareAndFindTest(current: unknown, stored: unknown, storedTest: Test): Test | undefined {
   const seen = new LuaTable<AnyNotNil, AnyNotNil>()
 
-  function compareAndCopy(cur: any, old: any): boolean {
+  function compareAndCopy(cur: Record<any, any>, old: Record<any, any>): boolean {
     // ignore functions
     if (typeof cur === "function") return true
     if (typeof cur !== "object" || typeof old !== "object") {
@@ -71,7 +71,7 @@ function compareAndFindTest(current: unknown, stored: unknown, storedTest: Test)
     return true
   }
 
-  if (compareAndCopy(current, stored)) {
+  if (compareAndCopy(current as any, stored as any)) {
     return seen.get(storedTest) as Test
   }
   return undefined

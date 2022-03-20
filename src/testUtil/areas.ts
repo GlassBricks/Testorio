@@ -8,7 +8,7 @@ function getSurfaceAndArea(
     surface = game.get_surface(surface) ?? error(`Surface with id/name ${surface} not found`)
   }
   if (typeof area === "string" || typeof area === "number") {
-    area = surface.get_script_area(area).area
+    area = surface.get_script_area(area)?.area ?? error(`Area with id/name ${area} not found`)
   }
   return $multi(surface, area)
 }
