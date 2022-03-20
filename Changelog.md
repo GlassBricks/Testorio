@@ -2,6 +2,10 @@
 
 **NOTE**: changes on the _mod/library_ past version 0.3.0 will be documented only in [src/Changelog.txt](src/Changelog.txt). This changelog will only be for the NPM package(s).
 
+## 0.5.0
+
+- Updated definitions to Testorio v0.5.0
+
 ## 0.4.3
 
 - Type definitions: you can now pass readonly arrays to `each` test definitions.

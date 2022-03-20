@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.5.0
+Date: 2022-03-20
+  Changes:
+    - Updated to TSTL version 1.4. This removes all needs for global variables.
+    - Added describe block error count to test gui.
+  Features:
+    - Added the "get_area" function under testUtil/areas.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.4.2
 Date: 2022-02-11
   Bugfixes:
