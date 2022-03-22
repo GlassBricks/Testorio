@@ -1,7 +1,9 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.5.1
 Date: ????
-  Changes:
+  Bugfixes:
+    - Removed "assignment to undefined global" warnings if using debugadapter
+    - Fixed a crash when using weak tables in global and using after_mod_reload when a test function holds references to otherwise unreferenced objects 
 ---------------------------------------------------------------------------------------------------
 Version: 0.5.0
 Date: 2022-03-20
