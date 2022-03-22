@@ -13,10 +13,36 @@ declare const global: {
   }
 }
 
+// removes all function types from the resume state
+function removeFunctions(block: DescribeBlock): DescribeBlock {
+  const seen = new LuaTable<any>()
+
+  function visit(obj: unknown) {
+    if (typeof obj !== "object") {
+      return
+    }
+    if (seen.has(obj)) {
+      return undefined
+    }
+    seen.set(obj, true)
+
+    for (const [key, value] of pairs(obj)) {
+      if (typeof value === "function") {
+        ;(obj as any)[key] = undefined
+      } else {
+        visit(value)
+      }
+    }
+  }
+
+  visit(block)
+  return block
+}
+
 export function prepareReload(testState: TestState): void {
   const currentRun = testState.currentTestRun!
   global.__testResume = {
-    rootBlock: testState.rootBlock,
+    rootBlock: removeFunctions(testState.rootBlock),
     results: testState.results,
     test: currentRun.test,
     partIndex: currentRun.partIndex + 1,
@@ -37,14 +63,13 @@ function compareAndFindTest(current: unknown, stored: unknown, storedTest: Test)
   const seen = new LuaTable<AnyNotNil, AnyNotNil>()
 
   function compareAndCopy(cur: Record<any, any>, old: Record<any, any>): boolean {
-    // ignore functions
-    if (typeof cur === "function") return true
     if (typeof cur !== "object" || typeof old !== "object") {
       return cur === old
     }
     if (seen.get(old) === cur) return true
     seen.set(old, cur)
     for (const [k, v] of pairs(cur)) {
+      if (typeof v === "function") continue
       if (cur.type === "test" && k in copiedTestState) {
         cur[k] = old[k]
         continue
