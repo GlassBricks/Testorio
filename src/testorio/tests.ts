@@ -137,7 +137,7 @@ export function addDescribeBlock(
     ticksBetweenTests: parent.ticksBetweenTests,
     errors: [],
   }
-  parent?.children.push(block)
+  parent.children.push(block)
   return block
 }
 
