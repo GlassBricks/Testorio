@@ -26,7 +26,11 @@ export function load(this: unknown, files: string[], config: Partial<Config>): v
 
 function loadTests(files: string[], partialConfig: Partial<Config>): TestState {
   const config = fillConfig(partialConfig)
-  Object.assign(globalThis, globals)
+  const defineGlobal = __DebugAdapter?.defineGlobal
+  for (const [key, value] of pairs(globals)) {
+    defineGlobal?.(key)
+    ;(globalThis as any)[key] = value
+  }
   resetTestState(config)
   const state = getTestState()
 
