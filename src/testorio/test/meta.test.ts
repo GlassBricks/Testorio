@@ -48,12 +48,10 @@ function getFirst<T extends Test | DescribeBlock = Test>(): T {
 }
 
 function runTestSync<T extends Test | DescribeBlock = Test>(): T {
-  if (mockTestState.getTestStage() === TestStage.NotRun) {
-    const runner = createTestRunner(mockTestState)
-    runner.tick()
-    if (!runner.isDone()) {
-      error("Tests not completed in one tick")
-    }
+  const runner = createTestRunner(mockTestState)
+  runner.tick()
+  if (!runner.isDone()) {
+    error("Tests not completed in one tick")
   }
   return getFirst()
 }
@@ -77,7 +75,7 @@ function runTestAsync<T extends Test | DescribeBlock = Test>(callback: (item: T)
 }
 
 function skipRun() {
-  mockTestState.setTestStage(TestStage.Completed)
+  mockTestState.setTestStage(TestStage.Finished)
 }
 
 describe("setup", () => {
@@ -326,7 +324,7 @@ describe("failing tests", () => {
     const t = runTestSync()
     assert.equals(1, t.errors.length)
     // 2 stack frames: the test function, error()
-    const errorMsg = runTestSync().errors[0]
+    const errorMsg = t.errors[0]
     const frames = errorMsg.split("\n\t").length - 1
     if (frames !== 2) {
       error("Not two stack frames:\n" + errorMsg + "\n")
@@ -468,7 +466,7 @@ describe("focused tests", () => {
 })
 
 describe("async tests", () => {
-  test("immediately completed async test", () => {
+  test("immediately finished async test", () => {
     test("an async", () => {
       async()
       actions.push("hello")
@@ -866,7 +864,7 @@ describe("reload state", () => {
     runner.tick()
     assert.equal(TestStage.Running, mockTestState.getTestStage())
     runner.tick()
-    assert.equal(TestStage.Completed, mockTestState.getTestStage())
+    assert.equal(TestStage.Finished, mockTestState.getTestStage())
   })
 
   test("Cannot reload while testing", () => {
@@ -1177,5 +1175,50 @@ describe("tags", () => {
     mockTestState.config = fillConfig({ tag_whitelist: ["yes"], tag_blacklist: ["no"] })
     runTestSync()
     assert.same(["yes"], actions)
+  })
+})
+
+describe("rerun", () => {
+  test("rerun", () => {
+    test("foo", () => {
+      actions.push("foo")
+    })
+    runTestSync()
+    assert.same(["foo"], actions)
+    assert.False(mockTestState.isRerun)
+    runTestSync()
+    assert.same(["foo", "foo"], actions)
+    assert.True(mockTestState.isRerun)
+  })
+
+  test("rerun resets test results", () => {
+    test("foo", () => {
+      // noop
+    })
+    runTestSync()
+    assert.same(1, mockTestState.results?.passed)
+    runTestSync()
+    assert.same(1, mockTestState.results?.passed)
+  })
+
+  test("rerun blacklists tests with no_rerun tag", () => {
+    test("run both", () => {
+      actions.push("run both")
+    })
+    tags("no_rerun")
+    test("run one", () => {
+      actions.push("run one")
+    })
+    tags("no")
+    test("run never", () => {
+      actions.push("run never")
+    })
+
+    mockTestState.config = fillConfig({ tag_blacklist: ["no"] })
+
+    runTestSync()
+    assert.same(["run both", "run one"], actions)
+    runTestSync()
+    assert.same(["run both", "run one", "run both"], actions)
   })
 })

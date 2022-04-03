@@ -18,7 +18,7 @@ export interface RunResults {
   status?: "passed" | "failed" | "todo"
 }
 
-export function createRunResult(): RunResults {
+export function createEmptyRunResults(): RunResults {
   return {
     failed: 0,
     passed: 0,
@@ -31,6 +31,10 @@ export function createRunResult(): RunResults {
 }
 
 export const resultCollector: TestListener = (event, state) => {
+  if (event.type === "testRunStarted") {
+    state.results = createEmptyRunResults()
+    return
+  }
   const results = state.results
   switch (event.type) {
     case "testPassed": {

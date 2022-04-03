@@ -7,6 +7,7 @@ declare const global: {
   __testResume?: {
     rootBlock: DescribeBlock
     results: RunResults
+    isRerun: boolean
     profiler: LuaProfiler
     test: Test
     partIndex: number
@@ -43,6 +44,7 @@ export function prepareReload(testState: TestState): void {
   global.__testResume = {
     rootBlock: removeFunctions(testState.rootBlock),
     results: testState.results,
+    isRerun: testState.isRerun,
     test: currentRun.test,
     partIndex: currentRun.partIndex + 1,
     profiler: testState.profiler!,
@@ -113,6 +115,7 @@ export function resumeAfterReload(state: TestState): {
   const test = compareAndFindTest(state.rootBlock, stored, testResume.test)
   state.results = testResume.results
   state.profiler = testResume.profiler
+  state.isRerun = testResume.isRerun
   state.reloaded = true
   return test
     ? {

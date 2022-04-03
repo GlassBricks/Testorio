@@ -22,19 +22,22 @@ export namespace Locale {
     ReloadMods = "testorio.config-gui.reload-mods",
     ModNotRegisteredTests = "testorio.config-gui.mod-not-registered",
     TestsNotRun = "testorio.config-gui.tests-not-run",
-    TestsAlreadyStarted = "testorio.config-gui.tests-already-started",
+    TestsRunning = "testorio.config-gui.tests-running",
+    TestsFinished = "testorio.config-gui.tests-finished",
     RunNow = "testorio.config-gui.run-now",
     ReloadAndRunTests = "testorio.config-gui.reload-and-run",
   }
   export const enum ProgressGui {
     Title = "testorio.progress-gui.title",
+    TitleRerun = "testorio.progress-gui.title-rerun",
     RunningTest = "testorio.progress-gui.running-test",
     NPassed = "testorio.progress-gui.n-passed",
     NFailed = "testorio.progress-gui.n-failed",
     NErrors = "testorio.progress-gui.n-errors",
     NSkipped = "testorio.progress-gui.n-skipped",
     NTodo = "testorio.progress-gui.n-todo",
-    TestRunCompleted = "testorio.progress-gui.test-run-completed",
+    TestsFinished = "testorio.progress-gui.tests-finished",
+    TestsFinishedRerun = "testorio.progress-gui.tests-finished-rerun",
     LoadError = "testorio.progress-gui.load-error",
   }
 }
@@ -44,5 +47,5 @@ export const enum TestStage {
   Running = "Running",
   ToReload = "ToReload",
   LoadError = "LoadError",
-  Completed = "Completed",
+  Finished = "Finished",
 }

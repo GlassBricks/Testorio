@@ -250,14 +250,14 @@ function updateTestStageGui() {
   const mainFlow = configGui.testStageFlow
   mainFlow.clear()
 
-  let runTestsButtons = false
   let message: LocalisedString
-  const stage = remote.interfaces[Remote.RunTests] ? remote.call(Remote.RunTests, "currentTestStage") : TestStage.NotRun
+  const stage = remote.interfaces[Remote.RunTests] ? remote.call(Remote.RunTests, "getTestStage") : TestStage.NotRun
   if (stage === TestStage.NotRun) {
     message = [ConfigGui.TestsNotRun]
-    runTestsButtons = true
-  } else {
-    message = [ConfigGui.TestsAlreadyStarted]
+  } else if (stage === TestStage.Running) {
+    message = [ConfigGui.TestsRunning]
+  } else if (stage === TestStage.Finished) {
+    message = [ConfigGui.TestsFinished]
   }
 
   mainFlow.add({
@@ -265,7 +265,7 @@ function updateTestStageGui() {
     caption: message,
   })
 
-  if (runTestsButtons) {
+  if (stage === TestStage.NotRun || stage === TestStage.Finished) {
     const buttonFlow = mainFlow.add({
       type: "flow",
       direction: "horizontal",
@@ -280,8 +280,8 @@ function updateTestStageGui() {
         modName,
         on_gui_click: StartTests,
       },
-      enabled: runEnabled,
-      tooltip: !runEnabled ? [ConfigGui.ModNotRegisteredTests] : undefined,
+      enabled: stage === TestStage.NotRun && runEnabled,
+      tooltip: !runEnabled ? [ConfigGui.ModNotRegisteredTests] : stage === TestStage.NotRun ? undefined : undefined,
     })
     const spacer = buttonFlow.add({
       type: "empty-widget",

@@ -1,6 +1,6 @@
 /** @noSelfInFile */
 import { Remote, TestStage } from "../shared-constants"
-import { createRunResult, RunResults } from "./result"
+import { createEmptyRunResults, RunResults } from "./result"
 import { _raiseTestEvent, TestEvent } from "./testEvents"
 import { createRootDescribeBlock, DescribeBlock, Tags, Test } from "./tests"
 import Config = Testorio.Config
@@ -20,6 +20,8 @@ export interface TestState {
 
   results: RunResults
   profiler?: LuaProfiler
+  isRerun: boolean
+
   reloaded?: boolean
 
   // state that is persistent across game reload
@@ -58,9 +60,11 @@ export function getGlobalTestStage(): TestStage {
   return global.__testorioTestStage ?? TestStage.NotRun
 }
 
+let onTestStageChanged: CustomEventId<{ stage: TestStage }> | undefined
 function setGlobalTestStage(stage: TestStage): void {
   global.__testorioTestStage = stage
-  script.raise_event(remote.call(Remote.Testorio, "onTestStageChanged"), { stage })
+  onTestStageChanged ??= remote.call(Remote.Testorio, "onTestStageChanged") as CustomEventId<{ stage: TestStage }>
+  script.raise_event(onTestStageChanged, { stage })
 }
 
 export function resetTestState(config: Config): void {
@@ -70,12 +74,13 @@ export function resetTestState(config: Config): void {
     rootBlock,
     currentBlock: rootBlock,
     hasFocusedTests: false,
+    isRerun: false,
+    results: createEmptyRunResults(),
     getTestStage: getGlobalTestStage,
     setTestStage: setGlobalTestStage,
     raiseTestEvent(event) {
       _raiseTestEvent(this, event)
     },
-    results: createRunResult(),
   })
 }
 

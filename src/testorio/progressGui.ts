@@ -1,4 +1,4 @@
-import { Locale, Prototypes, Remote } from "../shared-constants"
+import { Locale, Prototypes } from "../shared-constants"
 import { Colors, joinToRichText, LogHandler, MessageColor } from "./output"
 import { RunResults } from "./result"
 import { TestState } from "./state"
@@ -22,10 +22,6 @@ declare const global: {
 }
 
 const TestProgressName = "testorio:test-progress"
-
-function getTestMod(): string {
-  return remote.call(Remote.Testorio, "getTestMod")
-}
 
 function StatusText(parent: LuaGuiElement) {
   const statusText = parent.add({ type: "label" })
@@ -116,9 +112,11 @@ function createTestProgressGui(state: TestState): TestProgressGui {
 
   const screen = player.gui.screen
   screen[TestProgressName]?.destroy()
+
+  const titleLocale = !state.isRerun ? ProgressGui.Title : ProgressGui.TitleRerun
   const mainFrame = screen.add<"frame">({
     type: "frame",
-    caption: [ProgressGui.Title, getTestMod()],
+    caption: [titleLocale, script.mod_name],
     name: TestProgressName,
     direction: "vertical",
   })
@@ -204,7 +202,7 @@ export const progressGuiListener: TestListener = (event, state) => {
       break
     }
     case "testRunFinished": {
-      gui.statusText.caption = [ProgressGui.TestRunCompleted]
+      gui.statusText.caption = [!state.isRerun ? ProgressGui.TestsFinished : ProgressGui.TestsFinishedRerun]
       break
     }
     case "loadError": {

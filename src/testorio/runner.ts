@@ -94,16 +94,15 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
       return this.createLoadError(
         `Save was unexpectedly reloaded while tests were running. This will cause tests to break. Aborting test run`,
       )
-    } else if (stage === TestStage.Completed) {
-      game.print("Tests already ran. Aborting run.")
-      return undefined
+    } else if (stage === TestStage.Finished) {
+      return this.attemptRerun()
     } else if (stage === TestStage.LoadError) {
       return error("Unexpected reload state when test runner loaded: " + stage)
     }
     assertNever(stage)
   }
 
-  private startTestRun(): Task | undefined {
+  private startTestRun(): Task {
     const { state } = this
     state.profiler = game.create_profiler()
     state.setTestStage(TestStage.Running)
@@ -124,6 +123,15 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
       }
     }
     return this.createLoadError(`Mods files/tests were changed during reload. Aborting test run.`)
+  }
+  private attemptRerun(): Task {
+    const { state } = this
+    const tagBlacklist = (state.config.tag_blacklist ??= [])
+    if (tagBlacklist.indexOf("no_rerun") === -1) {
+      tagBlacklist.push("no_rerun")
+    }
+    state.isRerun = true
+    return this.startTestRun()
   }
 
   enterDescribe(block: DescribeBlock): Task {
@@ -310,7 +318,7 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
   finishTestRun() {
     const { state } = this
     state.profiler?.stop()
-    state.setTestStage(TestStage.Completed)
+    state.setTestStage(TestStage.Finished)
     state.raiseTestEvent({
       type: "testRunFinished",
     })

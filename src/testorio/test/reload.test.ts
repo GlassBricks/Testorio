@@ -19,7 +19,7 @@ const refValue = {}
 // on_load the global table will change, causing an error.
 
 // multiple tests in one, as reload is slow
-test("after_mod_reload", () => {
+test("reload", () => {
   someValue = "changed"
 
   global.foo = () => 0 // can't be serialized
