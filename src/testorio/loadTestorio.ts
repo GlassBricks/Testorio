@@ -7,33 +7,37 @@ import { addLogHandler, debugAdapterLogger, gameLogger, logLogger } from "./outp
 import { progressGuiListener, progressGuiLogger } from "./progressGui"
 import { createTestRunner, TestRunner } from "./runner"
 import { globals } from "./setup"
-import { getTestState, resetTestState, TestState } from "./state"
-import { addTestListeners } from "./testEvents"
+import { getTestState, resetTestState } from "./state"
+import { addTestListener } from "./testEvents"
 import Config = Testorio.Config
 
 declare const ____originalRequire: typeof require
 
-export function load(this: unknown, files: string[], config: Partial<Config>): void {
+export function loadTestorio(this: unknown, files: string[], config: Partial<Config>): void {
   loadTests(files, config)
   remote.add_interface(Remote.RunTests, {
     runTests,
     modName: () => script.mod_name,
-    currentTestStage: () => getTestState().getTestStage(),
+    getTestStage: () => getTestState().getTestStage(),
   })
-  addOnEvent(defines.events.on_game_created_from_scenario, runTests)
-  addOnEvent(defines.events.on_tick, tryContinueTests)
+  tapEvent(defines.events.on_game_created_from_scenario, runTests)
+  tapEvent(defines.events.on_tick, tryContinueTests)
 }
 
-function loadTests(files: string[], partialConfig: Partial<Config>): TestState {
+function loadTests(files: string[], partialConfig: Partial<Config>): void {
   const config = fillConfig(partialConfig)
+
+  // load globals
   const defineGlobal = __DebugAdapter?.defineGlobal
   for (const [key, value] of pairs(globals)) {
     defineGlobal?.(key)
     ;(globalThis as any)[key] = value
   }
+
   resetTestState(config)
   const state = getTestState()
 
+  // load files
   const _require = settings.global["testorio:test-mod"].value === "testorio" ? require : ____originalRequire
   for (const file of files) {
     describe(file, () => {
@@ -41,10 +45,7 @@ function loadTests(files: string[], partialConfig: Partial<Config>): TestState {
     })
   }
   state.currentBlock = undefined
-  return state
 }
-
-addTestListeners(...builtinTestListeners)
 
 function tryContinueTests() {
   const testStage = getTestState().getTestStage()
@@ -56,14 +57,15 @@ function tryContinueTests() {
 }
 
 function runTests() {
-  log("Running tests")
-  let runner: TestRunner | undefined
+  log(`Running tests for ${script.mod_name}`)
+
+  builtinTestListeners.forEach(addTestListener)
   if (game) game.tick_paused = false
 
   const state = getTestState()
   const { config } = state
   if (config.show_progress_gui) {
-    addTestListeners(progressGuiListener)
+    addTestListener(progressGuiListener)
     addLogHandler(progressGuiLogger)
   }
   if (config.log_to_game) {
@@ -76,24 +78,23 @@ function runTests() {
     addLogHandler(logLogger)
   }
 
-  config.before_test_run?.()
-  addOnEvent(defines.events.on_tick, () => {
+  let runner: TestRunner | undefined
+  tapEvent(defines.events.on_tick, () => {
     if (!runner) {
       runner = createTestRunner(state)
     }
     runner.tick()
     if (runner.isDone()) {
       revertPatchedEvents()
-      config.after_test_run?.()
     }
   })
 }
 
 const patchedHandlers: Record<defines.Events, [handler?: (data: any) => void]> = {}
-let scriptPatched = false
+let onEventIntercepted = false
 const oldOnEvent = script.on_event
 
-function addOnEvent(event: defines.Events, func: () => void) {
+function tapEvent(event: defines.Events, func: () => void) {
   if (!patchedHandlers[event]) {
     patchedHandlers[event] = [script.get_event_handler(event)]
   }
@@ -103,8 +104,8 @@ function addOnEvent(event: defines.Events, func: () => void) {
     func()
   })
 
-  if (!scriptPatched) {
-    scriptPatched = true
+  if (!onEventIntercepted) {
+    onEventIntercepted = true
 
     script.on_event = (event: any, func: any) => {
       const handler = patchedHandlers[event]

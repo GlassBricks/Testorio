@@ -27,13 +27,16 @@ function getTestMod(): string {
   return remote.call(Remote.Testorio, "getTestMod")
 }
 
-function StatusText(parent: LuaGuiElement, gui: TestProgressGui) {
+function StatusText(parent: LuaGuiElement) {
   const statusText = parent.add({ type: "label" })
   statusText.style.font = "default-large"
-  gui.statusText = statusText
+  return statusText
 }
 
-function ProgressBar(parent: LuaGuiElement, gui: TestProgressGui) {
+function ProgressBar(parent: LuaGuiElement): {
+  progressBar: ProgressBarGuiElement
+  progressLabel: LabelGuiElement
+} {
   const progressFlow = parent.add<"flow">({
     type: "flow",
     direction: "horizontal",
@@ -53,11 +56,13 @@ function ProgressBar(parent: LuaGuiElement, gui: TestProgressGui) {
   plStyle.width = 80
   plStyle.horizontal_align = "center"
 
-  gui.progressBar = progressBar
-  gui.progressLabel = progressLabel
+  return {
+    progressBar,
+    progressLabel,
+  }
 }
 
-function TestCount(parent: LuaGuiElement, gui: TestProgressGui) {
+function TestCount(parent: LuaGuiElement) {
   const table = parent.add<"table">({
     type: "table",
     column_count: 5,
@@ -78,10 +83,10 @@ function TestCount(parent: LuaGuiElement, gui: TestProgressGui) {
     const label = addLabel()
     label.style.font_color = Colors[color]
   }
-  gui.testCounts = table
+  return table
 }
 
-function TestOutput(parent: LuaGuiElement, gui: TestProgressGui) {
+function TestOutput(parent: LuaGuiElement) {
   const frame = parent.add({
     type: "frame",
     style: "inside_shallow_frame",
@@ -94,8 +99,7 @@ function TestOutput(parent: LuaGuiElement, gui: TestProgressGui) {
   })
   pane.style.height = 600
   pane.style.horizontally_stretchable = true
-
-  gui.testOutput = pane
+  return pane
 }
 
 function getPlayer(): LuaPlayer {
@@ -109,15 +113,6 @@ function getPlayer(): LuaPlayer {
 function createTestProgressGui(state: TestState): TestProgressGui {
   const player = getPlayer()
   const totalTests = countActiveTests(state.rootBlock, state)
-  const gui: TestProgressGui = {
-    player,
-    progressBar: undefined!,
-    progressLabel: undefined!,
-    statusText: undefined!,
-    testCounts: undefined!,
-    testOutput: undefined!,
-    totalTests,
-  }
 
   const screen = player.gui.screen
   screen[TestProgressName]?.destroy()
@@ -134,16 +129,20 @@ function createTestProgressGui(state: TestState): TestProgressGui {
     style: "inside_shallow_frame_with_padding",
     direction: "vertical",
   })
+  const gui: TestProgressGui = {
+    player,
+    totalTests,
+    statusText: StatusText(contentFrame),
+    ...ProgressBar(contentFrame),
+    testCounts: TestCount(contentFrame),
+    testOutput: TestOutput(contentFrame),
+  }
 
-  StatusText(contentFrame, gui)
-  ProgressBar(contentFrame, gui)
-  TestCount(contentFrame, gui)
-  TestOutput(mainFrame, gui)
-  updateStatus(gui, state.results)
+  updateGuiStatus(gui, state.results)
   return gui
 }
 
-function updateStatus(gui: TestProgressGui, results: RunResults) {
+function updateGuiStatus(gui: TestProgressGui, results: RunResults) {
   gui.progressBar.value = gui.totalTests === 0 ? 1 : results.ran / gui.totalTests
   gui.progressLabel.caption = ["", results.ran, "/", gui.totalTests]
 
@@ -174,22 +173,22 @@ export const progressGuiListener: TestListener = (event, state) => {
       break
     }
     case "testFailed": {
-      updateStatus(gui, state.results)
+      updateGuiStatus(gui, state.results)
       gui.statusText.caption = [ProgressGui.RunningTest, event.test.parent.path]
       break
     }
     case "testPassed": {
-      updateStatus(gui, state.results)
+      updateGuiStatus(gui, state.results)
       gui.statusText.caption = [ProgressGui.RunningTest, event.test.parent.path]
       break
     }
     case "testSkipped": {
-      updateStatus(gui, state.results)
+      updateGuiStatus(gui, state.results)
       gui.statusText.caption = [ProgressGui.RunningTest, event.test.parent.path]
       break
     }
     case "testTodo": {
-      updateStatus(gui, state.results)
+      updateGuiStatus(gui, state.results)
       gui.statusText.caption = [ProgressGui.RunningTest, event.test.parent.path]
       break
     }
@@ -199,7 +198,7 @@ export const progressGuiListener: TestListener = (event, state) => {
       break
     }
     case "describeBlockFailed": {
-      updateStatus(gui, state.results)
+      updateGuiStatus(gui, state.results)
       const { block } = event
       if (block.parent) gui.statusText.caption = [ProgressGui.RunningTest, block.parent.path]
       break
@@ -224,12 +223,12 @@ export const progressGuiLogger: LogHandler = (message) => {
   })
   textBox.read_only = true
   const caption = joinToRichText(message)
-  let count: number
+  let newLineCount: number
   if (typeof caption === "string") {
-    ;[, count] = string.gsub(caption, "\n", "")
+    ;[, newLineCount] = string.gsub(caption, "\n", "")
   } else {
-    count = 0
+    newLineCount = 0
   }
-  textBox.style.height = (count + 1) * 20
+  textBox.style.height = (newLineCount + 1) * 20
   textBox.caption = caption
 }

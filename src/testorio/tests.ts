@@ -158,7 +158,7 @@ export function createRootDescribeBlock(config: Config): DescribeBlock {
   }
 }
 
-function testMatchesWhitelist(test: Test, config: Config): boolean {
+function testMatchesTagList(test: Test, config: Config): boolean {
   if (config.tag_whitelist) {
     for (const tag of config.tag_whitelist) {
       if (!(tag in test.tags)) return false
@@ -178,7 +178,7 @@ export function isSkippedTest(test: Test, state: TestState) {
     test.mode === "todo" ||
     (state.hasFocusedTests && test.mode !== "only") ||
     (state.config.test_pattern !== undefined && !string.match(test.path, state.config.test_pattern)[0]) ||
-    !testMatchesWhitelist(test, state.config)
+    !testMatchesTagList(test, state.config)
   )
 }
 
@@ -186,8 +186,9 @@ export function countActiveTests(block: DescribeBlock, state: TestState): number
   if (block.mode === "skip") return 0
   let result = 0
   for (const child of block.children) {
-    if (child.type === "describeBlock") result += countActiveTests(child, state)
-    else if (child.type === "test") {
+    if (child.type === "describeBlock") {
+      result += countActiveTests(child, state)
+    } else if (child.type === "test") {
       if (!isSkippedTest(child, state)) result++
     } else {
       assertNever(child)

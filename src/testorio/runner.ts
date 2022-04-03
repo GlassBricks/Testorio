@@ -53,9 +53,7 @@ export function createTestRunner(state: TestState): TestRunner {
 class TestRunnerImpl implements TestTaskRunner, TestRunner {
   constructor(private state: TestState) {}
   ticksToWait = 0
-  nextTask: Task | undefined = {
-    task: "init",
-  }
+  nextTask: Task | undefined = { task: "init" }
 
   tick(): void {
     if (this.ticksToWait > 0) {
@@ -72,6 +70,15 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
 
   isDone() {
     return this.nextTask === undefined
+  }
+
+  private runTask(task: Task): Task | undefined {
+    const self = this as any
+    const nextTask = self[task.task](task.data)
+    if (nextTask) {
+      this.ticksToWait = nextTask.waitTicks ?? 0
+    }
+    return nextTask
   }
 
   init(): Task | undefined {
@@ -96,6 +103,16 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
     assertNever(stage)
   }
 
+  private startTestRun(): Task | undefined {
+    const { state } = this
+    state.profiler = game.create_profiler()
+    state.setTestStage(TestStage.Running)
+    state.raiseTestEvent({
+      type: "testRunStarted",
+    })
+    return { task: "enterDescribe", data: state.rootBlock }
+  }
+
   private attemptReload(): Task | undefined {
     const { test, partIndex } = resumeAfterReload(this.state)
     const resumedSuccessfully = partIndex !== undefined
@@ -107,63 +124,6 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
       }
     }
     return this.createLoadError(`Mods files/tests were changed during reload. Aborting test run.`)
-  }
-
-  private startTestRun(): Task | undefined {
-    const { state } = this
-    state.setTestStage(TestStage.Running)
-    state.profiler = game.create_profiler()
-    state.raiseTestEvent({
-      type: "testRunStarted",
-    })
-    return { task: "enterDescribe", data: state.rootBlock }
-  }
-
-  finishTestRun() {
-    this.state.profiler?.stop()
-    this.state.setTestStage(TestStage.Completed)
-    this.state.raiseTestEvent({
-      type: "testRunFinished",
-    })
-    return undefined
-  }
-
-  static getNextDescribeBlockTask(block: DescribeBlock, index: number): Task {
-    if (block.errors.length > 0) {
-      return {
-        task: "leaveDescribe",
-        data: block,
-      }
-    }
-
-    const item = block.children[index]
-    if (item) {
-      return item.type === "describeBlock"
-        ? {
-            task: "enterDescribe",
-            data: item,
-          }
-        : {
-            task: "enterTest",
-            data: item,
-          }
-    }
-    return {
-      task: "leaveDescribe",
-      data: block,
-    }
-  }
-
-  static newTestRun(test: Test, partIndex: number): TestRun {
-    return {
-      test,
-      async: false,
-      timeout: 0,
-      asyncDone: false,
-      tickStarted: game.tick,
-      onTickFuncs: new LuaTable(),
-      partIndex,
-    }
   }
 
   enterDescribe(block: DescribeBlock): Task {
@@ -318,27 +278,6 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
     return TestRunnerImpl.getNextDescribeBlockTask(test.parent, test.indexInParent + 1)
   }
 
-  static nextTestTask(testRun: TestRun): Task {
-    const { test, partIndex } = testRun
-    if (test.errors.length !== 0 || !testRun.async || testRun.asyncDone) {
-      if (partIndex + 1 < test.parts.length) {
-        return {
-          task: "runTestPart",
-          data: TestRunnerImpl.newTestRun(test, partIndex + 1),
-        }
-      }
-      return {
-        task: "leaveTest",
-        data: testRun,
-      }
-    }
-    return {
-      task: "waitForTestPart",
-      data: testRun,
-      waitTicks: 1,
-    }
-  }
-
   leaveDescribe(block: DescribeBlock): Task | undefined {
     const hasTests = this.hasAnyTest(block)
     if (hasTests) {
@@ -368,24 +307,83 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
         }
   }
 
-  hasAnyTest(block: DescribeBlock): boolean {
+  finishTestRun() {
+    const { state } = this
+    state.profiler?.stop()
+    state.setTestStage(TestStage.Completed)
+    state.raiseTestEvent({
+      type: "testRunFinished",
+    })
+    return undefined
+  }
+
+  private static getNextDescribeBlockTask(block: DescribeBlock, index: number): Task {
+    if (block.errors.length > 0) {
+      return {
+        task: "leaveDescribe",
+        data: block,
+      }
+    }
+
+    const item = block.children[index]
+    if (item) {
+      return item.type === "describeBlock"
+        ? {
+            task: "enterDescribe",
+            data: item,
+          }
+        : {
+            task: "enterTest",
+            data: item,
+          }
+    }
+    return {
+      task: "leaveDescribe",
+      data: block,
+    }
+  }
+
+  private hasAnyTest(block: DescribeBlock): boolean {
     return block.children.some((child) =>
       child.type === "test" ? !isSkippedTest(child, this.state) : this.hasAnyTest(child),
     )
   }
 
-  createLoadError(message: string) {
+  private createLoadError(message: string) {
     setToLoadErrorState(this.state, message)
     this.state.raiseTestEvent({ type: "loadError" })
     return undefined
   }
 
-  private runTask(task: Task): Task | undefined {
-    const self = this as any
-    const nextTask = self[task.task](task.data)
-    if (nextTask) {
-      this.ticksToWait = nextTask.waitTicks ?? 0
+  private static nextTestTask(testRun: TestRun): Task {
+    const { test, partIndex } = testRun
+    if (test.errors.length !== 0 || !testRun.async || testRun.asyncDone) {
+      if (partIndex + 1 < test.parts.length) {
+        return {
+          task: "runTestPart",
+          data: TestRunnerImpl.newTestRun(test, partIndex + 1),
+        }
+      }
+      return {
+        task: "leaveTest",
+        data: testRun,
+      }
     }
-    return nextTask
+    return {
+      task: "waitForTestPart",
+      data: testRun,
+      waitTicks: 1,
+    }
+  }
+  private static newTestRun(test: Test, partIndex: number): TestRun {
+    return {
+      test,
+      async: false,
+      timeout: 0,
+      asyncDone: false,
+      tickStarted: game.tick,
+      onTickFuncs: new LuaTable(),
+      partIndex,
+    }
   }
 }

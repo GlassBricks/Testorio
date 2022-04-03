@@ -6,6 +6,6 @@
     "sourceMapTraceback": false,
     "noImplicitSelf": true,
     "luaBundle": "../_testorio.lua",
-    "luaBundleEntry": "load.ts"
+    "luaBundleEntry": "loadTestorio.ts"
   }
 }

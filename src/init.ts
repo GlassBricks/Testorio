@@ -10,6 +10,7 @@ function init(
   b: string[] | Partial<Config> | undefined,
   c?: Partial<Config>,
 ): void {
+  // this works both with this param and without, so users of both tstl and lua can use it without problems
   const files = (a ?? b ?? error("Files must be specified")) as string[]
   const config = ((a ? b : c) ?? {}) as Config
   if (initCalled) {
@@ -18,7 +19,7 @@ function init(
   initCalled = true
   remote.add_interface("testorio-tests-available-for-" + script.mod_name, {})
   if (script.mod_name === settings.global["testorio:test-mod"].value) {
-    require("@NoResolution:__testorio__/_testorio").load(files, config)
+    require("@NoResolution:__testorio__/_testorio").loadTestorio(files, config)
   }
 }
 

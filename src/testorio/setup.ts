@@ -116,13 +116,7 @@ function createDescribe(name: string, block: TestFn, mode: TestMode, upStack: nu
   }
   return describeBlock
 }
-function setCall<T extends object, F extends (...args: any) => any>(obj: T, func: F): T & F {
-  return setmetatable(obj, {
-    __call(...args: any[]) {
-      return func(...args)
-    },
-  })
-}
+
 function createEachItems(
   values: unknown[][],
   name: string,
@@ -145,7 +139,14 @@ function createEachItems(
   })
 }
 function createTestEach(mode: TestMode): TestCreatorBase {
-  const eachFn: TestCreatorBase["each"] = (values: unknown[][], name: string, func: (...values: any[]) => void) => {
+  const result: TestCreatorBase = (name, func) => {
+    const test = createTest(name, func, mode)
+    return createTestBuilder(
+      (func1) => addNext(test, func1),
+      (tag) => (test.tags[tag] = true),
+    )
+  }
+  result.each = (values: unknown[][], name: string, func: (...values: any[]) => void) => {
     const items = createEachItems(values, name)
     const testBuilders = items.map((item) => {
       const test = createTest(
@@ -177,21 +178,11 @@ function createTestEach(mode: TestMode): TestCreatorBase {
       },
     )
   }
-  return setCall(
-    {
-      each: eachFn,
-    },
-    (name, func) => {
-      const test = createTest(name, func, mode)
-      return createTestBuilder(
-        (func1) => addNext(test, func1),
-        (tag) => (test.tags[tag] = true),
-      )
-    },
-  )
+  return result
 }
 function createDescribeEach(mode: TestMode): DescribeCreatorBase {
-  const eachFn: DescribeCreatorBase["each"] = (values: unknown[][], name: string, func: (...values: any[]) => void) => {
+  const result: DescribeCreatorBase = (name, func) => createDescribe(name, func, mode)
+  result.each = (values: unknown[][], name: string, func: (...values: any[]) => void) => {
     const items = createEachItems(values, name)
     for (const { row, name } of items) {
       createDescribe(
@@ -204,13 +195,9 @@ function createDescribeEach(mode: TestMode): DescribeCreatorBase {
       )
     }
   }
-  return setCall(
-    {
-      each: eachFn,
-    },
-    (name, func) => createDescribe(name, func, mode),
-  )
+  return result
 }
+
 const test = createTestEach(undefined) as TestCreator
 test.skip = createTestEach("skip")
 test.only = createTestEach("only")
@@ -257,57 +244,43 @@ export const globals: Pick<typeof globalThis, Globals> = {
   before_all(func) {
     addHook("beforeAll", func)
   },
-
   after_all(func) {
     addHook("afterAll", func)
   },
-
   before_each(func) {
     addHook("beforeEach", func)
   },
-
   after_each(func) {
     addHook("afterEach", func)
   },
 
   async(timeout) {
     const testRun = getCurrentTestRun()
-    if (testRun.async) {
-      error("test is already async")
-    }
-    if (!timeout) {
-      timeout = getTestState().config.default_timeout
-    }
-    if (timeout < 1) {
-      error("test timeout must be greater than 0")
-    }
+
+    if (testRun.async) error("test is already async")
+    if (!timeout) timeout = getTestState().config.default_timeout
+    if (timeout < 1) error("test timeout must be greater than 0")
+
     testRun.timeout = timeout
     testRun.async = true
   },
   done() {
     const testRun = getCurrentTestRun()
 
-    if (!testRun.async) {
-      error(`"done" can only be used when test is async`)
-    }
-    if (testRun.asyncDone) {
-      error(`async test is already marked as done`)
-    }
+    if (!testRun.async) error(`"done" can only be used when test is async`)
+    if (testRun.asyncDone) error(`async test is already marked as done`)
+
     testRun.asyncDone = true
   },
   on_tick(func) {
     const testRun = getCurrentTestRun()
-    if (!testRun.async) {
-      error("on_tick can only be used in async tests")
-    }
+    if (!testRun.async) error("on_tick can only be used in async tests")
     testRun.onTickFuncs.set(func, true)
   },
   after_ticks(ticks, func) {
     const testRun = getCurrentTestRun()
     const finishTick = game.tick - testRun.tickStarted + ticks
-    if (ticks < 1) {
-      error("after_ticks amount must be positive")
-    }
+    if (ticks < 1) error("after_ticks amount must be positive")
     on_tick((tick) => {
       if (tick >= finishTick) {
         func()
@@ -316,9 +289,7 @@ export const globals: Pick<typeof globalThis, Globals> = {
     })
   },
   ticks_between_tests(ticks) {
-    if (ticks < 0) {
-      error("ticks between tests must be 0 or greater")
-    }
+    if (ticks < 0) error("ticks between tests must be 0 or greater")
     getCurrentBlock().ticksBetweenTests = ticks
   },
 }

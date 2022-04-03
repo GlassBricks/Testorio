@@ -14,9 +14,7 @@ function getErrorWithStacktrace(error: unknown) {
   const lines = stacktrace.split("\n")
   for (let i = 1, l = lines.length; i <= l; i++) {
     if (lines[i - 1].endsWith(": in function '__testorio__pcallWithStacktrace'")) {
-      if (lines[i - 3] === "\t[C]: in function 'rawxpcall'") {
-        i--
-      }
+      if (lines[i - 3] === "\t[C]: in function 'rawxpcall'") i-- // remove extra line from debugadapter
       return table.concat(lines, "\n", 1, i - 2)
     }
   }

@@ -89,13 +89,9 @@ export function setToLoadErrorState(state: TestState, error: string): void {
 }
 
 export function getCurrentBlock(): DescribeBlock {
-  const block = getTestState().currentBlock
-  if (!block) {
-    error("Tests and hooks cannot be added/configured at this time")
-  }
-  return block
+  return getTestState().currentBlock ?? error("Tests and hooks cannot be added/configured at this time")
 }
 
 export function getCurrentTestRun(): TestRun {
-  return getTestState().currentTestRun ?? error("This can only be used during a test", 3)
+  return getTestState().currentTestRun ?? error("This can only be called within a test", 3)
 }

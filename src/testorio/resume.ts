@@ -13,7 +13,6 @@ declare const global: {
   }
 }
 
-// removes all function types from the resume state
 function removeFunctions(block: DescribeBlock): DescribeBlock {
   const seen = new LuaTable<any>()
 
@@ -59,6 +58,7 @@ const copiedDescribeBlockState: Partial<Record<keyof DescribeBlock, true>> = {
   errors: true,
 }
 
+// return undefined if a change is detected after reload
 function compareAndFindTest(current: unknown, stored: unknown, storedTest: Test): Test | undefined {
   const seen = new LuaTable<AnyNotNil, AnyNotNil>()
 

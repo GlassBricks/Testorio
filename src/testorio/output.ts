@@ -155,7 +155,7 @@ const DebugAdapterCategories: Record<MessageColor, string> = {
 }
 export const debugAdapterLogger: LogHandler = (message, source) => {
   const color = message.find((x) => x.color)?.color ?? MessageColor.White
-  const category = DebugAdapterCategories[color ?? MessageColor.White]
+  const category = DebugAdapterCategories[color]
   if (message.length === 1 && typeof message[0].text === "string") {
     const text: string = message[0].text
     const lines = text.split("\n")
@@ -163,16 +163,12 @@ export const debugAdapterLogger: LogHandler = (message, source) => {
       let sourceFile: string | undefined, sourceLine: number | undefined
       if (source) {
         sourceFile = source.file
-        if (source.line) {
-          sourceLine = source.line
-        }
+        sourceLine = source.line
         source = undefined
       } else {
         const [, , file1, line1] = string.find(line, "(__[%a%-_]+__/.-%.%a+):(%d*)")
-        {
-          sourceFile = file1 as string
-          sourceLine = tonumber(line1)
-        }
+        sourceFile = file1 as string
+        sourceLine = tonumber(line1)
       }
       if (sourceFile && !sourceFile.startsWith("@")) sourceFile = "@" + sourceFile
       const body = {
@@ -211,7 +207,7 @@ export const logLogger: LogHandler = (message) => {
 }
 
 export const gameLogger: LogHandler = (message) => {
-  if (game) game.print(joinToRichText(message))
+  game?.print(joinToRichText(message))
 }
 
 export const logListener: TestListener = (event, state) => {
