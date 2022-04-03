@@ -4612,10 +4612,10 @@ type@^2.5.0:
   resolved "https://registry.yarnpkg.com/type/-/type-2.5.0.tgz#0a2e78c2e77907b252abe5f298c1b01c63f0db3d"
   integrity sha512-180WMDQaIMm3+7hGXWf12GtdniDEy7nYcyFMKJn/eZz/6tSLXrUN9V0wKSbMjej0I1WHWbpREDEKHtqPQa9NNw==
 
-typed-factorio@^0.20.0:
-  version "0.20.0"
-  resolved "https://registry.yarnpkg.com/typed-factorio/-/typed-factorio-0.20.0.tgz#d2a8112e52455b6dd6198df97f205823a633dd30"
-  integrity sha512-kPcVPcFMPkppei6a/MHS9Qzqp7yL7191TZC2pOtLPHTkHdcVnAGPU75A8P1GpYKAnRUMdixDCixYg2co5Vrp5w==
+typed-factorio@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/typed-factorio/-/typed-factorio-1.0.0.tgz#32a311ea839d6193a6b63a1d61160e633f948be3"
+  integrity sha512-8JYdjizJKMUhEpaZ7SoVLQ+toe0XTebK/Zh/Iwwvs29x8Ml758XACX5Bn71LJK22u3obgu7YN2yn2GxZbQ554g==
 
 typedarray@^0.0.6:
   version "0.0.6"

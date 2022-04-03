@@ -1,7 +1,12 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.5.2
-Date: ????
+Version: 1.0.0
+Date: 2022-04-03
   Changes:
+    - Inital stable release.
+    - Allow tests to be re-run (run again) for faster testing. Re-runs will add "no_rerun" to tag blacklist, so you can mark tests that cannot be re-run.
+    - before_test_run option is no longer called after an after_mod_reload test.
+  Bugfixes:
+    - Fixed test gui showing wrong number of describe block errors.
 ---------------------------------------------------------------------------------------------------
 Version: 0.5.1
 Date: 2022-03-22
@@ -12,7 +17,7 @@ Date: 2022-03-22
 Version: 0.5.0
 Date: 2022-03-20
   Changes:
-    - Updated to TSTL version 1.4. This removes all needs for global variables.
+    - Updated to TSTL version 1.4. This removes the use of many global variables.
     - Added describe block error count to test gui.
   Features:
     - Added the "get_area" function under testUtil/areas.
