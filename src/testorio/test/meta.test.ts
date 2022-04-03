@@ -854,11 +854,16 @@ describe("reload state", () => {
   // would also check for uninitialized, but that requires too deep a level of meta
 
   test("Reload state lifecycle", () => {
-    assert.equal(TestStage.NotRun, mockTestState.getTestStage())
     test("", () => {
       // empty
     })
+    ticks_between_tests(1)
+    test("", () => {
+      // empty
+    })
+    assert.equal(TestStage.NotRun, mockTestState.getTestStage())
     const runner = createTestRunner(mockTestState)
+    runner.tick()
     assert.equal(TestStage.Running, mockTestState.getTestStage())
     runner.tick()
     assert.equal(TestStage.Completed, mockTestState.getTestStage())
@@ -878,7 +883,7 @@ describe("reload state", () => {
   test.each([TestStage.LoadError], "should not run with state %s", (state) => {
     mockTestState.setTestStage(state)
     assert.error(() => {
-      createTestRunner(mockTestState)
+      createTestRunner(mockTestState).tick()
     })
   })
 })

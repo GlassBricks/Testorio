@@ -79,7 +79,7 @@ export function resetTestState(config: Config): void {
   })
 }
 
-export function makeLoadError(state: TestState, error: string): void {
+export function setToLoadErrorState(state: TestState, error: string): void {
   state.setTestStage(TestStage.LoadError)
   state.rootBlock = createRootDescribeBlock(state.config)
   state.currentBlock = undefined

@@ -35,6 +35,7 @@
     "@typescript-eslint/no-namespace": "off",
     "@typescript-eslint/no-var-requires": "off",
     "import/no-commonjs": "off",
+    "class-methods-use-this": "off",
     // gives false positives
     "import/named": "off",
     // modifications/weakening
