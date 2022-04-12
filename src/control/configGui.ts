@@ -78,7 +78,7 @@ function TitleBar(parent: LuaGuiElement, title: LocalisedString) {
 
 function setTestMod(mod: string) {
   settings.global[Settings.TestMod] = { value: mod }
-  updateTestStageGui()
+  updateConfigGui()
 }
 
 function getTestMod(): string {
@@ -171,7 +171,7 @@ const OnModSelectionChanged = guiAction("OnModSelectionChanged", () => {
     destroyModTextField()
   }
   setTestMod(selectedMod)
-  updateTestStageGui()
+  updateConfigGui()
 })
 
 function createModTextField(): TextFieldGuiElement {
@@ -226,9 +226,9 @@ const runTests = postLoadAction("runTests", () => {
     game.print(`No tests loaded for mod ${getTestMod()}; try reloading.`)
     return
   }
-  destroyConfigGui()
+  // destroyConfigGui()
   remote.call(Remote.RunTests, "runTests")
-  updateTestStageGui()
+  updateConfigGui()
 })
 
 const ReloadAndStartTests = guiAction("reloadAndStartTests", () => {
@@ -238,13 +238,11 @@ const ReloadAndStartTests = guiAction("reloadAndStartTests", () => {
 })
 
 const StartTests = guiAction("startTests", () => {
-  if (remote.interfaces[Remote.RunTests] === undefined || remote.call(Remote.RunTests, "modName") !== getTestMod())
-    game.reload_mods()
   game.auto_save("beforeTest")
   runTests()
 })
 
-function updateTestStageGui() {
+function updateConfigGui() {
   if (!configGuiValid()) return
   const configGui = global.configGui!
   const mainFlow = configGui.testStageFlow
@@ -271,7 +269,9 @@ function updateTestStageGui() {
       direction: "horizontal",
     })
 
-    const runEnabled = remote.interfaces[Remote.TestsAvailableFor + getTestMod()] !== undefined
+    const modRegisteredTests = remote.interfaces[Remote.TestsAvailableFor + getTestMod()] !== undefined
+    const testsLoaded =
+      remote.interfaces[Remote.RunTests] !== undefined && remote.call(Remote.RunTests, "modName") === getTestMod()
 
     buttonFlow.add({
       type: "button",
@@ -280,8 +280,8 @@ function updateTestStageGui() {
         modName,
         on_gui_click: StartTests,
       },
-      enabled: stage === TestStage.NotRun && runEnabled,
-      tooltip: !runEnabled ? [ConfigGui.ModNotRegisteredTests] : stage === TestStage.NotRun ? undefined : undefined,
+      enabled: stage === TestStage.NotRun && modRegisteredTests && testsLoaded,
+      tooltip: !modRegisteredTests ? [ConfigGui.ModNotRegisteredTests] : undefined,
     })
     const spacer = buttonFlow.add({
       type: "empty-widget",
@@ -295,8 +295,8 @@ function updateTestStageGui() {
         modName,
         on_gui_click: ReloadAndStartTests,
       },
-      enabled: runEnabled,
-      tooltip: !runEnabled ? [ConfigGui.ModNotRegisteredTests] : undefined,
+      enabled: modRegisteredTests,
+      tooltip: !modRegisteredTests ? [ConfigGui.ModNotRegisteredTests] : undefined,
     })
   }
 
@@ -307,7 +307,7 @@ function updateTestStageGui() {
   }
 }
 
-script.on_event(onTestStageChanged, updateTestStageGui)
+script.on_event(onTestStageChanged, updateConfigGui)
 
 function createConfigGui(player: LuaPlayer): FrameGuiElement {
   player.gui.screen[TestConfigName]?.destroy()
@@ -328,7 +328,7 @@ function createConfigGui(player: LuaPlayer): FrameGuiElement {
   })
   TestStageBar(frame)
 
-  updateTestStageGui()
+  updateConfigGui()
 
   return frame
 }
@@ -373,8 +373,8 @@ function createModButton(player: LuaPlayer) {
 
 function refreshConfigGui() {
   if (!configGuiValid()) return
-  const previousPlayer = global.configGui!.player
   destroyConfigGui()
+  const previousPlayer = global.configGui!.player
   if (!game.is_multiplayer()) {
     const gui = createConfigGui(previousPlayer)
     gui.bring_to_front()
