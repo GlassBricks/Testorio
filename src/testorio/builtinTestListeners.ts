@@ -1,6 +1,7 @@
 import { logListener } from "./output"
 import { resultCollector } from "./result"
 import { TestListener } from "./testEvents"
+import { cleanupTestState } from "./state"
 
 const setupListener: TestListener = (event, state) => {
   if (event.type === "testRunStarted") {
@@ -10,6 +11,7 @@ const setupListener: TestListener = (event, state) => {
   } else if (event.type === "testRunFinished") {
     game.speed = 1
     state.config.after_test_run?.()
+    cleanupTestState()
   }
 }
 

@@ -84,6 +84,13 @@ export function resetTestState(config: Config): void {
   })
 }
 
+export function cleanupTestState(): void {
+  const state = getTestState()
+  state.rootBlock = undefined!
+  state.currentBlock = undefined
+  state.currentTestRun = undefined
+}
+
 export function setToLoadErrorState(state: TestState, error: string): void {
   state.setTestStage(TestStage.LoadError)
   state.rootBlock = createRootDescribeBlock(state.config)
