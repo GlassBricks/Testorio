@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.0.1
+Date: 2022-04-11
+  Changes:
+    - Improved config gui slightly
+    - Config gui no longer closes after tests start running
+  Bugfixes:
+    - Fixed crash that arises when using weak tables and dangling references in test functions
+
+---------------------------------------------------------------------------------------------------
 Version: 1.0.0
 Date: 2022-04-03
   Changes:
