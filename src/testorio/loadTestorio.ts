@@ -19,6 +19,13 @@ export function loadTestorio(this: unknown, files: string[], config: Partial<Con
     runTests,
     modName: () => script.mod_name,
     getTestStage: () => getTestState().getTestStage(),
+    fireCustomEvent: (name, data) => {
+      getTestState().raiseTestEvent({
+        type: "customEvent",
+        name,
+        data,
+      })
+    },
   })
   tapEvent(defines.events.on_game_created_from_scenario, runTests)
   tapEvent(defines.events.on_tick, tryContinueTests)

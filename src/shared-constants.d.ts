@@ -51,3 +51,7 @@ export const enum TestStage {
   LoadError = "LoadError",
   Finished = "Finished",
 }
+
+export const enum Misc {
+  CloseProgressGui = "close-progress-gui",
+}

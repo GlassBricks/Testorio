@@ -1,4 +1,4 @@
-import { Locale, Prototypes } from "../shared-constants"
+import { Locale, Misc, Prototypes } from "../shared-constants"
 import { Colors, joinToRichText, LogHandler, MessageColor } from "./output"
 import { RunResults } from "./result"
 import { TestState } from "./state"
@@ -8,6 +8,7 @@ import ProgressGui = Locale.ProgressGui
 
 interface TestProgressGui {
   player: LuaPlayer
+  closeButton: SpriteButtonGuiElement
   statusText: LabelGuiElement
   progressBar: ProgressBarGuiElement
   progressLabel: LabelGuiElement
@@ -106,22 +107,75 @@ function getPlayer(): LuaPlayer {
   error("Could not find any players!")
 }
 
+function closeTestProgressGui(): void {
+  const player = getPlayer()
+
+  const screen = player.gui.screen
+  screen[TestProgressName]?.destroy()
+}
+
 function createTestProgressGui(state: TestState): TestProgressGui {
   const player = getPlayer()
-  const totalTests = countActiveTests(state.rootBlock, state)
 
   const screen = player.gui.screen
   screen[TestProgressName]?.destroy()
 
-  const titleLocale = !state.isRerun ? ProgressGui.Title : ProgressGui.TitleRerun
+  const totalTests = countActiveTests(state.rootBlock, state)
   const mainFrame = screen.add<"frame">({
     type: "frame",
-    caption: [titleLocale, script.mod_name],
     name: TestProgressName,
     direction: "vertical",
   })
   mainFrame.auto_center = true
   mainFrame.style.width = 1000
+
+  const titleBar = mainFrame.add({
+    type: "flow",
+    direction: "horizontal",
+  })
+  titleBar.drag_target = mainFrame
+
+  const style = titleBar.style
+  style.horizontal_spacing = 8
+  style.height = 28
+  const titleLocale = !state.isRerun ? ProgressGui.Title : ProgressGui.TitleRerun
+
+  titleBar.add({
+    type: "label",
+    caption: [titleLocale, script.mod_name],
+    style: "frame_title",
+    ignored_by_interaction: true,
+  })
+  // drag handle
+  {
+    const element = titleBar.add({
+      type: "empty-widget",
+      ignored_by_interaction: true,
+      style: "draggable_space",
+    })
+    const style = element.style
+    style.horizontally_stretchable = true
+    style.height = 24
+  }
+  // close button
+
+  const closeButton = titleBar.add({
+    type: "sprite-button",
+    style: "frame_action_button",
+    sprite: "utility/close_white",
+    hovered_sprite: "utility/close_black",
+    clicked_sprite: "utility/close_black",
+    tooltip: ["gui.close"],
+    mouse_button_filter: ["left"],
+    tags: {
+      modName: "testorio",
+      on_gui_click: Misc.CloseProgressGui,
+    },
+    enabled: false,
+  })
+  // the on_click handler is handled by testorio mod, not the mod under test
+  // this is so testorio does not need to "hack" into another event handler
+
   const contentFrame = mainFrame.add({
     type: "frame",
     style: "inside_shallow_frame_with_padding",
@@ -130,17 +184,18 @@ function createTestProgressGui(state: TestState): TestProgressGui {
   const gui: TestProgressGui = {
     player,
     totalTests,
+    closeButton,
     statusText: StatusText(contentFrame),
     ...ProgressBar(contentFrame),
     testCounts: TestCount(contentFrame),
     testOutput: TestOutput(contentFrame),
   }
 
-  updateGuiStatus(gui, state.results)
+  updateTestCounts(gui, state.results)
   return gui
 }
 
-function updateGuiStatus(gui: TestProgressGui, results: RunResults) {
+function updateTestCounts(gui: TestProgressGui, results: RunResults) {
   gui.progressBar.value = gui.totalTests === 0 ? 1 : results.ran / gui.totalTests
   gui.progressLabel.caption = ["", results.ran, "/", gui.totalTests]
 
@@ -171,22 +226,22 @@ export const progressGuiListener: TestListener = (event, state) => {
       break
     }
     case "testFailed": {
-      updateGuiStatus(gui, state.results)
+      updateTestCounts(gui, state.results)
       gui.statusText.caption = [ProgressGui.RunningTest, event.test.parent.path]
       break
     }
     case "testPassed": {
-      updateGuiStatus(gui, state.results)
+      updateTestCounts(gui, state.results)
       gui.statusText.caption = [ProgressGui.RunningTest, event.test.parent.path]
       break
     }
     case "testSkipped": {
-      updateGuiStatus(gui, state.results)
+      updateTestCounts(gui, state.results)
       gui.statusText.caption = [ProgressGui.RunningTest, event.test.parent.path]
       break
     }
     case "testTodo": {
-      updateGuiStatus(gui, state.results)
+      updateTestCounts(gui, state.results)
       gui.statusText.caption = [ProgressGui.RunningTest, event.test.parent.path]
       break
     }
@@ -196,17 +251,25 @@ export const progressGuiListener: TestListener = (event, state) => {
       break
     }
     case "describeBlockFailed": {
-      updateGuiStatus(gui, state.results)
+      updateTestCounts(gui, state.results)
       const { block } = event
       if (block.parent) gui.statusText.caption = [ProgressGui.RunningTest, block.parent.path]
       break
     }
     case "testRunFinished": {
       gui.statusText.caption = [!state.isRerun ? ProgressGui.TestsFinished : ProgressGui.TestsFinishedRerun]
+      gui.closeButton.enabled = true
       break
     }
     case "loadError": {
       gui.statusText.caption = [ProgressGui.LoadError]
+      gui.closeButton.enabled = true
+      break
+    }
+    case "customEvent": {
+      if (event.name === "closeProgressGui") {
+        closeTestProgressGui()
+      }
       break
     }
   }

@@ -49,6 +49,11 @@ export interface TestRunFinished extends BaseTestEvent {
 export interface LoadError extends BaseTestEvent {
   type: "loadError"
 }
+export interface CustomEvent extends BaseTestEvent {
+  type: "customEvent"
+  name: string
+  data?: unknown
+}
 
 export type TestEvent =
   | TestRunStarted
@@ -63,6 +68,7 @@ export type TestEvent =
   | DescribeBlockFailed
   | TestRunFinished
   | LoadError
+  | CustomEvent
 
 export type TestListener = (event: TestEvent, state: TestState) => void
 

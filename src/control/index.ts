@@ -1,6 +1,3 @@
 import "./configGui"
+import "./progressGuiUtil"
 import "./enablerTool"
-
-script.on_init(() => {
-  game.disable_replay()
-})
