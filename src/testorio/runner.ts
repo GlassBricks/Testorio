@@ -92,12 +92,10 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
       return this.attemptReload()
     } else if (stage === TestStage.Running) {
       return this.createLoadError(
-        `Save was unexpectedly reloaded while tests were running. This will cause tests to break. Aborting test run`,
+        `Save was unexpectedly reloaded while tests were running. This will cause tests to break. Aborting test run.`,
       )
-    } else if (stage === TestStage.Finished) {
-      return this.attemptRerun()
-    } else if (stage === TestStage.LoadError) {
-      return error("Unexpected reload state when test runner loaded: " + stage)
+    } else if (stage === TestStage.Finished || stage === TestStage.LoadError) {
+      return this.rerun()
     }
     assertNever(stage)
   }
@@ -106,9 +104,7 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
     const { state } = this
     state.profiler = game.create_profiler()
     state.setTestStage(TestStage.Running)
-    state.raiseTestEvent({
-      type: "testRunStarted",
-    })
+    state.raiseTestEvent({ type: "testRunStarted" })
     return { task: "enterDescribe", data: state.rootBlock }
   }
 
@@ -124,7 +120,7 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
     }
     return this.createLoadError(`Mods files/tests were changed during reload. Aborting test run.`)
   }
-  private attemptRerun(): Task {
+  private rerun(): Task {
     const { state } = this
     const tagBlacklist = (state.config.tag_blacklist ??= [])
     if (tagBlacklist.indexOf("no_rerun") === -1) {

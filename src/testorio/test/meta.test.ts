@@ -878,11 +878,15 @@ describe("reload state", () => {
     assert.equal(TestStage.LoadError, mockTestState.getTestStage())
   })
 
-  test.each([TestStage.LoadError], "should not run with state %s", (state) => {
-    mockTestState.setTestStage(state)
-    assert.error(() => {
-      createTestRunner(mockTestState).tick()
+  test("can reload after load error", () => {
+    test("Test 1", () => {
+      actions.push("test 1")
     })
+    mockTestState.setTestStage(TestStage.LoadError)
+    reloadAndTick()
+    assert.same([], mockTestState.rootBlock.errors)
+    assert.equal(TestStage.Finished, mockTestState.getTestStage())
+    assert.same(["test 1"], actions)
   })
 })
 

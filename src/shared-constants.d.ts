@@ -24,8 +24,10 @@ export namespace Locale {
     TestsNotRun = "testorio.config-gui.tests-not-run",
     TestsRunning = "testorio.config-gui.tests-running",
     TestsFinished = "testorio.config-gui.tests-finished",
-    RunNow = "testorio.config-gui.run-now",
-    ReloadAndRunTests = "testorio.config-gui.reload-and-run",
+    TestsLoadError = "testorio.config-gui.tests-load-error",
+    RunTestsNow = "testorio.config-gui.run-tests-now",
+    ReloadAndRunTests = "testorio.config-gui.reload-and-run-tests",
+    ReloadAndRerunTests = "testorio.config-gui.reload-and-rerun-tests",
   }
   export const enum ProgressGui {
     Title = "testorio.progress-gui.title",
