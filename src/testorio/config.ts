@@ -13,6 +13,7 @@ export function fillConfig(config: Partial<Config>): Config {
     log_to_log: !logToDa,
     log_passed_tests: true,
     log_skipped_tests: false,
+    sound_effects: false,
     ...config,
   }
 }

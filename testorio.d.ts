@@ -38,6 +38,8 @@ declare namespace Testorio {
 
     before_test_run?(): void
     after_test_run?(): void
+
+    sound_effects: boolean
   }
 
   type TestFn = () => void

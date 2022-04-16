@@ -51,6 +51,7 @@ function part(func) end
 ---@field tag_blacklist string[] | nil
 ---@field before_test_run fun() | nil
 ---@field after_test_run fun() | nil
+---@field sound_effects boolean | nil
 
 ---@alias TestFn fun(): void
 ---@alias HookFn TestFn

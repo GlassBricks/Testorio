@@ -3,5 +3,6 @@ if (script.active_mods.testorio) {
     tag_blacklist: ["no"],
     log_passed_tests: true,
     log_skipped_tests: true,
+    sound_effects: true,
   })
 }
