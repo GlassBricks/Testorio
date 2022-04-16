@@ -22,7 +22,7 @@ const setupListener: TestListener = (event, state) => {
     cleanupTestState()
   } else if (event.type === "loadError") {
     game.speed = 1
-    game.play_sound({ path: "utility/console-message" })
+    game.play_sound({ path: "utility/console_message" })
   }
 }
 
