@@ -1,4 +1,17 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.1.0
+Date: 2022-04-15
+  Features:
+    - The test progress gui now has a close button.
+    - For fun! Added the "sound_effects" option.
+  Changes:
+    - Improved config gui
+    - Improved locale on config gui
+    - Tests can now be rerun after a load error
+  Bugfixes:
+    - Fixed crash when reloading mods from config gui
+
+---------------------------------------------------------------------------------------------------
 Version: 1.0.1
 Date: 2022-04-11
   Changes:
@@ -11,7 +24,7 @@ Date: 2022-04-11
 Version: 1.0.0
 Date: 2022-04-03
   Changes:
-    - Inital stable release.
+- Initial stable release.
     - Allow tests to be re-run (run again) for faster testing. Re-runs will add "no_rerun" to tag blacklist, so you can mark tests that cannot be re-run.
     - before_test_run option is no longer called after an after_mod_reload test.
   Bugfixes:
@@ -21,7 +34,7 @@ Version: 0.5.1
 Date: 2022-03-22
   Bugfixes:
     - Removed "assignment to undefined global" warnings if using debugadapter
-    - Fixed a crash when using weak tables in global and using after_mod_reload when a test function holds references to otherwise unreferenced objects 
+    - Fixed a crash when using weak tables in global and using after_mod_reload when a test function holds references to otherwise unreferenced objects
 ---------------------------------------------------------------------------------------------------
 Version: 0.5.0
 Date: 2022-03-20
