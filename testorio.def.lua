@@ -97,7 +97,7 @@ local DescribeCreatorBase = {}
 ---@param values T[][]
 ---@param name string
 ---@param func fun(v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T): void
----@overload fun<T>(values: T[], name: string, func: fun(v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T): void): void
+---@overload fun<T>(values: T[], name: string, func: fun(v: T): void): void
 function DescribeCreatorBase.each(values, name, func) end
 
 ---@class DescribeCreator : DescribeCreatorBase
