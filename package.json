@@ -48,6 +48,7 @@
     "build:defs": "gulp buildDefs",
     "build:mod": "gulp buildMod",
     "build:all": "gulp buildAll",
+    "build:copyLuassert": "gulp copyLuassert",
     "clean": "gulp clean",
     "clean:mod": "gulp cleanMod",
     "watch:modfiles": "tstl -p src/tsconfig.json --watch",
