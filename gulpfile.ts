@@ -193,5 +193,6 @@ function runFml() {
     cwd: __dirname,
   })
 }
+task(runFml)
 
 task("prepareTest", series("buildAll", runFml))
