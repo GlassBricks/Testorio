@@ -285,7 +285,7 @@ function updateConfigGui() {
 }
 
 script.on_load(() => {
-  const remoteExits = remote.interfaces[Remote.Testorio].onTestStageChanged
+  const remoteExits = remote.interfaces[Remote.Testorio]?.onTestStageChanged
   if (remoteExits) {
     const eventId = remote.call(Remote.Testorio, "onTestStageChanged")
     script.on_event(eventId, updateConfigGui)

@@ -1,8 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.2.2
+Date: 2022-04-20
+  Bugfixes:
+    - Fixed a crash when world is loaded without tests configured.
+
+---------------------------------------------------------------------------------------------------
 Version: 1.2.1
 Date: 2022-04-20
   Bugfixes:
-    - Actually include bugfix described.
+    - Actually include bugfix described below.
 
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.0
