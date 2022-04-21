@@ -36,7 +36,7 @@ Date: 2022-04-11
 Version: 1.0.0
 Date: 2022-04-03
   Changes:
-- Initial stable release.
+    - Initial stable release.
     - Allow tests to be re-run (run again) for faster testing. Re-runs will add "no_rerun" to tag blacklist, so you can mark tests that cannot be re-run.
     - before_test_run option is no longer called after an after_mod_reload test.
   Bugfixes:
