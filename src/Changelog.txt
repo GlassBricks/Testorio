@@ -1,5 +1,11 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.1.0
+Version: 1.2.1
+Date: 2022-04-20
+  Bugfixes:
+    - Actually include bugfix described.
+
+---------------------------------------------------------------------------------------------------
+Version: 1.2.0
 Date: 2022-04-20
   Features:
     - Added an "after_test" hook, which runs after the current test (only) completes.
@@ -8,7 +14,6 @@ Date: 2022-04-20
     - Minor gui improvements.
   Bugfixes:
     - Modified luassert to fix a crash when using factorio objects with spy/stub/mock.
-
 
 ---------------------------------------------------------------------------------------------------
 Version: 1.1.0
