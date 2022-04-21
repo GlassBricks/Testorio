@@ -13,6 +13,7 @@ import Config = Testorio.Config
 
 declare const ____originalRequire: typeof require
 
+// noinspection JSUnusedGlobalSymbols
 export function loadTestorio(this: unknown, files: string[], config: Partial<Config>): void {
   loadTests(files, config)
   remote.add_interface(Remote.Testorio, {
@@ -27,6 +28,7 @@ export function loadTestorio(this: unknown, files: string[], config: Partial<Con
       })
     },
     onTestStageChanged: () => onTestStageChanged,
+    getResults: () => getTestState().results,
   })
   tapEvent(defines.events.on_game_created_from_scenario, runTests)
   tapEvent(defines.events.on_tick, tryContinueTests)
@@ -48,9 +50,7 @@ function loadTests(files: string[], partialConfig: Partial<Config>): void {
   // load files
   const _require = settings.global["testorio:test-mod"].value === "testorio" ? require : ____originalRequire
   for (const file of files) {
-    describe(file, () => {
-      _require(file)
-    })
+    describe(file, () => _require(file))
   }
   state.currentBlock = undefined
 }
