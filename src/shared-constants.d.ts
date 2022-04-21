@@ -1,6 +1,5 @@
 export const enum Remote {
   TestsAvailableFor = "testorio-tests-available-for-",
-  TestMod = "testorio-test-mod",
   Testorio = "testorio",
 }
 

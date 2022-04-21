@@ -1,6 +1,5 @@
 import * as modGui from "mod-gui"
 import { Settings } from "../constants"
-import { onTestStageChanged } from "./remote"
 import { Locale, Prototypes, Remote, TestStage } from "../shared-constants"
 import { GuiAction, guiAction } from "./guiAction"
 import { postLoadAction } from "./postLoadAction"
@@ -213,11 +212,11 @@ const Refresh = guiAction("refresh", () => {
 })
 
 const runTests = postLoadAction("runTests", () => {
-  if (!remote.interfaces[Remote.TestMod]) {
+  if (!remote.interfaces[Remote.Testorio]) {
     game.print(`No tests loaded for mod ${getTestMod()}; try reloading.`)
     return
   }
-  remote.call(Remote.TestMod, "runTests")
+  remote.call(Remote.Testorio, "runTests")
   updateConfigGui()
 })
 
@@ -276,19 +275,20 @@ function updateConfigGui() {
 
   const testModIsRegistered = remote.interfaces[Remote.TestsAvailableFor + getTestMod()] !== undefined
   const testModLoaded =
-    remote.interfaces[Remote.TestMod] !== undefined && remote.call(Remote.TestMod, "modName") === getTestMod()
-  const stage = (testModLoaded ? remote.call(Remote.TestMod, "getTestStage") : undefined) as TestStage
+    remote.interfaces[Remote.Testorio] !== undefined && remote.call(Remote.Testorio, "modName") === getTestMod()
+  const stage = (testModLoaded ? remote.call(Remote.Testorio, "getTestStage") : undefined) as TestStage
 
   let labelMessage: LocalisedString
   let runNowButtonEnabled: boolean
   let reloadAndRunButtonEnabled: boolean
   let buttonTooltip: LocalisedString = ""
-  let reloadAndRunButtonCaption: LocalisedString = [ConfigGui.ReloadAndRunTests]
+  let reloadAndRunButtonCaption: LocalisedString
 
   if (stage === TestStage.NotRun || stage === undefined) {
     labelMessage = [ConfigGui.TestsNotRun]
     reloadAndRunButtonEnabled = testModIsRegistered
     runNowButtonEnabled = testModIsRegistered && testModLoaded
+    reloadAndRunButtonCaption = [ConfigGui.ReloadAndRunTests]
     if (!testModIsRegistered) {
       buttonTooltip = [ConfigGui.ModNotRegisteredTests]
     }
@@ -296,6 +296,7 @@ function updateConfigGui() {
     labelMessage = [ConfigGui.TestsRunning]
     runNowButtonEnabled = false
     reloadAndRunButtonEnabled = false
+    reloadAndRunButtonCaption = [ConfigGui.ReloadAndRerunTests]
   } else if (stage === TestStage.Finished) {
     labelMessage = [ConfigGui.TestsFinished]
     runNowButtonEnabled = false
@@ -326,7 +327,13 @@ function updateConfigGui() {
   reloadAndRunButton.tooltip = buttonTooltip
 }
 
-script.on_event(onTestStageChanged, updateConfigGui)
+script.on_load(() => {
+  const remoteExits = remote.interfaces[Remote.Testorio].onTestStageChanged
+  if (remoteExits) {
+    const eventId = remote.call(Remote.Testorio, "onTestStageChanged")
+    script.on_event(eventId, updateConfigGui)
+  }
+})
 
 function createConfigGui(player: LuaPlayer): FrameGuiElement {
   player.gui.screen[TestConfigName]?.destroy()

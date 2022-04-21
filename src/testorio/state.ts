@@ -1,5 +1,5 @@
 /** @noSelfInFile */
-import { Remote, TestStage } from "../shared-constants"
+import { TestStage } from "../shared-constants"
 import { createEmptyRunResults, RunResults } from "./result"
 import { _raiseTestEvent, TestEvent } from "./testEvents"
 import { createRootDescribeBlock, DescribeBlock, Tags, Test } from "./tests"
@@ -60,10 +60,11 @@ export function getGlobalTestStage(): TestStage {
   return global.__testorioTestStage ?? TestStage.NotRun
 }
 
-let onTestStageChanged: CustomEventId<{ stage: TestStage }> | undefined
+const onTestStageChanged = script.generate_event_name<{ stage: TestStage }>()
+export { onTestStageChanged }
+
 function setGlobalTestStage(stage: TestStage): void {
   global.__testorioTestStage = stage
-  onTestStageChanged ??= remote.call(Remote.Testorio, "onTestStageChanged") as CustomEventId<{ stage: TestStage }>
   script.raise_event(onTestStageChanged, { stage })
 }
 

@@ -7,7 +7,7 @@ import { addLogHandler, debugAdapterLogger, gameLogger, logLogger } from "./outp
 import { progressGuiListener, progressGuiLogger } from "./progressGui"
 import { createTestRunner, TestRunner } from "./runner"
 import { globals } from "./setup"
-import { getTestState, resetTestState } from "./state"
+import { getTestState, onTestStageChanged, resetTestState } from "./state"
 import { addTestListener } from "./testEvents"
 import Config = Testorio.Config
 
@@ -15,7 +15,7 @@ declare const ____originalRequire: typeof require
 
 export function loadTestorio(this: unknown, files: string[], config: Partial<Config>): void {
   loadTests(files, config)
-  remote.add_interface(Remote.TestMod, {
+  remote.add_interface(Remote.Testorio, {
     runTests,
     modName: () => script.mod_name,
     getTestStage: () => getTestState().getTestStage(),
@@ -26,6 +26,7 @@ export function loadTestorio(this: unknown, files: string[], config: Partial<Con
         data,
       })
     },
+    onTestStageChanged: () => onTestStageChanged,
   })
   tapEvent(defines.events.on_game_created_from_scenario, runTests)
   tapEvent(defines.events.on_tick, tryContinueTests)
