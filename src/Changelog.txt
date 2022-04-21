@@ -1,5 +1,17 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.1.0
+Date: 2022-04-20
+  Features:
+    - Added an "after_test" hook, which runs after the current test (only) completes.
+  Changes:
+    - Removed the "run now" button from config gui. There is now only a "reload and run" button.
+    - Minor gui improvements.
+  Bugfixes:
+    - Modified luassert to fix a crash when using factorio objects with spy/stub/mock.
+
+
+---------------------------------------------------------------------------------------------------
+Version: 1.1.0
 Date: 2022-04-15
   Features:
     - The test progress gui now has a close button.
