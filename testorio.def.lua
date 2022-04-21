@@ -12,6 +12,8 @@ after_all = nil
 before_each = nil
 ---@type Lifecycle
 after_each = nil
+---@type Lifecycle
+after_test = nil
 
 ---@vararg string
 function tags(...) end

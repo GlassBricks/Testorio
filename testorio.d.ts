@@ -8,6 +8,7 @@ declare var before_all: Testorio.Lifecycle
 declare var after_all: Testorio.Lifecycle
 declare var before_each: Testorio.Lifecycle
 declare var after_each: Testorio.Lifecycle
+declare var after_test: Testorio.Lifecycle
 declare function async(timeout?: number): void
 declare function done(): void
 declare function on_tick(func: Testorio.OnTickFn): void

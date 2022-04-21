@@ -5,6 +5,7 @@ import { _raiseTestEvent, TestEvent } from "./testEvents"
 import { createRootDescribeBlock, DescribeBlock, Tags, Test } from "./tests"
 import Config = Testorio.Config
 import OnTickFn = Testorio.OnTickFn
+import HookFn = Testorio.HookFn
 
 /** @noSelf */
 export interface TestState {
@@ -40,6 +41,7 @@ export interface TestRun {
   asyncDone: boolean
   tickStarted: number
   onTickFuncs: LuaTable<OnTickFn, true>
+  afterTestFuncs: HookFn[]
 }
 
 let TESTORIO_TEST_STATE: TestState | undefined
@@ -103,8 +105,4 @@ export function setToLoadErrorState(state: TestState, error: string): void {
 
 export function getCurrentBlock(): DescribeBlock {
   return getTestState().currentBlock ?? error("Tests and hooks cannot be added/configured at this time")
-}
-
-export function getCurrentTestRun(): TestRun {
-  return getTestState().currentTestRun ?? error("This can only be called within a test", 3)
 }

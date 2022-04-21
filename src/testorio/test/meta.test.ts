@@ -64,7 +64,6 @@ function runTestAsync<T extends Test | DescribeBlock = Test>(callback: (item: T)
   _setTestState(originalTestState)
   async()
   on_tick(() => {
-    _setTestState(mockTestState)
     runner.tick()
     if (runner.isDone()) {
       callback(getFirst())
@@ -72,6 +71,7 @@ function runTestAsync<T extends Test | DescribeBlock = Test>(callback: (item: T)
       done()
     }
   })
+  _setTestState(mockTestState)
 }
 
 function skipRun() {
@@ -1224,5 +1224,58 @@ describe("rerun", () => {
     assert.same(["run both", "run one"], actions)
     runTestSync()
     assert.same(["run both", "run one", "run both"], actions)
+  })
+})
+
+describe("after_test", () => {
+  test("simple", () => {
+    test("foo", () => {
+      after_test(() => {
+        actions.push("after_foo")
+      })
+      actions.push("foo")
+    })
+    runTestSync()
+    assert.same(["foo", "after_foo"], actions)
+  })
+
+  test("called even if test failed", () => {
+    test("foo", () => {
+      after_test(() => {
+        actions.push("after_foo")
+      })
+      error("oh no")
+    })
+    runTestSync()
+    assert.same(["after_foo"], actions)
+  })
+
+  test("called in async", () => {
+    test("foo", () => {
+      after_test(() => {
+        actions.push("after_foo")
+      })
+      async(2)
+      on_tick(() => {
+        actions.push("foo")
+      })
+    })
+    runTestAsync(() => {
+      assert.same(["foo", "foo", "after_foo"], actions)
+    })
+  })
+
+  test("called in order", () => {
+    test("foo", () => {
+      after_test(() => {
+        actions.push("after_foo")
+      })
+      after_test(() => {
+        actions.push("after_foo2")
+      })
+      actions.push("foo")
+    })
+    runTestSync()
+    assert.same(["foo", "after_foo", "after_foo2"], actions)
   })
 })

@@ -250,14 +250,14 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
   }
 
   leaveTest(testRun: TestRun): Task {
-    const { test } = testRun
+    const { test, afterTestFuncs } = testRun
+
     function collectHooks(block: DescribeBlock, hooks: TestFn[]) {
       hooks.push(...block.hooks.filter((x) => x.type === "afterEach").map((x) => x.func))
       if (block.parent) collectHooks(block.parent, hooks)
       return hooks
     }
-
-    const afterEach = collectHooks(test.parent, [])
+    const afterEach = collectHooks(test.parent, [...afterTestFuncs])
 
     for (const hook of afterEach) {
       const [success, error] = __testorio__pcallWithStacktrace(hook)
@@ -387,6 +387,7 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
       asyncDone: false,
       tickStarted: game.tick,
       onTickFuncs: new LuaTable(),
+      afterTestFuncs: [],
       partIndex,
     }
   }

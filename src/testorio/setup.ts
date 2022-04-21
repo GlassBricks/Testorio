@@ -3,7 +3,7 @@
 import * as util from "util"
 import { __testorio__pcallWithStacktrace } from "./_util"
 import { prepareReload } from "./resume"
-import { getCurrentBlock, getCurrentTestRun, getTestState } from "./state"
+import { getCurrentBlock, getTestState, TestRun } from "./state"
 import { addDescribeBlock, addTest, createSource, DescribeBlock, HookType, Source, Tags, Test, TestMode } from "./tests"
 import DescribeCreator = Testorio.DescribeCreator
 import DescribeCreatorBase = Testorio.DescribeCreatorBase
@@ -18,6 +18,10 @@ function getCallerSource(upStack: number = 1): Source {
   return createSource(info.source, info.currentline)
 }
 
+export function getCurrentTestRun(): TestRun {
+  return getTestState().currentTestRun ?? error("This can only be called within a test")
+}
+
 function addHook(type: HookType, func: HookFn): void {
   const state = getTestState()
   if (state.currentTestRun) {
@@ -27,6 +31,10 @@ function addHook(type: HookType, func: HookFn): void {
     type,
     func,
   })
+}
+
+function afterTest(func: TestFn): void {
+  getCurrentTestRun().afterTestFuncs.push(func)
 }
 
 function consumeTags(): Tags {
@@ -225,6 +233,7 @@ function tags(...tags: string[]) {
 
 type Globals =
   | `${"before" | "after"}_${"each" | "all"}`
+  | "after_test"
   | "async"
   | "done"
   | "on_tick"
@@ -252,6 +261,9 @@ export const globals: Pick<typeof globalThis, Globals> = {
   },
   after_each(func) {
     addHook("afterEach", func)
+  },
+  after_test(func) {
+    afterTest(func)
   },
 
   async(timeout) {
