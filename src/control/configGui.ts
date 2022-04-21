@@ -17,7 +17,7 @@ declare const global: {
     refreshButton: SpriteButtonGuiElement
     modTextField?: TextFieldGuiElement
     testStageLabel: LabelGuiElement
-    testStartButtons: [runNow: ButtonGuiElement, reloadAndRun: ButtonGuiElement]
+    runButton: ButtonGuiElement
   }
 }
 function configGuiValid(): boolean {
@@ -123,7 +123,7 @@ function ModSelect(parent: LuaGuiElement) {
     tooltip: [ConfigGui.ReloadMods],
     tags: {
       modName,
-      on_gui_click: Refresh,
+      on_gui_click: ReloadMods,
     },
   })
 
@@ -206,67 +206,54 @@ function destroyModTextField() {
 }
 
 const refreshAfterLoad = postLoadAction("afterRefresh", refreshConfigGui)
-const Refresh = guiAction("refresh", () => {
+const ReloadMods = guiAction("refresh", () => {
   game.reload_mods()
   refreshAfterLoad()
 })
 
 const runTests = postLoadAction("runTests", () => {
   if (!remote.interfaces[Remote.Testorio]) {
-    game.print(`No tests loaded for mod ${getTestMod()}; try reloading.`)
+    game.print(`Mod "${getTestMod()} is not register with testorio. Cannot run tests.`)
     return
   }
   remote.call(Remote.Testorio, "runTests")
   updateConfigGui()
 })
 
-const ReloadAndStartTests = guiAction("reloadAndStartTests", () => {
+const RunTests = guiAction("startTests", () => {
   game.reload_mods()
   game.auto_save("beforeTest")
   runTests()
 })
 
-const StartTestsNow = guiAction("startTests", () => {
-  game.auto_save("beforeTest")
-  runTests()
-})
-
 function TestStageBar(parent: LuaGuiElement) {
+  const configGui = global.configGui!
+
   const mainFlow = parent.add({
     type: "flow",
     direction: "vertical",
-  })
-
-  global.configGui!.testStageLabel = mainFlow.add({
-    type: "label",
   })
 
   const buttonFlow = mainFlow.add({
     type: "flow",
     direction: "horizontal",
   })
-  const runNowButton = buttonFlow.add({
-    type: "button",
-    caption: [ConfigGui.RunTestsNow],
-    tags: {
-      modName,
-      on_gui_click: StartTestsNow,
-    },
+
+  configGui.testStageLabel = buttonFlow.add({
+    type: "label",
   })
-  const spacer = buttonFlow.add({
+
+  buttonFlow.add({
     type: "empty-widget",
-  })
-  spacer.style.horizontally_stretchable = true
-  const reloadAndRunButton = buttonFlow.add({
+  }).style.horizontally_stretchable = true
+
+  configGui.runButton = buttonFlow.add({
     type: "button",
+    name: "runTests",
     style: "green_button",
-    caption: [ConfigGui.ReloadAndRunTests],
-    tags: {
-      modName,
-      on_gui_click: ReloadAndStartTests,
-    },
+    caption: [ConfigGui.RunTests],
+    tags: { modName, on_gui_click: RunTests },
   })
-  global.configGui!.testStartButtons = [runNowButton, reloadAndRunButton]
 }
 
 function updateConfigGui() {
@@ -276,55 +263,25 @@ function updateConfigGui() {
   const testModIsRegistered = remote.interfaces[Remote.TestsAvailableFor + getTestMod()] !== undefined
   const testModLoaded =
     remote.interfaces[Remote.Testorio] !== undefined && remote.call(Remote.Testorio, "modName") === getTestMod()
-  const stage = (testModLoaded ? remote.call(Remote.Testorio, "getTestStage") : undefined) as TestStage
+  const stage = testModLoaded ? (remote.call(Remote.Testorio, "getTestStage") as TestStage) : undefined
 
-  let labelMessage: LocalisedString
-  let runNowButtonEnabled: boolean
-  let reloadAndRunButtonEnabled: boolean
-  let buttonTooltip: LocalisedString = ""
-  let reloadAndRunButtonCaption: LocalisedString
+  const running = stage === TestStage.Running || stage === TestStage.ToReload
 
-  if (stage === TestStage.NotRun || stage === undefined) {
-    labelMessage = [ConfigGui.TestsNotRun]
-    reloadAndRunButtonEnabled = testModIsRegistered
-    runNowButtonEnabled = testModIsRegistered && testModLoaded
-    reloadAndRunButtonCaption = [ConfigGui.ReloadAndRunTests]
-    if (!testModIsRegistered) {
-      buttonTooltip = [ConfigGui.ModNotRegisteredTests]
-    }
-  } else if (stage === TestStage.Running || stage === TestStage.ToReload) {
-    labelMessage = [ConfigGui.TestsRunning]
-    runNowButtonEnabled = false
-    reloadAndRunButtonEnabled = false
-    reloadAndRunButtonCaption = [ConfigGui.ReloadAndRerunTests]
-  } else if (stage === TestStage.Finished) {
-    labelMessage = [ConfigGui.TestsFinished]
-    runNowButtonEnabled = false
-    reloadAndRunButtonEnabled = testModIsRegistered
-    reloadAndRunButtonCaption = [ConfigGui.ReloadAndRerunTests]
-    if (!testModIsRegistered) {
-      buttonTooltip = [ConfigGui.ModNotRegisteredTests]
-    }
-  } else if (stage === TestStage.LoadError) {
-    labelMessage = [ConfigGui.TestsLoadError]
-    runNowButtonEnabled = false
-    reloadAndRunButtonEnabled = testModIsRegistered
-    reloadAndRunButtonCaption = [ConfigGui.ReloadAndRerunTests]
-    if (!testModIsRegistered) {
-      buttonTooltip = [ConfigGui.ModNotRegisteredTests]
-    }
-  } else {
-    error(`Unknown test stage ${stage}`)
-  }
+  configGui.modSelect.enabled = !running
+  configGui.refreshButton.enabled = !running
 
-  configGui.testStageLabel.caption = labelMessage
-  const runNowButton = configGui.testStartButtons[0]
-  runNowButton.enabled = runNowButtonEnabled
-  runNowButton.tooltip = buttonTooltip
-  const reloadAndRunButton = configGui.testStartButtons[1]
-  reloadAndRunButton.enabled = reloadAndRunButtonEnabled
-  reloadAndRunButton.caption = reloadAndRunButtonCaption
-  reloadAndRunButton.tooltip = buttonTooltip
+  configGui.testStageLabel.caption = [
+    {
+      [TestStage.NotRun]: ConfigGui.TestsNotRun,
+      [TestStage.Running]: ConfigGui.TestsRunning,
+      [TestStage.ToReload]: ConfigGui.TestsRunning,
+      [TestStage.Finished]: ConfigGui.TestsFinished,
+      [TestStage.LoadError]: ConfigGui.TestsLoadError,
+    }[stage ?? TestStage.NotRun],
+  ]
+
+  configGui.runButton.enabled = testModIsRegistered && !running
+  configGui.runButton.tooltip = testModIsRegistered ? "" : [ConfigGui.ModNotRegisteredTests]
 }
 
 script.on_load(() => {

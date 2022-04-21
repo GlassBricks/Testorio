@@ -8,6 +8,7 @@ import ProgressGui = Locale.ProgressGui
 
 interface TestProgressGui {
   player: LuaPlayer
+  mainFrame: FrameGuiElement
   closeButton: SpriteButtonGuiElement
   statusText: LabelGuiElement
   progressBar: ProgressBarGuiElement
@@ -21,8 +22,6 @@ interface TestProgressGui {
 declare const global: {
   __testProgressGui: TestProgressGui
 }
-
-const TestProgressName = "testorio:test-progress"
 
 function StatusText(parent: LuaGuiElement) {
   const statusText = parent.add({ type: "label" })
@@ -111,19 +110,20 @@ function closeTestProgressGui(): void {
   const player = getPlayer()
 
   const screen = player.gui.screen
-  screen[TestProgressName]?.destroy()
+  screen[Misc.TestProgressGui]?.destroy()
+  global.__testProgressGui = undefined!
 }
 
 function createTestProgressGui(state: TestState): TestProgressGui {
   const player = getPlayer()
 
   const screen = player.gui.screen
-  screen[TestProgressName]?.destroy()
+  screen[Misc.TestProgressGui]?.destroy()
 
   const totalTests = countActiveTests(state.rootBlock, state)
   const mainFrame = screen.add<"frame">({
     type: "frame",
-    name: TestProgressName,
+    name: Misc.TestProgressGui,
     direction: "vertical",
   })
   mainFrame.auto_center = true
@@ -183,6 +183,7 @@ function createTestProgressGui(state: TestState): TestProgressGui {
   })
   const gui: TestProgressGui = {
     player,
+    mainFrame,
     totalTests,
     closeButton,
     statusText: StatusText(contentFrame),
@@ -192,6 +193,15 @@ function createTestProgressGui(state: TestState): TestProgressGui {
   }
 
   updateTestCounts(gui, state.results)
+  return gui
+}
+
+function getTestProgressGui() {
+  const gui = global.__testProgressGui
+  if (!gui?.mainFrame.valid) {
+    global.__testProgressGui = undefined!
+    return undefined
+  }
   return gui
 }
 
@@ -209,12 +219,13 @@ function updateTestCounts(gui: TestProgressGui, results: RunResults) {
 }
 
 export const progressGuiListener: TestListener = (event, state) => {
-  const gui = global.__testProgressGui
+  if (event.type === "testRunStarted") {
+    global.__testProgressGui = createTestProgressGui(state)
+    return
+  }
+  const gui = getTestProgressGui()
+  if (!gui) return
   switch (event.type) {
-    case "testRunStarted": {
-      global.__testProgressGui = createTestProgressGui(state)
-      break
-    }
     case "describeBlockEntered": {
       const { block } = event
       gui.statusText.caption = [ProgressGui.RunningTest, block.path]
