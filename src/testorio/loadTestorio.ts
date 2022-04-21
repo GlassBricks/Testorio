@@ -15,7 +15,7 @@ declare const ____originalRequire: typeof require
 
 export function loadTestorio(this: unknown, files: string[], config: Partial<Config>): void {
   loadTests(files, config)
-  remote.add_interface(Remote.RunTests, {
+  remote.add_interface(Remote.TestMod, {
     runTests,
     modName: () => script.mod_name,
     getTestStage: () => getTestState().getTestStage(),

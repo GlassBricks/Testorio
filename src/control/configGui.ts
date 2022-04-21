@@ -1,6 +1,6 @@
 import * as modGui from "mod-gui"
 import { Settings } from "../constants"
-import { onTestStageChanged } from "../remote"
+import { onTestStageChanged } from "./remote"
 import { Locale, Prototypes, Remote, TestStage } from "../shared-constants"
 import { GuiAction, guiAction } from "./guiAction"
 import { postLoadAction } from "./postLoadAction"
@@ -213,11 +213,11 @@ const Refresh = guiAction("refresh", () => {
 })
 
 const runTests = postLoadAction("runTests", () => {
-  if (!remote.interfaces[Remote.RunTests]) {
+  if (!remote.interfaces[Remote.TestMod]) {
     game.print(`No tests loaded for mod ${getTestMod()}; try reloading.`)
     return
   }
-  remote.call(Remote.RunTests, "runTests")
+  remote.call(Remote.TestMod, "runTests")
   updateConfigGui()
 })
 
@@ -276,8 +276,8 @@ function updateConfigGui() {
 
   const testModIsRegistered = remote.interfaces[Remote.TestsAvailableFor + getTestMod()] !== undefined
   const testModLoaded =
-    remote.interfaces[Remote.RunTests] !== undefined && remote.call(Remote.RunTests, "modName") === getTestMod()
-  const stage = (testModLoaded ? remote.call(Remote.RunTests, "getTestStage") : undefined) as TestStage
+    remote.interfaces[Remote.TestMod] !== undefined && remote.call(Remote.TestMod, "modName") === getTestMod()
+  const stage = (testModLoaded ? remote.call(Remote.TestMod, "getTestStage") : undefined) as TestStage
 
   let labelMessage: LocalisedString
   let runNowButtonEnabled: boolean
