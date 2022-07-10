@@ -10,4 +10,5 @@ declare module "__debugadapter__/variables" {
 
 declare const __DebugAdapter: {
   defineGlobal?(this: void, name: string): void
+  breakpoint(): void
 }

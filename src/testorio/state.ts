@@ -89,6 +89,7 @@ export function resetTestState(config: Config): void {
 
 export function cleanupTestState(): void {
   const state = getTestState()
+  state.config = undefined!
   state.rootBlock = undefined!
   state.currentBlock = undefined
   state.currentTestRun = undefined

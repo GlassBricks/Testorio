@@ -115,7 +115,7 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
       this.state.setTestStage(TestStage.Running)
       return {
         task: "runTestPart",
-        data: TestRunnerImpl.newTestRun(test, partIndex),
+        data: TestRunnerImpl.newTestRun(test!, partIndex),
       }
     }
     return this.createLoadError(`Mods files/tests were changed during reload. Aborting test run.`)

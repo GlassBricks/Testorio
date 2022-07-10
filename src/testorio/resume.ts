@@ -1,129 +1,173 @@
 import { TestStage } from "../shared-constants"
 import { RunResults } from "./result"
 import type { TestState } from "./state"
-import { DescribeBlock, Test } from "./tests"
+import { DescribeBlock, HookType, Source, Test, TestMode } from "./tests"
+import { table } from "util"
+import compare = table.compare
 
-declare const global: {
-  __testResume?: {
-    rootBlock: DescribeBlock
-    results: RunResults
-    isRerun: boolean
-    profiler: LuaProfiler
-    test: Test
-    partIndex: number
-  }
+interface SavedTestData {
+  readonly type: "test"
+  readonly path: string
+  readonly tags: Tags
+  readonly source: Source
+
+  readonly numParts: number
+  readonly mode: TestMode
+  readonly ticksBefore: number
+
+  readonly errors: string[]
+  readonly profiler?: LuaProfiler
 }
 
-function removeFunctions(block: DescribeBlock): DescribeBlock {
-  const seen = new LuaTable<any>()
+interface SavedDescribeBlockData {
+  readonly type: "describeBlock"
+  readonly path: string
+  readonly tags: Tags
+  readonly source: Source
+  readonly children: (SavedTestData | SavedDescribeBlockData)[]
+  readonly hookTypes: HookType[]
+  readonly mode: TestMode
+  readonly ticksBetweenTests: number
+  readonly errors: string[]
+}
 
-  function visit(obj: unknown) {
-    if (typeof obj !== "object") {
-      return
-    }
-    if (seen.has(obj)) {
-      return undefined
-    }
-    seen.set(obj, true)
-
-    for (const [key, value] of pairs(obj)) {
-      if (typeof value === "function") {
-        ;(obj as any)[key] = undefined
-      } else {
-        visit(value)
-      }
-    }
+function copyTest(test: Test): SavedTestData {
+  const result: SavedTestData = {
+    type: "test",
+    path: test.path,
+    tags: test.tags,
+    source: test.source,
+    numParts: test.parts.length,
+    mode: test.mode,
+    ticksBefore: test.ticksBefore,
+    errors: test.errors,
+    profiler: test.profiler,
   }
+  ;(test as any).parts = undefined!
+  return result
+}
 
-  visit(block)
-  return block
+function copyDescribeBlock(block: DescribeBlock): SavedDescribeBlockData {
+  const result: SavedDescribeBlockData = {
+    type: "describeBlock",
+    path: block.path,
+    tags: block.tags,
+    source: block.source,
+    children: block.children.map((child) => (child.type === "test" ? copyTest(child) : copyDescribeBlock(child))),
+    hookTypes: block.hooks.map((hook) => hook.type),
+    mode: block.mode,
+    ticksBetweenTests: block.ticksBetweenTests,
+    errors: block.errors,
+  }
+  ;(block as any).hooks = undefined!
+
+  return result
+}
+
+let savedTestPath: string
+let foundMatchingTest: Test | undefined
+
+function compareToSavedTest(saved: SavedTestData, current: Test): boolean {
+  if (saved.path !== current.path) return false
+  if (!compare(saved.tags, current.tags)) return false
+  if (!compare(saved.source, current.source)) return false
+  if (saved.numParts !== current.parts.length) return false
+  if (saved.mode !== current.mode) return false
+  if (saved.ticksBefore !== current.ticksBefore) return false
+  ;(current as any).errors = saved.errors
+  current.profiler = saved.profiler
+  if (current.path === savedTestPath) {
+    foundMatchingTest = current
+  }
+  return true
+}
+
+function compareToSavedDescribeBlock(saved: SavedDescribeBlockData, current: DescribeBlock): boolean {
+  if (saved.path !== current.path) return false
+  if (!compare(saved.tags, current.tags)) return false
+  if (!compare(saved.source, current.source)) return false
+  if (
+    !compare(
+      saved.hookTypes,
+      current.hooks.map((hook) => hook.type),
+    )
+  )
+    return false
+  if (saved.mode !== current.mode) return false
+  if (saved.ticksBetweenTests !== current.ticksBetweenTests) return false
+  const childrenMatch = saved.children.every((child, i) => {
+    const currentChild = current.children[i]
+    if (!currentChild || currentChild.type !== child.type) return false
+    return child.type === "test"
+      ? compareToSavedTest(child, currentChild as Test)
+      : compareToSavedDescribeBlock(child, currentChild as DescribeBlock)
+  })
+  if (!childrenMatch) return false
+  ;(current as any).errors = saved.errors
+  return true
+}
+
+interface ResumeData {
+  rootBlock: SavedDescribeBlockData
+  results: RunResults
+  isRerun: boolean
+  profiler: LuaProfiler
+  resumeTestPath: string
+  resumePartIndex: number
+}
+declare const global: {
+  __testResume?: ResumeData
 }
 
 export function prepareReload(testState: TestState): void {
   const currentRun = testState.currentTestRun!
   global.__testResume = {
-    rootBlock: removeFunctions(testState.rootBlock),
+    rootBlock: copyDescribeBlock(testState.rootBlock),
     results: testState.results,
     isRerun: testState.isRerun,
-    test: currentRun.test,
-    partIndex: currentRun.partIndex + 1,
+    resumeTestPath: currentRun.test.path,
+    resumePartIndex: currentRun.partIndex + 1,
     profiler: testState.profiler!,
   }
+  testState.rootBlock = undefined!
+  testState.currentTestRun = undefined!
   testState.setTestStage(TestStage.ToReload)
+  // collectgarbage()
+  // game.print(serpent.block(findRefValue()))
 }
 
-const copiedTestState: Partial<Record<keyof Test, true>> = {
-  errors: true,
-  profiler: true,
-}
-const copiedDescribeBlockState: Partial<Record<keyof DescribeBlock, true>> = {
-  errors: true,
-}
-
-// return undefined if a change is detected after reload
-function compareAndFindTest(current: unknown, stored: unknown, storedTest: Test): Test | undefined {
-  const seen = new LuaTable<AnyNotNil, AnyNotNil>()
-
-  function compareAndCopy(cur: Record<any, any>, old: Record<any, any>): boolean {
-    if (typeof cur !== "object" || typeof old !== "object") {
-      return cur === old
+export function resumeAfterReload(state: TestState):
+  | {
+      test: Test
+      partIndex: number
     }
-    if (seen.get(old) === cur) return true
-    seen.set(old, cur)
-    for (const [k, v] of pairs(cur)) {
-      if (typeof v === "function") continue
-      if (cur.type === "test" && k in copiedTestState) {
-        cur[k] = old[k]
-        continue
-      }
-      if (cur.type === "describeBlock" && k in copiedDescribeBlockState) {
-        cur[k] = old[k]
-        continue
-      }
-      if (!compareAndCopy(v, old[k])) {
-        return false
-      }
-    }
-    for (const [k, v] of pairs(old)) {
-      if (cur[k] === undefined) {
-        if (cur.type === "test" && k in copiedTestState) {
-          cur[k] = v
-        } else if (cur.type === "describeBlock" && k in copiedDescribeBlockState) {
-          cur[k] = v
-        } else {
-          return false
-        }
-      }
-    }
-    return true
-  }
-
-  if (compareAndCopy(current as any, stored as any)) {
-    return seen.get(storedTest) as Test
-  }
-  return undefined
-}
-
-export function resumeAfterReload(state: TestState): {
-  test: Test
-  partIndex: number | undefined
-} {
-  const testResume = global.__testResume ?? error("__testResume not set while attempting to resume")
+  | {
+      test?: never
+      partIndex?: never
+    } {
+  const testResume = global.__testResume ?? error("attempting to resume after reload without resume data saved")
 
   global.__testResume = undefined
-  const stored = testResume.rootBlock
-  const test = compareAndFindTest(state.rootBlock, stored, testResume.test)
+
   state.results = testResume.results
   state.profiler = testResume.profiler
   state.isRerun = testResume.isRerun
   state.reloaded = true
-  return test
-    ? {
-        test,
-        partIndex: testResume.partIndex,
-      }
-    : {
-        test: testResume.test,
-        partIndex: undefined,
-      }
+
+  const saved = testResume.rootBlock
+
+  savedTestPath = testResume.resumeTestPath
+  foundMatchingTest = undefined
+  const matches = compareToSavedDescribeBlock(saved, state.rootBlock)
+  const test = foundMatchingTest
+  foundMatchingTest = undefined
+  savedTestPath = undefined!
+
+  if (matches && test) {
+    return {
+      test,
+      partIndex: testResume.resumePartIndex,
+    }
+  }
+  return {}
 }
