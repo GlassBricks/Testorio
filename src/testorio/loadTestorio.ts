@@ -98,19 +98,21 @@ function runTests() {
   })
 }
 
-const tappedHandlers: Record<defines.Events, [handler?: (data: any) => void]> = {}
+const tappedHandlers: Record<defines.Events, [((data: any) => void) | undefined, () => void]> = {}
 let onEventTapped = false
 const oldOnEvent = script.on_event
 
 function tapEvent(event: defines.Events, func: () => void) {
   if (!tappedHandlers[event]) {
-    tappedHandlers[event] = [script.get_event_handler(event)]
+    tappedHandlers[event] = [script.get_event_handler(event), func]
+    oldOnEvent(event, (data) => {
+      const handlers = tappedHandlers[event]
+      handlers[0]?.(data)
+      handlers[1]()
+    })
+  } else {
+    tappedHandlers[event][1] = func
   }
-
-  oldOnEvent(event, (data) => {
-    tappedHandlers[event][0]?.(data)
-    func()
-  })
 
   if (!onEventTapped) {
     onEventTapped = true
@@ -132,4 +134,5 @@ function revertTappedEvents() {
     delete tappedHandlers[event]
     script.on_event(event, handler[0])
   }
+  onEventTapped = false
 }
