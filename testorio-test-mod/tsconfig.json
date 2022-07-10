@@ -11,7 +11,7 @@
     ],
     "strict": true,
     "experimentalDecorators": true,
-    "baseUrl": "."
+    "rootDir": ".",
   },
   "tstl": {
     "luaTarget": "5.2",
