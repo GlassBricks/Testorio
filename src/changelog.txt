@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.3.0
+Date: ????
+  Features:
+    - Added support for remote functions. See docs for more details.
+  Changes:
+    - Removed in game enabler tool.
+---------------------------------------------------------------------------------------------------
 Version: 1.2.2
 Date: 2022-04-20
   Bugfixes:
