@@ -20,6 +20,10 @@ export = function (files: string[], config: Partial<Config>): void {
     runTests,
     modName: () => script.mod_name,
     getTestStage: () => getTestState().getTestStage(),
+    isRunning() {
+      const stage = getTestState().getTestStage()
+      return !(stage === TestStage.NotRun || stage === TestStage.LoadError || stage === TestStage.Finished)
+    },
     fireCustomEvent: (name, data) => {
       getTestState().raiseTestEvent({
         type: "customEvent",
