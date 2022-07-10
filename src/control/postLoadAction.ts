@@ -7,9 +7,7 @@ function fireFakeTranslation(data: string) {
   for (const player of game.connected_players) {
     if (player.request_translation(ls)) return
   }
-  error(
-    "Internal testorio error: No connected players found to raise fake translation event. Please report this to the mod author",
-  )
+  error("No connected players found to raise fake translation event. Please report this to the mod author")
 }
 
 const loadEvents: Record<string, () => void> = {}

@@ -4,7 +4,6 @@ export const enum Remote {
 }
 
 export const enum Prototypes {
-  EnablerTool = "testorio:enabler-tool",
   TestTubeSprite = "testorio:test-tube-sprite",
   TestOutputBoxStyle = "testorio:test-output-box-style",
 }
