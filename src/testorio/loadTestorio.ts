@@ -60,7 +60,7 @@ function tryContinueTests() {
   if (testStage === TestStage.Running || testStage === TestStage.ToReload) {
     runTests()
   } else {
-    revertPatchedEvents()
+    revertTappedEvents()
   }
 }
 
@@ -93,30 +93,30 @@ function runTests() {
     }
     runner.tick()
     if (runner.isDone()) {
-      revertPatchedEvents()
+      revertTappedEvents()
     }
   })
 }
 
-const patchedHandlers: Record<defines.Events, [handler?: (data: any) => void]> = {}
-let onEventIntercepted = false
+const tappedHandlers: Record<defines.Events, [handler?: (data: any) => void]> = {}
+let onEventTapped = false
 const oldOnEvent = script.on_event
 
 function tapEvent(event: defines.Events, func: () => void) {
-  if (!patchedHandlers[event]) {
-    patchedHandlers[event] = [script.get_event_handler(event)]
+  if (!tappedHandlers[event]) {
+    tappedHandlers[event] = [script.get_event_handler(event)]
   }
 
   oldOnEvent(event, (data) => {
-    patchedHandlers[event][0]?.(data)
+    tappedHandlers[event][0]?.(data)
     func()
   })
 
-  if (!onEventIntercepted) {
-    onEventIntercepted = true
+  if (!onEventTapped) {
+    onEventTapped = true
 
     script.on_event = (event: any, func: any) => {
-      const handler = patchedHandlers[event]
+      const handler = tappedHandlers[event]
       if (handler) {
         handler[0] = func
       } else {
@@ -126,10 +126,10 @@ function tapEvent(event: defines.Events, func: () => void) {
   }
 }
 
-function revertPatchedEvents() {
+function revertTappedEvents() {
   script.on_event = oldOnEvent
-  for (const [event, handler] of pairs(patchedHandlers)) {
-    delete patchedHandlers[event]
+  for (const [event, handler] of pairs(tappedHandlers)) {
+    delete tappedHandlers[event]
     script.on_event(event, handler[0])
   }
 }
