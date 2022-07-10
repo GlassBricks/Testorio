@@ -19,7 +19,7 @@ function init(
   initCalled = true
   remote.add_interface("testorio-tests-available-for-" + script.mod_name, {})
   if (script.mod_name === settings.global["testorio:test-mod"].value) {
-    require("@NoResolution:__testorio__/_testorio").loadTestorio(files, config)
+    require("@NoResolution:__testorio__/_testorio")(files, config)
   }
 }
 

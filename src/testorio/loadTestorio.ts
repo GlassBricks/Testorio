@@ -14,7 +14,7 @@ import Config = Testorio.Config
 declare const ____originalRequire: typeof require
 
 // noinspection JSUnusedGlobalSymbols
-export function loadTestorio(this: unknown, files: string[], config: Partial<Config>): void {
+export = function (files: string[], config: Partial<Config>): void {
   loadTests(files, config)
   remote.add_interface(Remote.Testorio, {
     runTests,
