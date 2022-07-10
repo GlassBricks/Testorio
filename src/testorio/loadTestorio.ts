@@ -71,7 +71,7 @@ function tryContinueTests() {
 function runTests() {
   const state = getTestState()
   const stage = state.getTestStage()
-  if (stage === TestStage.Running || stage === TestStage.ToReload) {
+  if (stage === TestStage.Running || stage === TestStage.ToReload || stage === TestStage.Ready) {
     // already running
     return
   }
