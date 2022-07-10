@@ -211,9 +211,9 @@ const ReloadMods = guiAction("refresh", () => {
   refreshAfterLoad()
 })
 
-const runTests = postLoadAction("runTests", () => {
+const callRunTests = postLoadAction("runTests", () => {
   if (!remote.interfaces[Remote.Testorio]) {
-    game.print(`Mod "${getTestMod()} is not register with testorio. Cannot run tests.`)
+    game.print([ConfigGui.ModNotRegisteredTests])
     return
   }
   remote.call(Remote.Testorio, "runTests")
@@ -223,7 +223,7 @@ const runTests = postLoadAction("runTests", () => {
 const RunTests = guiAction("startTests", () => {
   game.reload_mods()
   game.auto_save("beforeTest")
-  runTests()
+  callRunTests()
 })
 
 function TestStageBar(parent: LuaGuiElement) {
@@ -256,6 +256,13 @@ function TestStageBar(parent: LuaGuiElement) {
   })
 }
 
+const stageToMessage = {
+  [TestStage.NotRun]: ConfigGui.TestsNotRun,
+  [TestStage.Running]: ConfigGui.TestsRunning,
+  [TestStage.ToReload]: ConfigGui.TestsRunning,
+  [TestStage.Finished]: ConfigGui.TestsFinished,
+  [TestStage.LoadError]: ConfigGui.TestsLoadError,
+}
 function updateConfigGui() {
   if (!configGuiValid()) return
   const configGui = global.configGui!
@@ -270,15 +277,7 @@ function updateConfigGui() {
   configGui.modSelect.enabled = !running
   configGui.refreshButton.enabled = !running
 
-  configGui.testStageLabel.caption = [
-    {
-      [TestStage.NotRun]: ConfigGui.TestsNotRun,
-      [TestStage.Running]: ConfigGui.TestsRunning,
-      [TestStage.ToReload]: ConfigGui.TestsRunning,
-      [TestStage.Finished]: ConfigGui.TestsFinished,
-      [TestStage.LoadError]: ConfigGui.TestsLoadError,
-    }[stage ?? TestStage.NotRun],
-  ]
+  configGui.testStageLabel.caption = [stageToMessage[stage ?? TestStage.NotRun]]
 
   configGui.runButton.enabled = testModIsRegistered && !running
   configGui.runButton.tooltip = testModIsRegistered ? "" : [ConfigGui.ModNotRegisteredTests]
