@@ -1,6 +1,6 @@
 # Changelog
 
-**NOTE**: changes to the _mod/library_ are in [src/Changelog.txt](src/Changelog.txt). This changelog is for the NPM package.
+**NOTE**: changes to the _mod/library_ are in [src/Changelog.txt](src/changelog.txt). This changelog is for the NPM package.
 
 ## 1.1.0
 
@@ -34,8 +34,8 @@
 ## 0.3.0
 
 - **BREAKING**: Moved factorio-mod-linker to separate npm package `testorio-tools` to reduce dependencies. The `testorio` npm package now only contains TypescriptToLua type definitions
-- See [src/Changelog.txt](src/Changelog.txt) for remaining changes.
-- **NOTE**: Future changes will only be documented in [src/Changelog.txt](src/Changelog.txt).
+- See [src/Changelog.txt](src/changelog.txt) for remaining changes.
+- **NOTE**: Future changes will only be documented in [src/Changelog.txt](src/changelog.txt).
 
 ## 0.2.0
 
