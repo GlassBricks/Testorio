@@ -258,6 +258,7 @@ function TestStageBar(parent: LuaGuiElement) {
 
 const stageToMessage = {
   [TestStage.NotRun]: ConfigGui.TestsNotRun,
+  [TestStage.Ready]: ConfigGui.TestsRunning,
   [TestStage.Running]: ConfigGui.TestsRunning,
   [TestStage.ToReload]: ConfigGui.TestsRunning,
   [TestStage.Finished]: ConfigGui.TestsFinished,
