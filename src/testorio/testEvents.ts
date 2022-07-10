@@ -72,7 +72,11 @@ export type TestEvent =
 
 export type TestListener = (event: TestEvent, state: TestState) => void
 
-const testListeners: TestListener[] = []
+let testListeners: TestListener[] = []
+export function clearTestListeners() {
+  testListeners = []
+}
+
 export function addTestListener(this: unknown, listener: TestListener): void {
   testListeners.push(listener)
 }

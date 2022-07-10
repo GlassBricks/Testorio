@@ -8,7 +8,7 @@ import { progressGuiListener, progressGuiLogger } from "./progressGui"
 import { createTestRunner, TestRunner } from "./runner"
 import { globals } from "./setup"
 import { getTestState, onTestStageChanged, resetTestState } from "./state"
-import { addTestListener } from "./testEvents"
+import { addTestListener, clearTestListeners } from "./testEvents"
 import Config = Testorio.Config
 
 declare const ____originalRequire: typeof require
@@ -65,12 +65,17 @@ function tryContinueTests() {
 }
 
 function runTests() {
+  const state = getTestState()
+  const stage = state.getTestStage()
+  if (stage === TestStage.Ready || stage === TestStage.Running || stage === TestStage.ToReload) {
+    // already running
+    return
+  }
   log(`Running tests for ${script.mod_name}`)
 
+  clearTestListeners()
   builtinTestListeners.forEach(addTestListener)
   if (game) game.tick_paused = false
-
-  const state = getTestState()
   const { config } = state
   if (config.show_progress_gui) {
     addTestListener(progressGuiListener)
@@ -85,6 +90,8 @@ function runTests() {
   if (config.log_to_log || (config.log_to_DA && !debugAdapterEnabled)) {
     addLogHandler(logLogger)
   }
+
+  state.setTestStage(TestStage.Ready)
 
   let runner: TestRunner | undefined
   tapEvent(defines.events.on_tick, () => {

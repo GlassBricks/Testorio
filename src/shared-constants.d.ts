@@ -42,6 +42,7 @@ export namespace Locale {
 
 export const enum TestStage {
   NotRun = "NotRun",
+  Ready = "Ready",
   Running = "Running",
   ToReload = "ToReload",
   LoadError = "LoadError",

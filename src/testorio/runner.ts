@@ -86,7 +86,7 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
       error("Tests cannot be in run in multiplayer")
     }
     const stage = this.state.getTestStage()
-    if (stage === TestStage.NotRun) {
+    if (stage === TestStage.NotRun || stage === TestStage.Ready) {
       return this.startTestRun()
     } else if (stage === TestStage.ToReload) {
       return this.attemptReload()
