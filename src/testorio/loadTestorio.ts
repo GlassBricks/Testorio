@@ -62,7 +62,7 @@ function loadTests(files: string[], partialConfig: Partial<Config>): void {
 function tryContinueTests() {
   const testStage = getTestState().getTestStage()
   if (testStage === TestStage.Running || testStage === TestStage.ToReload) {
-    runTests()
+    doRunTests()
   } else {
     revertTappedEvents()
   }
@@ -71,12 +71,17 @@ function tryContinueTests() {
 function runTests() {
   const state = getTestState()
   const stage = state.getTestStage()
-  if (stage === TestStage.Ready || stage === TestStage.Running || stage === TestStage.ToReload) {
+  if (stage === TestStage.Running || stage === TestStage.ToReload) {
     // already running
     return
   }
   log(`Running tests for ${script.mod_name}`)
+  state.setTestStage(TestStage.Ready)
+  doRunTests()
+}
 
+function doRunTests() {
+  const state = getTestState()
   clearTestListeners()
   builtinTestListeners.forEach(addTestListener)
   if (game) game.tick_paused = false
@@ -94,8 +99,6 @@ function runTests() {
   if (config.log_to_log || (config.log_to_DA && !debugAdapterEnabled)) {
     addLogHandler(logLogger)
   }
-
-  state.setTestStage(TestStage.Ready)
 
   let runner: TestRunner | undefined
   tapEvent(defines.events.on_tick, () => {
