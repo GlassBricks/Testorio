@@ -7,11 +7,16 @@ import { addLogHandler, debugAdapterLogger, gameLogger, logLogger } from "./outp
 import { progressGuiListener, progressGuiLogger } from "./progressGui"
 import { createTestRunner, TestRunner } from "./runner"
 import { globals } from "./setup"
-import { getTestState, onTestStageChanged, resetTestState } from "./state"
+import { getTestState, onTestStageChanged, resetTestState, TestState } from "./state"
 import { addTestListener, clearTestListeners } from "./testEvents"
 import Config = Testorio.Config
 
 declare const ____originalRequire: typeof require
+
+function isRunning(state: TestState) {
+  const stage = state.getTestStage()
+  return !(stage === TestStage.NotRun || stage === TestStage.LoadError || stage === TestStage.Finished)
+}
 
 // noinspection JSUnusedGlobalSymbols
 export = function (files: string[], config: Partial<Config>): void {
@@ -20,10 +25,7 @@ export = function (files: string[], config: Partial<Config>): void {
     runTests,
     modName: () => script.mod_name,
     getTestStage: () => getTestState().getTestStage(),
-    isRunning() {
-      const stage = getTestState().getTestStage()
-      return !(stage === TestStage.NotRun || stage === TestStage.LoadError || stage === TestStage.Finished)
-    },
+    isRunning: () => isRunning(getTestState()),
     fireCustomEvent: (name, data) => {
       getTestState().raiseTestEvent({
         type: "customEvent",
@@ -70,11 +72,8 @@ function tryContinueTests() {
 
 function runTests() {
   const state = getTestState()
-  const stage = state.getTestStage()
-  if (stage === TestStage.Running || stage === TestStage.ToReload || stage === TestStage.Ready) {
-    // already running
-    return
-  }
+  if (isRunning(state)) return
+
   log(`Running tests for ${script.mod_name}`)
   state.setTestStage(TestStage.Ready)
   doRunTests()
