@@ -153,46 +153,24 @@ const DebugAdapterCategories: Record<MessageColor, string> = {
   [MessageColor.Red]: "stderr",
   [MessageColor.Purple]: "console",
 }
-export const debugAdapterLogger: LogHandler = (message, source) => {
-  const color = message.find((x) => x.color)?.color ?? MessageColor.White
-  const category = DebugAdapterCategories[color]
-  if (message.length === 1 && typeof message[0].text === "string") {
-    const text: string = message[0].text
-    const lines = text.split("\n")
-    for (const line of lines) {
-      let sourceFile: string | undefined, sourceLine: number | undefined
-      if (source) {
-        sourceFile = source.file
-        sourceLine = source.line
-        source = undefined
-      } else {
-        const [, , file1, line1] = string.find(line, "(__[%a%-_]+__/.-%.%a+):(%d*)")
-        sourceFile = file1 as string
-        sourceLine = tonumber(line1)
-      }
-      if (sourceFile && !sourceFile.startsWith("@")) sourceFile = "@" + sourceFile
-      const body = {
-        category,
-        output: line,
-        line: sourceFile && (sourceLine ?? 1),
-        source: {
-          name: sourceFile,
-          path: sourceFile,
-        },
-      }
-
-      print("DBGprint: " + jsonEncode!(body))
+function printDebugAdapterText(text: string, source: Source | undefined, category: string) {
+  const lines = text.split("\n")
+  for (const line of lines) {
+    let sourceFile: string | undefined, sourceLine: number | undefined
+    if (source) {
+      sourceFile = source.file
+      sourceLine = source.line
+      source = undefined
+    } else {
+      const [, , file1, line1] = string.find(line, "(__[%w%-_]+__/.-%.%a+):(%d*)")
+      sourceFile = file1 as string
+      sourceLine = tonumber(line1)
     }
-  } else {
-    const text = joinToPlainText(message)
-
-    const output = typeof text === "string" ? text : `{LocalisedString ${daTranslate(text)}}`
-    let sourceFile = source?.file
     if (sourceFile && !sourceFile.startsWith("@")) sourceFile = "@" + sourceFile
     const body = {
       category,
-      output,
-      line: source && (tonumber(source.line) ?? 1),
+      output: line,
+      line: sourceFile && (sourceLine ?? 1),
       source: {
         name: sourceFile,
         path: sourceFile,
@@ -201,6 +179,13 @@ export const debugAdapterLogger: LogHandler = (message, source) => {
 
     print("DBGprint: " + jsonEncode!(body))
   }
+}
+export const debugAdapterLogger: LogHandler = (message, source) => {
+  const color = message.find((x) => x.color)?.color ?? MessageColor.White
+  const category = DebugAdapterCategories[color]
+  const text = joinToPlainText(message)
+  const output = typeof text === "string" ? text : `{LocalisedString ${daTranslate(text)}}`
+  printDebugAdapterText(output, source, category)
 }
 
 export const logLogger: LogHandler = (message) => {
