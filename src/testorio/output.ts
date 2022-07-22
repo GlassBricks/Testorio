@@ -187,7 +187,8 @@ export const debugAdapterLogger: LogHandler = (message, source) => {
     const text = joinToPlainText(message)
 
     const output = typeof text === "string" ? text : `{LocalisedString ${daTranslate(text)}}`
-    const sourceFile = source?.file
+    let sourceFile = source?.file
+    if (sourceFile && !sourceFile.startsWith("@")) sourceFile = "@" + sourceFile
     const body = {
       category,
       output,
