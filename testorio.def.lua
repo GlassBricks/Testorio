@@ -66,8 +66,10 @@ local TestCreatorBase = {}
 ---@param values T[][]
 ---@param name string
 ---@param func fun(vararg T): void
----@return TestBuilder<fun(v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T): void>
----@overload fun<T>(values: T[], name: string, func: fun(v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T): void): TestBuilder<fun(v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T): void>
+---@return TestBuilder<fun(vararg T): void>
+---@overload fun<T>(values: T[], name: string, func: fun(v: T): void): TestBuilder<fun(v: T): void>
+---@overload fun<T>(values: T[][]): fun(name: string, func: fun(vararg T): void): void
+---@overload fun<T>(values: T[]): fun(name: string, func: fun(v: T): void): void
 function TestCreatorBase.each(values, name, func) end
 
 ---@class TestCreator : TestCreatorBase
@@ -98,8 +100,10 @@ local DescribeCreatorBase = {}
 ---@generic T
 ---@param values T[][]
 ---@param name string
----@param func fun(v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T, v: T): void
+---@param func fun(vararg T): void
 ---@overload fun<T>(values: T[], name: string, func: fun(v: T): void): void
+---@overload fun<T>(values: T[][]): fun(name: string, func: fun(vararg T): void): void
+---@overload fun<T>(values: T[]): fun(name: string, func: fun(v: T): void): void
 function DescribeCreatorBase.each(values, name, func) end
 
 ---@class DescribeCreator : DescribeCreatorBase

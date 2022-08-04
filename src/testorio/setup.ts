@@ -62,13 +62,10 @@ function createTest(name: string, func: TestFn, mode: TestMode, upStack: number 
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-function addNext(test: Test, func: TestFn, funcForSource: Function = func) {
+function addPart(test: Test, func: TestFn, funcForSource: Function = func) {
   const info = debug.getinfo(funcForSource, "Sl")
   const source = createSource(info.source, info.linedefined)
-  test.parts.push({
-    func,
-    source,
-  })
+  test.parts.push({ func, source })
 }
 
 function createTestBuilder<F extends () => void>(addPart: (func: F) => void, addTag: (tag: string) => void) {
@@ -76,10 +73,8 @@ function createTestBuilder<F extends () => void>(addPart: (func: F) => void, add
     return (func: F) => {
       addPart((() => {
         async(1)
-        on_tick(() => {
-          prepareReload(getTestState())
-          reload()
-        })
+        prepareReload(getTestState())
+        reload()
       }) as F)
       addPart(func)
       addTag(tag)
@@ -146,15 +141,28 @@ function createEachItems(
     }
   })
 }
+
+function createAltEach<R>(doEach: (values: unknown[][], name: string, func: (row: unknown[]) => void) => R) {
+  return (...args: [values: unknown[][], name?: string, func?: (...values: any[]) => void]): any => {
+    const nargs = select<any>("#", ...args)
+    if (nargs <= 1) {
+      const [values] = args
+      return (name: string, func: (...values: any[]) => void) => doEach(values, name, func)
+    }
+    const [values, name, func] = args
+    doEach(values, name!, func!)
+  }
+}
+
 function createTestEach(mode: TestMode): TestCreatorBase {
   const result: TestCreatorBase = (name, func) => {
     const test = createTest(name, func, mode)
     return createTestBuilder(
-      (func1) => addNext(test, func1),
+      (func1) => addPart(test, func1),
       (tag) => (test.tags[tag] = true),
     )
   }
-  result.each = (values: unknown[][], name: string, func: (...values: any[]) => void) => {
+  function doTestEach(values: unknown[][], name: string, func: (...values: any[]) => void): TestBuilder<typeof func> {
     const items = createEachItems(values, name)
     const testBuilders = items.map((item) => {
       const test = createTest(
@@ -170,7 +178,7 @@ function createTestEach(mode: TestMode): TestCreatorBase {
     return createTestBuilder<(...args: unknown[]) => void>(
       (func) => {
         for (const { test, row } of testBuilders) {
-          addNext(
+          addPart(
             test,
             () => {
               func(...row)
@@ -186,23 +194,19 @@ function createTestEach(mode: TestMode): TestCreatorBase {
       },
     )
   }
+
+  result.each = createAltEach(doTestEach)
   return result
 }
 function createDescribeEach(mode: TestMode): DescribeCreatorBase {
   const result: DescribeCreatorBase = (name, func) => createDescribe(name, func, mode)
-  result.each = (values: unknown[][], name: string, func: (...values: any[]) => void) => {
+  function doDescribeEach(values: unknown[][], name: string, func: (...values: any[]) => void): void {
     const items = createEachItems(values, name)
     for (const { row, name } of items) {
-      createDescribe(
-        name,
-        () => {
-          func(...row)
-        },
-        mode,
-        2,
-      )
+      createDescribe(name, () => func(...row), mode, 2)
     }
   }
+  result.each = createAltEach(doDescribeEach)
   return result
 }
 
