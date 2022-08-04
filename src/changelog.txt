@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.4.1
 Date: ????
-  Changes:
+  Bugfixes:
+    - Fixed a bug when using `match._` in a failed assertion.
 ---------------------------------------------------------------------------------------------------
 Version: 1.4.0
 Date: 2022-08-04
@@ -9,7 +10,6 @@ Date: 2022-08-04
     - Added an alternate format for calling .each that may work better with auto-formatters.
   Bugfixes:
     - Removed use of a global variable in luassert.
-    - Fixed a bug when using `match._` in a failed assertion.
 ---------------------------------------------------------------------------------------------------
 Version: 1.3.3
 Date: 2022-07-22
