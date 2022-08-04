@@ -2,6 +2,10 @@
 
 **NOTE**: changes to the _mod/library_ are in [src/Changelog.txt](src/changelog.txt). This changelog is for the NPM package.
 
+## 1.4.0
+
+- Updated types to match mod version 1.4.0
+
 ## 1.1.0
 
 - Updated to match mod version 1.1.0.
