@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.5.0
-Date: ????
+Date: 2022-09-07
   Changes:
     - If a describe block has nested ".only" items, only the inner ".only" items will be active. This allows you to narrow test focus without removing the outer .only.
     - Made defining async tests more flexible. See wiki for more details.
