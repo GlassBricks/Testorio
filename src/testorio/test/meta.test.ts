@@ -6,6 +6,7 @@ import { createTestRunner } from "../runner"
 import { _setTestState, getTestState, resetTestState, TestState } from "../state"
 import { TestEvent } from "../testEvents"
 import { DescribeBlock, Test } from "../tests"
+import { propagateTestMode } from "../setup"
 
 // simulated test environment
 let actions: unknown[] = []
@@ -48,6 +49,7 @@ function getFirst<T extends Test | DescribeBlock = Test>(): T {
 }
 
 function runTestSync<T extends Test | DescribeBlock = Test>(): T {
+  propagateTestMode(mockTestState, mockTestState.rootBlock, undefined)
   const runner = createTestRunner(mockTestState)
   runner.tick()
   if (!runner.isDone()) {
@@ -57,6 +59,7 @@ function runTestSync<T extends Test | DescribeBlock = Test>(): T {
 }
 
 function runTestAsync<T extends Test | DescribeBlock = Test>(callback: (item: T) => void): void {
+  propagateTestMode(mockTestState, mockTestState.rootBlock, undefined)
   if (mockTestState.getTestStage() !== TestStage.NotRun) {
     error("duplicate call to runTestAsync/cannot re-run mock test async")
   }
@@ -438,7 +441,7 @@ describe("focused tests", () => {
         actions.push("yes1")
       })
       test("", () => {
-        actions.push("yes2")
+        actions.push("no2") // behavior changed since v1.5
       })
     })
     describe("should not run", () => {
@@ -447,7 +450,7 @@ describe("focused tests", () => {
       })
     })
     runTestSync()
-    assert.same(["yes1", "yes2"], actions)
+    assert.same(["yes1"], actions)
   })
 
   test("skipped describes do not focus", () => {

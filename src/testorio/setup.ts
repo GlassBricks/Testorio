@@ -3,7 +3,7 @@
 import * as util from "util"
 import { __testorio__pcallWithStacktrace } from "./_util"
 import { prepareReload } from "./resume"
-import { getCurrentBlock, getTestState, TestRun } from "./state"
+import { getCurrentBlock, getTestState, TestRun, TestState } from "./state"
 import {
   addDescribeBlock,
   addTest,
@@ -60,14 +60,6 @@ function createTest(name: string, func: TestFn, mode: TestMode, upStack: number 
     error(`Test "${name}" cannot be nested inside test "${state.currentTestRun.test.path}"`)
   }
   const parent = getCurrentBlock()
-  if (parent.mode === "skip" && mode !== "todo") {
-    mode = "skip"
-  } else {
-    mode ??= parent.mode
-  }
-  if (mode === "only") {
-    state.hasFocusedTests = true
-  }
   return addTest(parent, name, getCallerSource(upStack + 1), func, mode, util.merge([consumeTags(), parent.tags]))
 }
 
@@ -99,6 +91,52 @@ function createTestBuilder<F extends () => void>(addPart: (func: F) => void, add
   return result
 }
 
+function skipAllChildren(block: DescribeBlock): void {
+  for (const child of block.children) {
+    child.mode = "skip"
+    if (child.declaredMode !== "skip") {
+      if (child.type === "describeBlock") {
+        skipAllChildren(child)
+      }
+    }
+  }
+}
+function focusAllChildren(block: DescribeBlock): void {
+  for (const child of block.children) {
+    if (child.declaredMode === undefined) {
+      child.mode = "only"
+      if (child.type === "describeBlock") {
+        focusAllChildren(child)
+      }
+    } else {
+      child.mode = child.declaredMode
+    }
+  }
+}
+function markFocusedTests(state: TestState, block: DescribeBlock): void {
+  for (const child of block.children) {
+    if (child.declaredMode === "only") {
+      state.hasFocusedTests = true
+    }
+  }
+}
+
+export function propagateTestMode(state: TestState, describeBlock: DescribeBlock, mode: TestMode) {
+  if (mode === "skip") {
+    skipAllChildren(describeBlock)
+  } else if (mode === "only") {
+    state.hasFocusedTests = true
+    if (!describeBlock.children.some((child) => child.mode === "only")) {
+      // nested only; ignore outer only
+      focusAllChildren(describeBlock)
+    } else {
+      markFocusedTests(state, describeBlock)
+    }
+  } else {
+    markFocusedTests(state, describeBlock)
+  }
+}
+
 function createDescribe(name: string, block: TestFn, mode: TestMode, upStack: number = 1): DescribeBlock | undefined {
   const state = getTestState()
   if (state.currentTestRun) {
@@ -108,20 +146,14 @@ function createDescribe(name: string, block: TestFn, mode: TestMode, upStack: nu
   const source = getCallerSource(upStack + 1)
 
   const parent = getCurrentBlock()
-  if (parent.mode === "skip") {
-    mode = "skip"
-  } else {
-    mode ??= parent.mode
-  }
-  if (mode === "only") {
-    state.hasFocusedTests = true
-  }
   const describeBlock = addDescribeBlock(parent, name, source, mode, util.merge([parent.tags, consumeTags()]))
   state.currentBlock = describeBlock
   const [success, msg] = __testorio__pcallWithStacktrace(block)
   if (!success) {
     describeBlock.errors.push(`Error in definition: ${msg}`)
   }
+  propagateTestMode(state, describeBlock, mode)
+
   state.currentBlock = parent
   if (state.currentTags) {
     describeBlock.errors.push(`Tags not added to any test or describe block: ${serpent.line(state.currentTags)}`)

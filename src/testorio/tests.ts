@@ -50,7 +50,8 @@ export interface Test {
     source: Source
   }[]
 
-  readonly mode: TestMode
+  readonly declaredMode: TestMode
+  mode: TestMode
   readonly ticksBefore: number
 
   readonly errors: string[]
@@ -62,7 +63,7 @@ export function addTest(
   name: string,
   source: Source,
   func: TestFn,
-  mode: TestMode,
+  declaredMode: TestMode,
   tags: TestTags,
 ): Test {
   const test: Test = {
@@ -80,7 +81,8 @@ export function addTest(
       },
     ],
     errors: [],
-    mode,
+    declaredMode,
+    mode: declaredMode,
     ticksBefore: parent.ticksBetweenTests,
   }
   parent.children.push(test)
@@ -109,7 +111,8 @@ export interface DescribeBlock {
 
   readonly hooks: Hook[]
 
-  readonly mode: TestMode
+  readonly declaredMode: TestMode
+  mode?: TestMode
 
   ticksBetweenTests: number
 
@@ -120,7 +123,7 @@ export function addDescribeBlock(
   parent: DescribeBlock,
   name: string,
   source: Source,
-  mode: TestMode,
+  declaredMode: TestMode,
   tags: TestTags,
 ): DescribeBlock {
   const block: DescribeBlock = {
@@ -133,7 +136,7 @@ export function addDescribeBlock(
     source,
     hooks: [],
     children: [],
-    mode,
+    declaredMode,
     ticksBetweenTests: parent.ticksBetweenTests,
     errors: [],
   }
@@ -152,6 +155,7 @@ export function createRootDescribeBlock(config: Config): DescribeBlock {
     children: [],
     indexInParent: -1,
     hooks: [],
+    declaredMode: undefined,
     mode: undefined,
     ticksBetweenTests: config.default_ticks_between_tests,
     errors: [],
