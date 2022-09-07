@@ -1,11 +1,9 @@
 {
   "name": "testorio",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Type definitions for Testorio, a test framework for factorio. For use with TypescriptToLua",
   "keywords": [
-    "factorio",
-    "test",
-    "testing"
+    "factorio", "test", "testing"
   ],
   "homepage": "https://github.com/GlassBricks/Testorio#readme",
   "license": "MIT",

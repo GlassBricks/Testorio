@@ -1,7 +1,9 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.4.2
+Version: 1.5.0
 Date: ????
   Changes:
+    - If a describe block has nested ".only" items, only the inner ".only" items will be active. This allows you to narrow test focus without removing the outer .only.
+    - Made defining async tests more flexible. See wiki for more details.
 ---------------------------------------------------------------------------------------------------
 Version: 1.4.1
 Date: 2022-08-04
@@ -126,7 +128,7 @@ Date: 2021-01-31
     - Improved test output.
     - Test duration is now also reported.
     - Error in test definitions (in describe blocks) are now caught and reported.
-    - If using a TypescriptToLua project with the compiler option "sourceMapTraceback" enabled, debugadapter console links now use the soucemap.
+    - If using a TypescriptToLua project with the compiler option "sourceMapTraceback" enabled, debugadapter console links now use the sourcemap.
   Changes:
     - the test config option "log_level" was removed and no longer has any effect. Use "log_passed_tests" instead.
 
