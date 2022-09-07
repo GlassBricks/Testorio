@@ -4193,12 +4193,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"luassert-tstl@npm:^0.2.3":
-  version: 0.2.3
-  resolution: "luassert-tstl@npm:0.2.3"
+"luassert-tstl@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "luassert-tstl@npm:0.3.0"
   peerDependencies:
-    typescript-to-lua: "*"
-  checksum: a41eb740e3e480aceb0abf90fafc6fb8490bbf160bda906fb7217aec3c80b18248540ab2dc27147ba396ec84607fade181f5c2e3543c0e78f45a09b9576815a5
+    typescript-to-lua: ^1.10.0
+  checksum: 85d915f44221f5d2bff7198f1b2c07e99cab7f8c4b3a465485f226e89d1da665c19193adde18e3da97448ec905415b01fa02420a3d8ab076296be5b73831e95a
   languageName: node
   linkType: hard
 
@@ -6221,16 +6221,16 @@ __metadata:
     gulp: ^4.0.2
     gulp-typescript: ^6.0.0-alpha.1
     lua-types: ^2.13.0
-    luassert-tstl: ^0.2.3
+    luassert-tstl: ^0.3.0
     prettier: ^2.7.1
     ts-node: ^10.9.1
-    typed-factorio: ^1.7.2
+    typed-factorio: ^1.7.3
     typescript: ^4.8.2
     typescript-to-lua: ^1.10.0
     typescript-tstl-plugin: ^0.3.2
   peerDependencies:
     luassert-tstl: ">=0.2.3"
-    typed-factorio: ^1.7.2
+    typed-factorio: ^1.7.3
   languageName: unknown
   linkType: soft
 
@@ -6510,13 +6510,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typed-factorio@npm:^1.7.2":
-  version: 1.7.2
-  resolution: "typed-factorio@npm:1.7.2"
+"typed-factorio@npm:^1.7.3":
+  version: 1.7.3
+  resolution: "typed-factorio@npm:1.7.3"
   peerDependencies:
-    lua-types: ^2.12.2
+    lua-types: ^2.13.0
     typescript-to-lua: ^1.6.1
-  checksum: 5c7c4bd6d0f6e319c1ad0df47a74ddfb431296c5b8f3bbf5dedf2b0519e0afd049ee6ea65f655b6e16c45db583b6d3fb9759d1f5c743f950c90143305ed868ea
+  checksum: aa706dde4703744ce83dfdc8789e996d7801ac7e257d84650c3411c4501ebcfe05bffe55082d5410ad5598c45d488e02d4d54e928ddac0513c3731187c683c44
   languageName: node
   linkType: hard
 

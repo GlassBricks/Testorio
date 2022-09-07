@@ -203,7 +203,7 @@ export const logListener: TestListener = (event, state) => {
         const { test } = event
         testLog(
           m`${bold(test.path)} ${green("passed")} (${test.profiler!}${
-            test.tags.after_mod_reload || test.tags.after_script_reload ? " after reload" : ""
+            test.tags.has("after_mod_reload") || test.tags.has("after_script_reload") ? " after reload" : ""
           })`,
           test.source,
         )
@@ -291,7 +291,7 @@ export const logListener: TestListener = (event, state) => {
           color: MessageColor.Red,
         },
       ])
-      testLog([red(state.rootBlock.errors[0])])
+      testLog([red(state.rootBlock.errors[0]!)])
       break
     }
   }

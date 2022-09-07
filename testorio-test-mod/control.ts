@@ -1,12 +1,12 @@
 declare const __DebugAdapter: any
-if (script.active_mods.testorio) {
+if (script.active_mods.testorio !== undefined) {
   require("__testorio__/init")(["test1", "folder/test2", "folder/inWorld"], {
     tag_blacklist: ["no"],
     log_passed_tests: true,
     log_skipped_tests: true,
     sound_effects: true,
     after_test_run() {
-      const results = remote.call("testorio", "getResults")
+      const results = remote.call("testorio", "getResults") as any
       const expected = {
         failed: 1,
         passed: 6,

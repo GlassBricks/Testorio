@@ -2,7 +2,7 @@
 import { TestStage } from "../shared-constants"
 import { createEmptyRunResults, RunResults } from "./result"
 import { _raiseTestEvent, TestEvent } from "./testEvents"
-import { createRootDescribeBlock, DescribeBlock, Tags, Test } from "./tests"
+import { createRootDescribeBlock, DescribeBlock, Test, TestTags } from "./tests"
 import Config = Testorio.Config
 import OnTickFn = Testorio.OnTickFn
 import HookFn = Testorio.HookFn
@@ -12,12 +12,12 @@ export interface TestState {
   config: Config
   rootBlock: DescribeBlock
   // setup
-  currentBlock?: DescribeBlock
-  currentTags?: Tags
+  currentBlock?: DescribeBlock | undefined
+  currentTags?: TestTags | undefined
   hasFocusedTests: boolean
 
   // run
-  currentTestRun?: TestRun
+  currentTestRun?: TestRun | undefined
 
   results: RunResults
   profiler?: LuaProfiler

@@ -8,7 +8,9 @@ declare module "__debugadapter__/variables" {
   function translate(this: void, value: LocalisedString): string | number
 }
 
-declare const __DebugAdapter: {
-  defineGlobal?(this: void, name: string): void
-  breakpoint(this: void): void
-}
+declare const __DebugAdapter:
+  | {
+      defineGlobal?(this: void, name: string): void
+      breakpoint(this: void): void
+    }
+  | undefined

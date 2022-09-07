@@ -211,11 +211,11 @@ function updateTestCounts(gui: TestProgressGui, results: RunResults) {
 
   const testCounts = gui.testCounts.children
 
-  if (results.failed > 0) testCounts[0].caption = [ProgressGui.NFailed, results.failed]
-  if (results.describeBlockErrors > 0) testCounts[1].caption = [ProgressGui.NErrors, results.describeBlockErrors]
-  if (results.skipped > 0) testCounts[2].caption = [ProgressGui.NSkipped, results.skipped]
-  if (results.todo > 0) testCounts[3].caption = [ProgressGui.NTodo, results.todo]
-  if (results.passed > 0) testCounts[4].caption = [ProgressGui.NPassed, results.passed]
+  if (results.failed > 0) testCounts[0]!.caption = [ProgressGui.NFailed, results.failed]
+  if (results.describeBlockErrors > 0) testCounts[1]!.caption = [ProgressGui.NErrors, results.describeBlockErrors]
+  if (results.skipped > 0) testCounts[2]!.caption = [ProgressGui.NSkipped, results.skipped]
+  if (results.todo > 0) testCounts[3]!.caption = [ProgressGui.NTodo, results.todo]
+  if (results.passed > 0) testCounts[4]!.caption = [ProgressGui.NPassed, results.passed]
 }
 
 export const progressGuiListener: TestListener = (event, state) => {

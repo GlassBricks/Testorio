@@ -21,6 +21,6 @@ for (const eventName of events) {
     if (tags.modName !== modName) return
     const method = tags[eventName]
     if (!method) return
-    guiActions[method as GuiAction](e)
+    guiActions[method as GuiAction]!(e)
   })
 }

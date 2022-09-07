@@ -216,7 +216,7 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
 
   runTestPart(testRun: TestRun): Task {
     const { test, partIndex } = testRun
-    const part = test.parts[partIndex]
+    const part = test.parts[partIndex]!
     this.state.currentTestRun = testRun
     if (test.errors.length === 0) {
       const [success, error] = __testorio__pcallWithStacktrace(part.func)
@@ -232,7 +232,7 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
     const { test, partIndex } = testRun
     const tickNumber = game.tick - testRun.tickStarted
     if (tickNumber > testRun.timeout) {
-      test.errors.push(`Test timed out after ${testRun.timeout} ticks:\n${formatSource(test.parts[partIndex].source)}`)
+      test.errors.push(`Test timed out after ${testRun.timeout} ticks:\n${formatSource(test.parts[partIndex]!.source)}`)
     }
 
     if (test.errors.length === 0) {

@@ -1,14 +1,14 @@
 import { TestStage } from "../shared-constants"
 import { RunResults } from "./result"
 import type { TestState } from "./state"
-import { DescribeBlock, HookType, Source, Test, TestMode } from "./tests"
+import { DescribeBlock, HookType, Source, Test, TestMode, TestTags } from "./tests"
 import { table } from "util"
 import compare = table.compare
 
 interface SavedTestData {
   readonly type: "test"
   readonly path: string
-  readonly tags: Tags
+  readonly tags: TestTags
   readonly source: Source
 
   readonly numParts: number
@@ -16,13 +16,13 @@ interface SavedTestData {
   readonly ticksBefore: number
 
   readonly errors: string[]
-  readonly profiler?: LuaProfiler
+  readonly profiler?: LuaProfiler | undefined
 }
 
 interface SavedDescribeBlockData {
   readonly type: "describeBlock"
   readonly path: string
-  readonly tags: Tags
+  readonly tags: TestTags
   readonly source: Source
   readonly children: (SavedTestData | SavedDescribeBlockData)[]
   readonly hookTypes: HookType[]
@@ -116,7 +116,7 @@ interface ResumeData {
   resumePartIndex: number
 }
 declare const global: {
-  __testResume?: ResumeData
+  __testResume: ResumeData | undefined
 }
 
 export function prepareReload(testState: TestState): void {

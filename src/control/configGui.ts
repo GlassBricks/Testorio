@@ -11,14 +11,16 @@ const modName = script.mod_name
 
 // there can only be one gui
 declare const global: {
-  configGui?: {
-    player: LuaPlayer
-    modSelect: DropDownGuiElement
-    refreshButton: SpriteButtonGuiElement
-    modTextField?: TextFieldGuiElement
-    testStageLabel: LabelGuiElement
-    runButton: ButtonGuiElement
-  }
+  configGui:
+    | {
+        player: LuaPlayer
+        modSelect: DropDownGuiElement
+        refreshButton: SpriteButtonGuiElement
+        modTextField: TextFieldGuiElement | undefined
+        testStageLabel: LabelGuiElement
+        runButton: ButtonGuiElement
+      }
+    | undefined
 }
 function configGuiValid(): boolean {
   return global.configGui !== undefined && global.configGui.player.valid
@@ -56,7 +58,7 @@ function CloseButton(parent: LuaGuiElement, action: GuiAction) {
   })
 }
 
-function TitleBar(parent: LuaGuiElement, title: LocalisedString) {
+function TitleBar(parent: FrameGuiElement, title: LocalisedString) {
   const titleBar = parent.add({
     type: "flow",
     direction: "horizontal",
@@ -82,7 +84,7 @@ function setTestMod(mod: string) {
 }
 
 function getTestMod(): string {
-  return settings.global[Settings.TestMod].value as string
+  return settings.global[Settings.TestMod]!.value as string
 }
 
 function ModSelect(parent: LuaGuiElement) {
@@ -287,7 +289,7 @@ function updateConfigGui() {
 script.on_load(() => {
   const remoteExits = remote.interfaces[Remote.Testorio]?.onTestStageChanged
   if (remoteExits) {
-    const eventId = remote.call(Remote.Testorio, "onTestStageChanged")
+    const eventId = remote.call(Remote.Testorio, "onTestStageChanged") as CustomEventId<table>
     script.on_event(eventId, updateConfigGui)
   }
 })
@@ -330,11 +332,11 @@ const DestroyConfigGui = guiAction("destroyConfigGui", destroyConfigGui)
 const ToggleConfigGui = guiAction("toggleConfigGui", (e) => {
   if (game.is_multiplayer()) {
     destroyConfigGui()
-    game.players[e.player_index].print("Tests cannot be run in multiplayer")
+    game.players[e.player_index]!.print("Tests cannot be run in multiplayer")
   } else if (configGuiValid()) {
     destroyConfigGui()
   } else {
-    createConfigGui(game.players[e.player_index])
+    createConfigGui(game.players[e.player_index]!)
   }
 })
 
@@ -380,7 +382,7 @@ script.on_event([defines.events.on_player_removed, defines.events.on_player_left
 })
 
 script.on_event([defines.events.on_player_created, defines.events.on_player_joined_game], (e) => {
-  createModButton(game.players[e.player_index])
+  createModButton(game.players[e.player_index]!)
   if (game.is_multiplayer() || game.connected_players.length > 1) {
     destroyConfigGui()
   }

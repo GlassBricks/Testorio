@@ -11,6 +11,9 @@
       }
     ],
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "exactOptionalPropertyTypes": true,
     "experimentalDecorators": true,
     "rootDir": "."
   },

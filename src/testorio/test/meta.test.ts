@@ -106,7 +106,7 @@ describe("setup", () => {
     assert.equal(0, result.indexInParent)
 
     assert.equal(1, result.children.length)
-    const child = result.children[0]
+    const child = result.children[0]!
     assert.same(result, child.parent)
     assert.matches("Block > Hello", child.path)
   })
@@ -314,7 +314,7 @@ describe("failing tests", () => {
     })
     const block = runTestSync<DescribeBlock>()
     assert.not_same([], block.errors)
-    assert.same([], block.children[0].errors)
+    assert.same([], block.children[0]!.errors)
   })
 
   test("Error stacktrace is clean", () => {
@@ -324,7 +324,7 @@ describe("failing tests", () => {
     const t = runTestSync()
     assert.equals(1, t.errors.length)
     // 2 stack frames: the test function, error()
-    const errorMsg = t.errors[0]
+    const errorMsg = t.errors[0]!
     const frames = errorMsg.split("\n\t").length - 1
     if (frames !== 2) {
       error("Not two stack frames:\n" + errorMsg + "\n")
@@ -1096,7 +1096,7 @@ describe("tags", () => {
     test("Some other test", () => 0)
     const result = runTestSync()
     assert.same(util.list_to_map(["foo", "bar"]), result.tags)
-    assert.same([], mockTestState.rootBlock.children[1].tags)
+    assert.same([], mockTestState.rootBlock.children[1]!.tags)
   })
 
   test("Lonely tag call is error", () => {

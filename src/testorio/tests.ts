@@ -5,8 +5,8 @@ import HookFn = Testorio.HookFn
 import TestFn = Testorio.TestFn
 
 export interface Source {
-  readonly file?: string
-  readonly line?: number
+  readonly file?: string | undefined
+  readonly line?: number | undefined
 }
 
 export function formatSource(source: Source): string {
@@ -32,14 +32,14 @@ export function createSource(file: string | undefined, line: number | undefined)
 }
 
 export type TestMode = undefined | "skip" | "only" | "todo"
-export type Tags = Record<string, true>
+export type TestTags = LuaSet<string>
 
 export interface Test {
   readonly type: "test"
 
   readonly name: string
   readonly path: string
-  readonly tags: Tags
+  readonly tags: TestTags
 
   readonly source: Source
   readonly parent: DescribeBlock
@@ -54,7 +54,7 @@ export interface Test {
   readonly ticksBefore: number
 
   readonly errors: string[]
-  profiler?: LuaProfiler
+  profiler?: LuaProfiler | undefined
 }
 
 export function addTest(
@@ -63,7 +63,7 @@ export function addTest(
   source: Source,
   func: TestFn,
   mode: TestMode,
-  tags: Tags,
+  tags: TestTags,
 ): Test {
   const test: Test = {
     type: "test",
@@ -99,7 +99,7 @@ export interface DescribeBlock {
 
   readonly name: string
   readonly path: string
-  readonly tags: Tags
+  readonly tags: TestTags
 
   readonly source: Source
 
@@ -121,7 +121,7 @@ export function addDescribeBlock(
   name: string,
   source: Source,
   mode: TestMode,
-  tags: Tags,
+  tags: TestTags,
 ): DescribeBlock {
   const block: DescribeBlock = {
     type: "describeBlock",
@@ -146,7 +146,7 @@ export function createRootDescribeBlock(config: Config): DescribeBlock {
     type: "describeBlock",
     name: "",
     path: "",
-    tags: {},
+    tags: new LuaSet(),
     source: {},
     parent: undefined,
     children: [],

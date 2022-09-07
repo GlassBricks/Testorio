@@ -7,7 +7,7 @@ if (script.active_mods["__testorio-test-mod"]) {
   require("__testorio__/init")(["test.meta.test", "test.reload.test"], {
     sound_effects: true,
     after_test_run() {
-      const results = remote.call("testorio", "getResults")
+      const results = remote.call("testorio", "getResults") as any
       if (results.status === "passed") {
         settings.global[Settings.TestMod] = { value: "__testorio-test-mod" }
         game.reload_mods()

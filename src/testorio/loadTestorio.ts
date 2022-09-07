@@ -54,7 +54,7 @@ function loadTests(files: string[], partialConfig: Partial<Config>): void {
   const state = getTestState()
 
   // load files
-  const _require = settings.global["testorio:test-mod"].value === "testorio" ? require : ____originalRequire
+  const _require = settings.global["testorio:test-mod"]!.value === "testorio" ? require : ____originalRequire
   for (const file of files) {
     describe(file, () => _require(file))
   }
@@ -83,7 +83,7 @@ function doRunTests() {
   const state = getTestState()
   clearTestListeners()
   builtinTestListeners.forEach(addTestListener)
-  if (game) game.tick_paused = false
+  if (game !== undefined) game.tick_paused = false
   const { config } = state
   if (config.show_progress_gui) {
     addTestListener(progressGuiListener)
@@ -111,20 +111,20 @@ function doRunTests() {
   })
 }
 
-const tappedHandlers: Record<defines.Events, [((data: any) => void) | undefined, () => void]> = {}
+const tappedHandlers: Record<defines.events, [((data: any) => void) | undefined, () => void]> = {}
 let onEventTapped = false
 const oldOnEvent = script.on_event
 
-function tapEvent(event: defines.Events, func: () => void) {
+function tapEvent(event: defines.events, func: () => void) {
   if (!tappedHandlers[event]) {
     tappedHandlers[event] = [script.get_event_handler(event), func]
     oldOnEvent(event, (data) => {
-      const handlers = tappedHandlers[event]
+      const handlers = tappedHandlers[event]!
       handlers[0]?.(data)
       handlers[1]()
     })
   } else {
-    tappedHandlers[event][1] = func
+    tappedHandlers[event]![1] = func
   }
 
   if (!onEventTapped) {

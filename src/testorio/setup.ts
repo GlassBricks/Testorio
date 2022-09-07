@@ -4,7 +4,17 @@ import * as util from "util"
 import { __testorio__pcallWithStacktrace } from "./_util"
 import { prepareReload } from "./resume"
 import { getCurrentBlock, getTestState, TestRun } from "./state"
-import { addDescribeBlock, addTest, createSource, DescribeBlock, HookType, Source, Tags, Test, TestMode } from "./tests"
+import {
+  addDescribeBlock,
+  addTest,
+  createSource,
+  DescribeBlock,
+  HookType,
+  Source,
+  Test,
+  TestMode,
+  TestTags,
+} from "./tests"
 import DescribeCreator = Testorio.DescribeCreator
 import DescribeCreatorBase = Testorio.DescribeCreatorBase
 import HookFn = Testorio.HookFn
@@ -37,11 +47,11 @@ function afterTest(func: TestFn): void {
   getCurrentTestRun().afterTestFuncs.push(func)
 }
 
-function consumeTags(): Tags {
+function consumeTags(): TestTags {
   const state = getTestState()
   const result = state.currentTags
   state.currentTags = undefined
-  return result ?? {}
+  return result ?? new LuaSet()
 }
 
 function createTest(name: string, func: TestFn, mode: TestMode, upStack: number = 1): Test {
@@ -159,7 +169,7 @@ function createTestEach(mode: TestMode): TestCreatorBase {
     const test = createTest(name, func, mode)
     return createTestBuilder(
       (func1) => addPart(test, func1),
-      (tag) => (test.tags[tag] = true),
+      (tag) => test.tags.add(tag),
     )
   }
   function doTestEach(values: unknown[][], name: string, func: (...values: any[]) => void): TestBuilder<typeof func> {
@@ -189,7 +199,7 @@ function createTestEach(mode: TestMode): TestCreatorBase {
       },
       (tag) => {
         for (const { test } of testBuilders) {
-          test.tags[tag] = true
+          test.tags.add(tag)
         }
       },
     )

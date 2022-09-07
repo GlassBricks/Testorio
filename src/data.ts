@@ -14,7 +14,7 @@ data.extend([
   },
 ])
 
-data.raw["gui-style"].default[Prototypes.TestOutputBoxStyle] = {
+data.raw["gui-style"]!["default"]![Prototypes.TestOutputBoxStyle] = {
   type: "textbox_style",
   minimal_width: 0,
   natural_width: 1000,
