@@ -54,8 +54,8 @@
     "prepareTest": "gulp prepareTest",
     "prepublishOnly": "yarn run lint && gulp buildPackage",
     "prepackage:mod": "yarn run lint && gulp buildMod",
-    "lint": "eslint **/*.{ts,tsx}",
-    "lint:fix": "eslint **/*{ts,tsx} --fix"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "packageManager": "yarn@3.2.3"
 }
