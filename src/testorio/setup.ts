@@ -290,6 +290,28 @@ type Globals =
   | "describe"
   | "tags"
 
+function implicitAsync() {
+  const testRun = getCurrentTestRun()
+  testRun.async = true
+  if (!testRun.explicitAsync) {
+    testRun.timeout = getTestState().config.default_timeout
+  }
+}
+
+function async(timeout?: number) {
+  const testRun = getCurrentTestRun()
+  testRun.async = true
+  testRun.explicitAsync = true
+
+  if (!timeout) {
+    timeout = getTestState().config.default_timeout
+  }
+  if (timeout < 1) error("test timeout must be greater than 0")
+
+  testRun.timeout = timeout
+  testRun.async = true
+}
+
 export const globals: Pick<typeof globalThis, Globals> = {
   test,
   it: test,
@@ -312,30 +334,20 @@ export const globals: Pick<typeof globalThis, Globals> = {
     afterTest(func)
   },
 
-  async(timeout) {
-    const testRun = getCurrentTestRun()
-
-    if (testRun.async) error("test is already async")
-    if (!timeout) timeout = getTestState().config.default_timeout
-    if (timeout < 1) error("test timeout must be greater than 0")
-
-    testRun.timeout = timeout
-    testRun.async = true
-  },
+  async,
   done() {
     const testRun = getCurrentTestRun()
 
     if (!testRun.async) error(`"done" can only be used when test is async`)
-    if (testRun.asyncDone) error(`async test is already marked as done`)
-
     testRun.asyncDone = true
   },
   on_tick(func) {
+    implicitAsync()
     const testRun = getCurrentTestRun()
-    if (!testRun.async) error("on_tick can only be used in async tests")
-    testRun.onTickFuncs.set(func, true)
+    testRun.onTickFuncs.add(func)
   },
   after_ticks(ticks, func) {
+    implicitAsync()
     const testRun = getCurrentTestRun()
     const finishTick = game.tick - testRun.tickStarted + ticks
     if (ticks < 1) error("after_ticks amount must be positive")

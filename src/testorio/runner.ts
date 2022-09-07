@@ -4,7 +4,6 @@ import { __testorio__pcallWithStacktrace, assertNever } from "./_util"
 import { resumeAfterReload } from "./resume"
 import { setToLoadErrorState, TestRun, TestState } from "./state"
 import { DescribeBlock, formatSource, Hook, isSkippedTest, Test } from "./tests"
-import OnTickFn = Testorio.OnTickFn
 import TestFn = Testorio.TestFn
 
 export interface TestRunner {
@@ -231,12 +230,13 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
     // run on tick events
     const { test, partIndex } = testRun
     const tickNumber = game.tick - testRun.tickStarted
-    if (tickNumber > testRun.timeout) {
-      test.errors.push(`Test timed out after ${testRun.timeout} ticks:\n${formatSource(test.parts[partIndex]!.source)}`)
+    const timeout = testRun.timeout
+    if (tickNumber > timeout) {
+      test.errors.push(`Test timed out after ${timeout} ticks:\n${formatSource(test.parts[partIndex]!.source)}`)
     }
 
     if (test.errors.length === 0) {
-      for (const func of Object.keys(testRun.onTickFuncs) as unknown as OnTickFn[]) {
+      for (const func of Object.keys(testRun.onTickFuncs)) {
         const [success, result] = __testorio__pcallWithStacktrace(func, tickNumber)
         if (!success) {
           test.errors.push(result as string)
@@ -361,7 +361,12 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
 
   private static nextTestTask(testRun: TestRun): Task {
     const { test, partIndex } = testRun
-    if (test.errors.length !== 0 || !testRun.async || testRun.asyncDone) {
+    if (
+      test.errors.length !== 0 ||
+      !testRun.async ||
+      testRun.asyncDone ||
+      (!testRun.explicitAsync && next(testRun.onTickFuncs)[0] === undefined)
+    ) {
       if (partIndex + 1 < test.parts.length) {
         return {
           task: "runTestPart",
@@ -386,7 +391,7 @@ class TestRunnerImpl implements TestTaskRunner, TestRunner {
       timeout: 0,
       asyncDone: false,
       tickStarted: game.tick,
-      onTickFuncs: new LuaTable(),
+      onTickFuncs: new LuaSet(),
       afterTestFuncs: [],
       partIndex,
     }

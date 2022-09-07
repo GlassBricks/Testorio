@@ -37,10 +37,11 @@ export interface TestRun {
   test: Test
   partIndex: number
   async: boolean
+  explicitAsync?: boolean
   timeout: number
   asyncDone: boolean
   tickStarted: number
-  onTickFuncs: LuaTable<OnTickFn, true>
+  onTickFuncs: LuaSet<OnTickFn>
   afterTestFuncs: HookFn[]
 }
 

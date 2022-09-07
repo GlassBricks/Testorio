@@ -524,22 +524,23 @@ describe("async tests", () => {
     assert.not_same([], runTestSync().errors)
   })
 
-  test("double async fails", () => {
-    test("should fail", () => {
+  test("double async does not fail", () => {
+    test("test", () => {
       async()
       async()
+      done()
     })
-    assert.not_same([], runTestSync().errors)
+    assert.same([], runTestSync().errors)
   })
 
-  test("double done fails", () => {
-    test("should fail", () => {
+  test("double done does not fail", () => {
+    test("test", () => {
       async()
       done()
       done()
     })
     runTestAsync((test) => {
-      assert.not_same([], test.errors)
+      assert.same([], test.errors)
     })
   })
 })
@@ -560,13 +561,15 @@ describe("on_tick", () => {
     })
   })
 
-  it("can only be used in an async test", () => {
+  it("automatically sets async", () => {
     test("some thing", () => {
-      on_tick(() => {
-        // noop
+      on_tick((t) => {
+        if (t === 10) done()
       })
     })
-    assert.not_same(runTestSync().errors, [])
+    runTestAsync((test) => {
+      assert.same(test.errors, [])
+    })
   })
 
   it("only runs on the next tick", () => {
@@ -701,6 +704,30 @@ describe("after_ticks", () => {
 
     runTestAsync(() => {
       assert.equal(4, tick)
+    })
+  })
+
+  it("automatically sets async, and ends test when done", () => {
+    test("an async", () => {
+      after_ticks(2, () => {
+        // do nothing
+      })
+    })
+    runTestAsync((test) => {
+      assert.same([], test.errors)
+    })
+  })
+
+  test("does not automatically end test if custom timeout given", () => {
+    test("an async", () => {
+      async(10)
+      after_ticks(2, () => {
+        // do nothing
+      })
+    })
+
+    runTestAsync((test) => {
+      assert.not_same([], test.errors)
     })
   })
 
