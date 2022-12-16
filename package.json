@@ -3,20 +3,19 @@
   "version": "1.6.0",
   "description": "Type definitions for Testorio, a test framework for factorio. For use with TypescriptToLua",
   "keywords": [
-    "factorio",
-    "test",
-    "testing"
+    "factorio", "test", "testing"
   ],
   "homepage": "https://github.com/GlassBricks/Testorio#readme",
   "license": "MIT",
   "files": [
-    "index.d.ts",
-    "testorio.d.ts"
+    "index.d.ts", "testorio.d.ts"
   ],
   "repository": "https://github.com/GlassBricks/Testorio.git",
   "peerDependencies": {
-    "luassert-tstl": ">=0.2.3",
     "typed-factorio": "^1.7.3"
+  },
+  "optionalDependencies": {
+    "luassert-tstl": ">=0.2.3"
   },
   "devDependencies": {
     "@types/gulp": "^4.0.10",
