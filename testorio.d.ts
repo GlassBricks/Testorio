@@ -1,6 +1,4 @@
 /** @noSelfInFile */
-/// <reference types="luassert-tstl" />
-
 declare var test: Testorio.TestCreator
 declare var it: Testorio.TestCreator
 declare var describe: Testorio.DescribeCreator
@@ -20,7 +18,6 @@ declare function tags(...tags: string[]): void
 declare namespace Testorio {
   interface Config {
     show_progress_gui: boolean
-
     default_timeout: number
     default_ticks_between_tests: number
 
@@ -37,6 +34,7 @@ declare namespace Testorio {
     tag_whitelist?: string[]
     tag_blacklist?: string[]
 
+    load_luassert: boolean
     before_test_run?(): void
     after_test_run?(): void
 
@@ -50,7 +48,6 @@ declare namespace Testorio {
   /** @noSelf */
   interface TestCreatorBase {
     (name: string, func: TestFn): TestBuilder
-
     each<V extends any[]>(
       values: readonly V[],
     ): (name: string, func: (...values: V) => void) => TestBuilder<typeof func>

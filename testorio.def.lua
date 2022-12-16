@@ -51,6 +51,7 @@ function part(func) end
 ---@field test_pattern string | nil
 ---@field tag_whitelist string[] | nil
 ---@field tag_blacklist string[] | nil
+---@field load_luassert boolean | nil
 ---@field before_test_run fun() | nil
 ---@field after_test_run fun() | nil
 ---@field sound_effects boolean | nil

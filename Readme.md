@@ -1,6 +1,6 @@
 # Testorio
 
-Elegant testing framework for factorio mods.
+Testing framework for factorio mods.
 
 ```lua
 describe("the factory", function()
@@ -10,8 +10,6 @@ describe("the factory", function()
 end)
 
 ```
-
-Run automated tests. Test real setups in-game, no mocking necessary!
 
 - Modern test framework inspired by [busted](https://olivinelabs.com/busted/)
 - Bundled [luassert](https://github.com/Olivine-Labs/luassert) for assertions
