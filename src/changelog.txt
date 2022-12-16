@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.6.0
-Date: ????
+Date: 2022-12-16
   Changes:
     - Luassert is now optional, but enabled by default. This can be configured using the `load_luassert` option.
 ---------------------------------------------------------------------------------------------------
