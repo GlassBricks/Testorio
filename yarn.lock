@@ -6245,8 +6245,11 @@ __metadata:
     typescript-to-lua: ^1.11.1
     typescript-tstl-plugin: ^0.3.2
   peerDependencies:
-    luassert-tstl: ">=0.2.3"
     typed-factorio: ^1.7.3
+    typescript-to-lua: ^1.6.1
+  dependenciesMeta:
+    luassert-tstl:
+      optional: true
   languageName: unknown
   linkType: soft
 

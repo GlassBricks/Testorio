@@ -15,7 +15,8 @@
   ],
   "repository": "https://github.com/GlassBricks/Testorio.git",
   "peerDependencies": {
-    "typed-factorio": "^1.7.3"
+    "typed-factorio": "^1.7.3",
+    "typescript-to-lua": "^1.6.1"
   },
   "optionalDependencies": {
     "luassert-tstl": ">=0.2.3"
