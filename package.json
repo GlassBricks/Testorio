@@ -1,6 +1,6 @@
 {
   "name": "testorio",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "Type definitions for Testorio, a test framework for factorio. For use with TypescriptToLua",
   "keywords": [
     "factorio",
