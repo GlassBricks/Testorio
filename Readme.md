@@ -1,12 +1,14 @@
+# THIS PROJECT HAS MOVED TO [Factorio Test](https://github.com/GlassBricks/FactorioTest)
+
 # Testorio
 
 Elegant testing framework for factorio mods.
 
 ```lua
 describe("the factory", function()
-  it("must grow", function()
-    assert.is_true(get_factory_size() > old_factory_size)
-  end)
+    it("must grow", function()
+        assert.is_true(get_factory_size() > old_factory_size)
+    end)
 end)
 
 ```
