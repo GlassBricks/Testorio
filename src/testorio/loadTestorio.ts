@@ -1,4 +1,3 @@
-import "__testorio__/luassert/init"
 import { Remote, TestStage } from "../shared-constants"
 import { debugAdapterEnabled } from "./_util"
 import { builtinTestListeners } from "./builtinTestListeners"
@@ -19,7 +18,7 @@ function isRunning(state: TestState) {
 }
 
 // noinspection JSUnusedGlobalSymbols
-export = function (files: string[], config: Partial<Config>): void {
+export = (files: string[], config: Partial<Config>): void => {
   loadTests(files, config)
   remote.add_interface(Remote.Testorio, {
     runTests,
@@ -53,6 +52,9 @@ function loadTests(files: string[], partialConfig: Partial<Config>): void {
   resetTestState(config)
   const state = getTestState()
 
+  if (config.load_luassert) {
+    ____originalRequire("__testorio__/luassert/init")
+  }
   // load files
   const _require = settings.global["testorio:test-mod"]!.value === "testorio" ? require : ____originalRequire
   for (const file of files) {
